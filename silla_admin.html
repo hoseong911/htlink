@@ -10,31 +10,39 @@
         body { font-family: 'Pretendard', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
         .container { max-width: 1000px; margin: 0 auto; }
         
-        /* 로그인 화면 */
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .login-box { background: white; padding: 40px; border-radius: 12px; text-align: center; }
-        .login-box input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 18px; width: 200px; text-align: center; display: block; margin: 15px auto; }
+        /* 1. 로그인 화면 (비밀번호 입력창) */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .login-box h2 { color: var(--admin-red); margin-top: 0; }
+        .login-box input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 18px; width: 220px; text-align: center; display: block; margin: 20px auto; outline: none; }
+        .login-box input:focus { border-color: var(--naver-green); }
         
-        /* 메인 대시보드 */
+        /* 2. 메인 대시보드 */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         h1 { margin: 0; font-size: 22px; color: #333; }
-        .btn { padding: 10px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn { padding: 10px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; }
         .btn-red { background: var(--admin-red); color: white; }
-        .btn-green { background: var(--naver-green); color: white; }
-        .btn-gray { background: #eee; color: #666; }
+        .btn-red:hover { background: #b71c1c; }
+        .btn-green { background: var(--naver-green); color: white; width: 100%; padding: 15px; font-size: 18px; }
+        .btn-green:hover { background: #02a34a; }
+        .btn-gray { background: #eee; color: #666; margin-right: 10px; }
+        .btn-gray:hover { background: #ddd; }
 
         /* 데이터 테이블 */
         .data-table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .data-table th { background: #f8f9fa; padding: 15px; text-align: left; border-bottom: 2px solid #eee; font-size: 14px; color: #666; }
         .data-table td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: top; font-size: 14px; }
         
-        .student-info { font-weight: bold; color: #333; }
-        .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px; margin-bottom: 4px; }
-        .tag-keyword { background: #e8f5e9; color: #2e7d32; }
-        .tag-news { background: #e3f2fd; color: #1565c0; }
-        .tag-ad { background: #fff3e0; color: #ef6c00; }
+        .student-info { font-weight: bold; color: #333; font-size: 15px; }
+        .student-info span { font-size: 12px; color: #888; display: block; margin-top: 4px; }
         
-        .del-btn { color: var(--admin-red); cursor: pointer; font-weight: bold; text-decoration: underline; font-size: 12px; }
+        .tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-right: 5px; margin-bottom: 5px; }
+        .tag-keyword { background: #e8f5e9; color: #2e7d32; font-weight: 600; }
+        .tag-news { background: #e3f2fd; color: #1565c0; }
+        .tag-ad { background: #fff3e0; color: #ef6c00; border-left: 3px solid #ff9800; padding: 8px; font-size: 13px; line-height: 1.4; }
+        
+        .del-btn { color: var(--admin-red); cursor: pointer; font-weight: bold; padding: 6px 12px; border: 1px solid var(--admin-red); border-radius: 4px; display: inline-block; text-align: center; }
+        .del-btn:hover { background: #ffebee; }
         .loading { text-align: center; padding: 50px; font-weight: bold; color: #999; }
     </style>
 </head>
@@ -42,9 +50,10 @@
 
 <div id="login-overlay">
     <div class="login-box">
-        <h2>관리자 비밀번호</h2>
-        <input type="password" id="admin-pw" placeholder="비밀번호 입력">
-        <button class="btn btn-green" onclick="checkLogin()">로그인</button>
+        <h2>⚠️ SILLAVER 관리자 접속</h2>
+        <p style="color:#666; font-size:14px; margin-bottom:10px;">데이터 관리를 위해 비밀번호를 입력해주세요.</p>
+        <input type="password" id="admin-pw" placeholder="비밀번호 입력" onkeypress="if(event.keyCode==13) checkLogin()">
+        <button class="btn btn-green" onclick="checkLogin()">관리자 모드 진입</button>
     </div>
 </div>
 
@@ -52,8 +61,8 @@
     <div class="header">
         <h1>SILLAVER 관리 대시보드</h1>
         <div>
-            <button class="btn btn-gray" onclick="location.href='index.html'">포털 가기</button>
-            <button class="btn btn-red" onclick="resetAll()">전체 데이터 초기화</button>
+            <button class="btn btn-gray" onclick="location.href='index.html'">포털 메인으로 돌아가기</button>
+            <button class="btn btn-red" onclick="resetAll()">전체 데이터 초기화 (새 수업 시작용)</button>
         </div>
     </div>
 
@@ -61,11 +70,11 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th width="15%">학생 정보</th>
+                    <th width="15%">학생 정보 (학번/이름)</th>
                     <th width="20%">실시간 검색어</th>
-                    <th width="30%">뉴스 헤드라인</th>
-                    <th width="25%">광고 배너</th>
-                    <th width="10%">관리</th>
+                    <th width="30%">작성한 뉴스 헤드라인</th>
+                    <th width="25%">작성한 광고 배너</th>
+                    <th width="10%">개별 관리</th>
                 </tr>
             </thead>
             <tbody id="data-list">
@@ -79,6 +88,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, onSnapshot, query, orderBy, deleteDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+    // 파이어베이스 설정
     const firebaseConfig = {
         apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
         authDomain: "ho0911seong-56638.firebaseapp.com",
@@ -91,19 +101,20 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 로그인 체크
+    // 1. 로그인 확인 함수
     window.checkLogin = function() {
         const pw = document.getElementById('admin-pw').value;
-        if(pw === "1234") { // 비밀번호 설정
+        // ⭐ 관리자 비밀번호 (원하시는 대로 1234를 다른 숫자로 바꾸셔도 됩니다)
+        if(pw === "1234") { 
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-main').style.display = 'block';
-            startAdminListener();
+            startAdminListener(); // 로그인 성공 시 데이터 불러오기 시작
         } else {
-            alert("비밀번호가 틀렸습니다.");
+            alert("비밀번호가 일치하지 않습니다.");
         }
     };
 
-    // 실시간 데이터 리스너
+    // 2. 실시간 데이터 불러오기 및 화면에 그리기
     function startAdminListener() {
         const q = query(collection(db, "silla_v3"), orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
@@ -115,49 +126,55 @@
                 const data = docSnap.data();
                 const id = docSnap.id;
 
-                let keywordTags = (data.keywords || []).map(k => `<span class="tag tag-keyword">${k}</span>`).join('');
-                let newsList = (data.news || []).map(n => `<div style="margin-bottom:5px;"><span class="tag tag-news">${n.category}</span> ${n.title}</div>`).join('');
-                let adContent = data.ad ? `<div class="tag-ad" style="padding:5px; border-radius:4px; font-size:13px;">${data.ad}</div>` : '-';
+                // 검색어, 뉴스, 광고 예쁘게 태그화
+                let keywordTags = (data.keywords || []).map(k => `<span class="tag tag-keyword">🔍 ${k}</span>`).join('');
+                let newsList = (data.news || []).map(n => `<div style="margin-bottom:6px;"><span class="tag tag-news">${n.category}</span> ${n.title}</div>`).join('');
+                let adContent = data.ad ? `<div class="tag-ad">${data.ad}</div>` : '<span style="color:#ccc;">(작성안함)</span>';
 
+                // 표(Table)에 한 줄씩 추가
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="student-info">${data.studentId}<br>${data.studentName}</td>
-                    <td>${keywordTags || '-'}</td>
-                    <td>${newsList || '-'}</td>
+                    <td class="student-info">${data.studentName} <span>(${data.studentId})</span></td>
+                    <td>${keywordTags || '<span style="color:#ccc;">(작성안함)</span>'}</td>
+                    <td>${newsList || '<span style="color:#ccc;">(작성안함)</span>'}</td>
                     <td>${adContent}</td>
-                    <td><span class="del-btn" onclick="deleteEntry('${id}')">삭제</span></td>
+                    <td><div class="del-btn" onclick="deleteEntry('${id}')">기록 삭제</div></td>
                 `;
                 list.appendChild(tr);
             });
             
             if(snapshot.empty) {
-                list.innerHTML = "<tr><td colspan='5' style='text-align:center; padding:50px; color:#999;'>등록된 기록이 없습니다.</td></tr>";
+                list.innerHTML = "<tr><td colspan='5' style='text-align:center; padding:50px; color:#999;'>아직 등록된 학생 기록이 없습니다.</td></tr>";
             }
         });
     }
 
-    // 개별 삭제 함수
+    // 3. 학생 1명 기록 개별 삭제
     window.deleteEntry = async function(docId) {
-        if(confirm("이 학생의 모든 기록(검색어, 뉴스, 광고)을 삭제하시겠습니까?")) {
+        if(confirm("이 학생이 작성한 [검색어, 뉴스, 광고]를 모두 삭제하시겠습니까?\n삭제 즉시 메인 포털 화면에서도 사라집니다.")) {
             try {
                 await deleteDoc(doc(db, "silla_v3", docId));
-                alert("삭제되었습니다.");
+                // 삭제되면 onSnapshot 리스너가 알아서 화면을 갱신합니다.
             } catch (e) {
-                alert("삭제 실패: " + e.message);
+                alert("삭제 중 오류가 발생했습니다: " + e.message);
             }
         }
     };
 
-    // 전체 초기화 함수
+    // 4. 전체 데이터 초기화 (반 바뀔 때)
     window.resetAll = async function() {
-        if(confirm("경고! 현재 포털에 있는 모든 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")) {
-            const querySnapshot = await getDocs(collection(db, "silla_v3"));
-            const promises = [];
-            querySnapshot.forEach((docSnap) => {
-                promises.push(deleteDoc(doc(db, "silla_v3", docSnap.id)));
-            });
-            await Promise.all(promises);
-            alert("전체 데이터가 초기화되었습니다.");
+        if(confirm("🚨 경고! SILLAVER 포털에 있는 모든 학생의 데이터를 완전히 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")) {
+            try {
+                const querySnapshot = await getDocs(collection(db, "silla_v3"));
+                const promises = [];
+                querySnapshot.forEach((docSnap) => {
+                    promises.push(deleteDoc(doc(db, "silla_v3", docSnap.id)));
+                });
+                await Promise.all(promises);
+                alert("모든 데이터가 성공적으로 초기화되었습니다.");
+            } catch (e) {
+                alert("초기화 중 오류가 발생했습니다.");
+            }
         }
     };
 </script>
