@@ -61,7 +61,7 @@
     <div class="header">
         <h1>SILLAVER 관리 대시보드</h1>
         <div>
-            <button class="btn btn-gray" onclick="location.href='index.html'">포털 메인으로 돌아가기</button>
+            <button class="btn btn-gray" onclick="location.href='sillasite.html'">포털 메인으로 돌아가기</button>
             <button class="btn btn-red" onclick="resetAll()">전체 데이터 초기화 (새 수업 시작용)</button>
         </div>
     </div>
@@ -101,20 +101,19 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 1. 로그인 확인 함수
+    // 로그인 확인
     window.checkLogin = function() {
         const pw = document.getElementById('admin-pw').value;
-        // ⭐ 관리자 비밀번호 (원하시는 대로 1234를 다른 숫자로 바꾸셔도 됩니다)
         if(pw === "1234") { 
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-main').style.display = 'block';
-            startAdminListener(); // 로그인 성공 시 데이터 불러오기 시작
+            startAdminListener();
         } else {
             alert("비밀번호가 일치하지 않습니다.");
         }
     };
 
-    // 2. 실시간 데이터 불러오기 및 화면에 그리기
+    // 실시간 데이터 불러오기
     function startAdminListener() {
         const q = query(collection(db, "silla_v3"), orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
@@ -126,12 +125,10 @@
                 const data = docSnap.data();
                 const id = docSnap.id;
 
-                // 검색어, 뉴스, 광고 예쁘게 태그화
                 let keywordTags = (data.keywords || []).map(k => `<span class="tag tag-keyword">🔍 ${k}</span>`).join('');
                 let newsList = (data.news || []).map(n => `<div style="margin-bottom:6px;"><span class="tag tag-news">${n.category}</span> ${n.title}</div>`).join('');
                 let adContent = data.ad ? `<div class="tag-ad">${data.ad}</div>` : '<span style="color:#ccc;">(작성안함)</span>';
 
-                // 표(Table)에 한 줄씩 추가
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="student-info">${data.studentName} <span>(${data.studentId})</span></td>
@@ -149,19 +146,18 @@
         });
     }
 
-    // 3. 학생 1명 기록 개별 삭제
+    // 개별 삭제
     window.deleteEntry = async function(docId) {
         if(confirm("이 학생이 작성한 [검색어, 뉴스, 광고]를 모두 삭제하시겠습니까?\n삭제 즉시 메인 포털 화면에서도 사라집니다.")) {
             try {
                 await deleteDoc(doc(db, "silla_v3", docId));
-                // 삭제되면 onSnapshot 리스너가 알아서 화면을 갱신합니다.
             } catch (e) {
                 alert("삭제 중 오류가 발생했습니다: " + e.message);
             }
         }
     };
 
-    // 4. 전체 데이터 초기화 (반 바뀔 때)
+    // 전체 초기화
     window.resetAll = async function() {
         if(confirm("🚨 경고! SILLAVER 포털에 있는 모든 학생의 데이터를 완전히 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")) {
             try {
