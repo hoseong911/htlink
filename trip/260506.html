@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>미스터리 탐험단 — 국립인천해양박물관</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+    :root {
+      --bg: #020a14;
+      --surface: #050e1c;
+      --card: #091628;
+      --card2: #0d1e36;
+      --border: #162f50;
+      --border2: #1e4270;
+      --accent: #3a8fd4;
+      --accent2: #5ba8f0;
+      --text: #dde8f5;
+      --text2: #7fa8cc;
+      --text3: #3a6090;
+      --gold: #e8a91a;
+      --gold2: #f5c842;
+      --success: #1db859;
+      --success-bg: #071a0e;
+      --danger: #e83535;
+      --warn: #e89020;
+      --serif: 'Noto Serif KR', serif;
+      --sans: 'Noto Sans KR', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: var(--surface);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── 상단 진행 바 ── */
+    #progress-bar { position: sticky; top: 0; z-index: 100; height: 3px; background: var(--border); }
+    #progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); transition: width 0.5s ease; width: 0%; }
+
+    /* ── 타이머 배너 ── */
+    #timer-banner {
+      display: none; position: sticky; top: 3px; z-index: 99;
+      background: #1a0a00; border-bottom: 1px solid #5a3000;
+      padding: 7px 16px; text-align: center;
+      font-size: 13px; color: var(--warn);
+      font-weight: 600;
+    }
+    #timer-banner.critical { color: var(--danger); background: #1a0500; animation: pulse-warn 1s infinite; }
+    @keyframes pulse-warn { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+
+    /* ── 선생님 패널 ── */
+    #teacher-panel {
+      display: none; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; background: #0a0500;
+      border-top: 1px solid #5a3000; padding: 10px 14px;
+      z-index: 200; gap: 8px; flex-wrap: wrap;
+    }
+    #teacher-panel.show { display: flex; }
+    .teacher-label { font-size: 11px; color: #b87020; width: 100%; margin-bottom: 2px; }
+    .teacher-btn { padding: 8px 14px; border-radius: 8px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
+    .teacher-btn.danger { background: var(--danger); color: #fff; }
+    .teacher-btn.info { background: var(--card2); color: var(--accent2); border: 1px solid var(--border2); }
+
+    /* ── 강제종료 오버레이 ── */
+    #force-end-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(2,10,20,0.97); z-index: 500;
+      flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 40px 30px;
+    }
+    #force-end-overlay.show { display: flex; }
+    .force-icon { font-size: 52px; margin-bottom: 16px; }
+    .force-title { font-family: var(--serif); font-size: 20px; color: var(--warn); margin-bottom: 10px; font-weight: 600; }
+    .force-msg { font-size: 14px; color: var(--text2); line-height: 1.8; margin-bottom: 28px; }
+    .force-submit-btn { padding: 14px 40px; background: var(--accent); color: #fff; border: none; border-radius: 30px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: var(--sans); }
+
+    /* ── 공통 페이지 패딩 ── */
+    .page { padding: 20px 16px 80px; }
+
+    /* ── 로그인 ── */
+    .login-hero { text-align: center; padding: 36px 18px 22px; }
+    .login-emblem { font-size: 50px; display: block; margin-bottom: 12px; }
+    .login-title { font-family: var(--serif); font-size: 22px; color: var(--text); font-weight: 700; margin-bottom: 4px; }
+    .login-sub { font-size: 12px; color: var(--text3); }
+
+    .login-briefing {
+      background: var(--card); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent); border-radius: 14px;
+      padding: 16px; margin: 0 16px 20px;
+    }
+    .briefing-label { font-size: 10px; color: var(--text3); letter-spacing: 0.12em; margin-bottom: 8px; text-transform: uppercase; }
+    .briefing-text { font-family: var(--serif); font-size: 13px; color: #7aaac0; line-height: 1.9; }
+
+    .login-form { padding: 0 16px 30px; }
+    .field-label { font-size: 12px; color: var(--text3); margin-bottom: 6px; display: block; }
+    .field-input {
+      width: 100%; padding: 13px 15px; background: var(--card);
+      border: 1px solid var(--border2); border-radius: 12px;
+      font-size: 16px; color: var(--text); font-family: var(--sans); margin-bottom: 12px;
+    }
+    .field-input::placeholder { color: var(--text3); }
+    .field-input:focus { outline: none; border-color: var(--accent); }
+    .start-btn {
+      width: 100%; padding: 15px; background: var(--accent); color: #fff;
+      border: none; border-radius: 13px; font-size: 16px; font-weight: 700;
+      cursor: pointer; font-family: var(--sans); margin-top: 4px;
+    }
+    .start-btn:active { opacity: 0.85; }
+    .restore-notice {
+      background: var(--success-bg); border: 1px solid #1a5c2a;
+      border-radius: 10px; padding: 10px 14px; font-size: 13px;
+      color: #5de090; margin: 0 16px 14px; display: none;
+    }
+
+    /* ── 전시실 선택 ── */
+    .select-wrap { padding: 16px 16px 80px; }
+    .user-badge {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 13px; padding: 12px 14px; margin-bottom: 16px;
+    }
+    .user-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--card2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .user-info { flex: 1; }
+    .user-name { font-size: 15px; font-weight: 700; color: var(--text); }
+    .user-id { font-size: 12px; color: var(--text3); }
+    .user-stamps { font-size: 13px; color: var(--accent2); font-weight: 600; }
+
+    /* ── 스탬프 미니뷰 (선택 화면) ── */
+    .stamp-mini {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 13px; padding: 14px; margin-bottom: 16px;
+    }
+    .stamp-mini-label { font-size: 11px; color: var(--text3); margin-bottom: 10px; letter-spacing: 0.08em; }
+    .stamp-mini-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+    .stamp-dot {
+      width: 100%; aspect-ratio: 1; border-radius: 50%;
+      border: 1.5px dashed var(--border2); background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; transition: all 0.3s;
+    }
+    .stamp-dot.earned { border-color: var(--gold); background: rgba(232,169,26,0.15); animation: stamp-pop 0.4s ease; }
+    .stamp-dot.earned.final { border-color: var(--accent); background: rgba(58,143,212,0.15); }
+    @keyframes stamp-pop { 0%{transform:scale(0.4);opacity:0} 70%{transform:scale(1.25)} 100%{transform:scale(1);opacity:1} }
+
+    .section-label { font-size: 12px; color: var(--text3); letter-spacing: 0.08em; margin-bottom: 10px; text-transform: uppercase; }
+    .floor-list { display: flex; flex-direction: column; gap: 8px; }
+    .floor-btn {
+      width: 100%; padding: 15px 16px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 13px;
+      font-size: 14px; color: var(--text); cursor: pointer;
+      text-align: left; font-family: var(--sans);
+      display: flex; align-items: center; justify-content: space-between;
+      transition: border-color 0.2s;
+    }
+    .floor-btn:hover { border-color: var(--border2); }
+    .floor-btn.all-done { border-color: var(--success); background: var(--success-bg); color: #5de090; }
+    .floor-btn.partial { border-left: 3px solid var(--accent); }
+    .floor-btn .floor-name { font-weight: 500; }
+    .floor-btn .floor-count { font-size: 12px; color: var(--text3); }
+    .floor-btn.all-done .floor-count { color: var(--success); }
+    .reflection-lock-notice {
+      font-size: 12px; color: var(--text3); text-align: center;
+      padding: 10px; background: var(--card); border-radius: 10px;
+      border: 1px dashed var(--border); margin-top: 8px;
+    }
+
+    /* ── 퀴즈 화면 ── */
+    .quiz-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 3px; background: var(--surface); z-index: 90;
+    }
+    .back-btn {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 9px; padding: 7px 12px; font-size: 12px;
+      color: var(--text2); cursor: pointer; font-family: var(--sans); white-space: nowrap;
+    }
+    .quiz-title { flex: 1; text-align: center; font-size: 14px; color: var(--text); font-weight: 500; }
+
+    /* ── 스탬프 그리드 (퀴즈 화면) ── */
+    .stamp-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px; margin: 12px 14px;
+    }
+    .stamp-card-label { font-size: 10px; color: var(--text3); letter-spacing: 0.1em; margin-bottom: 10px; text-transform: uppercase; }
+    .stamp-grid { display: grid; gap: 6px; }
+    .stamp-slot {
+      width: 100%; aspect-ratio: 1; border-radius: 50%;
+      border: 1.5px dashed var(--border2); background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; cursor: pointer; transition: all 0.3s;
+      color: var(--text3);
+    }
+    .stamp-slot:hover { border-color: var(--accent); }
+    .stamp-slot.earned { border-color: var(--gold); background: rgba(232,169,26,0.15); animation: stamp-pop 0.4s ease; cursor: pointer; }
+    .stamp-slot.current { border-color: var(--accent); border-style: solid; background: rgba(58,143,212,0.1); }
+    .stamp-slot.locked { opacity: 0.3; cursor: not-allowed; }
+    .stamp-slot.final-lock { border-color: var(--accent2); border-style: dashed; }
+
+    /* ── 문제 영역 ── */
+    .q-wrap { padding: 0 14px 14px; }
+    .floor-tag { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 20px; padding: 3px 10px; margin-bottom: 10px; }
+    .tag-1f { background: #091828; color: #60a5fa; border: 1px solid #1e3a5f; }
+    .tag-2f { background: #1a1505; color: #fcd34d; border: 1px solid #3a2e05; }
+    .tag-3f { background: #0a1f10; color: #86efac; border: 1px solid #1a4a28; }
+    .tag-reflection { background: #180920; color: #d8a0f8; border: 1px solid #4a1a70; }
+
+    .q-num { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+    .q-story {
+      background: var(--card); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent); border-radius: 13px;
+      padding: 14px 16px; margin-bottom: 14px;
+    }
+    .q-story-label { font-size: 10px; color: var(--text3); letter-spacing: 0.1em; margin-bottom: 8px; text-transform: uppercase; }
+    .q-story-text { font-family: var(--serif); font-size: 13px; color: #7aaac0; line-height: 1.9; }
+
+    .q-card { background: var(--card2); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+    .q-card h3 { font-size: 14px; color: var(--accent2); margin-bottom: 10px; font-weight: 500; }
+    .q-card p { font-size: 13px; color: var(--text); line-height: 1.7; margin-bottom: 7px; }
+
+    /* ── 입력 ── */
+    .answer-row { display: flex; gap: 8px; margin-top: 10px; }
+    .answer-input {
+      flex: 1; padding: 12px 13px; background: var(--bg);
+      border: 1px solid var(--border2); border-radius: 10px;
+      font-size: 15px; color: var(--text); font-family: var(--sans);
+    }
+    .answer-input::placeholder { color: var(--text3); }
+    .answer-input:focus { outline: none; border-color: var(--accent); }
+    .answer-input:disabled { opacity: 0.6; }
+    .submit-btn {
+      padding: 0 16px; background: var(--accent); color: #fff;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0; font-family: var(--sans);
+    }
+    .submit-btn:active { opacity: 0.8; }
+
+    /* ── 객관식 ── */
+    .choice-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .choice-btn {
+      width: 100%; padding: 12px 14px; background: var(--bg);
+      border: 1px solid var(--border2); border-radius: 11px;
+      font-size: 14px; color: var(--text); cursor: pointer;
+      text-align: left; font-family: var(--sans); transition: border-color 0.2s;
+    }
+    .choice-btn:hover:not(:disabled) { border-color: var(--accent); }
+    .choice-btn.correct { border-color: var(--success); background: var(--success-bg); color: #86efac; }
+    .choice-btn.wrong { border-color: var(--danger); background: #1f0a0a; color: #fca5a5; }
+    .choice-btn:disabled { cursor: default; }
+
+    /* ── 힌트 ── */
+    .hint-box {
+      background: #120e00; border: 1px solid var(--border);
+      border-left: 3px solid var(--warn); border-radius: 10px;
+      padding: 10px 13px; margin-top: 8px; display: none;
+    }
+    .hint-box.show { display: block; }
+    .hint-label { font-size: 10px; color: var(--warn); letter-spacing: 0.1em; margin-bottom: 5px; }
+    .hint-step { font-size: 12px; color: #b89a40; line-height: 1.75; display: none; margin-bottom: 4px; font-style: italic; }
+    .hint-step.on { display: block; }
+
+    /* ── 정답 피드백 ── */
+    .feedback-ok {
+      background: var(--success-bg); border: 1px solid #1a5c2a;
+      border-radius: 11px; padding: 12px 14px; margin-top: 10px;
+      display: none;
+    }
+    .feedback-ok.show { display: block; }
+    .feedback-ok-title { font-size: 13px; color: var(--success); font-weight: 700; margin-bottom: 4px; }
+    .feedback-ok-text { font-size: 12px; color: #4aaa70; line-height: 1.7; }
+
+    /* ── 드래그앤드롭 (고려) ── */
+    .goryeo-passage { font-size: 13px; color: var(--text); line-height: 3.2; margin-bottom: 12px; word-break: keep-all; }
+    .drop-slot {
+      display: inline-block; min-width: 55px; height: 26px;
+      background: var(--bg); border: 1.5px dashed var(--accent);
+      border-radius: 6px; vertical-align: middle; text-align: center;
+      line-height: 24px; font-size: 12px; color: var(--accent2);
+      font-weight: 600; cursor: pointer; padding: 0 5px;
+      transition: border-color 0.2s;
+    }
+    .drop-slot.filled { background: #0f2040; border-style: solid; border-color: var(--accent2); }
+    .drop-slot.correct-slot { background: #071a0e; border-color: var(--success); color: #5de090; }
+    .keyword-pool {
+      display: flex; flex-wrap: wrap; gap: 6px; padding: 10px;
+      background: var(--bg); border-radius: 10px; border: 1px solid var(--border);
+      margin-bottom: 8px; min-height: 44px;
+    }
+    .kw-chip {
+      padding: 5px 11px; background: var(--card2); color: var(--accent2);
+      border-radius: 20px; font-size: 12px; font-weight: 600; cursor: grab;
+      border: 1px solid var(--border2); user-select: none; touch-action: none;
+    }
+    .kw-chip.used { opacity: 0.3; cursor: not-allowed; }
+    .drag-ghost {
+      position: fixed; pointer-events: none; z-index: 9999;
+      padding: 5px 12px; background: var(--accent); color: #fff;
+      border-radius: 20px; font-size: 12px; font-weight: 600;
+      opacity: 0.9; transform: translate(-50%, -50%);
+    }
+    .dnd-check-btn {
+      width: 100%; padding: 11px; background: transparent;
+      border: 1px solid var(--accent); border-radius: 10px;
+      color: var(--accent2); font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: var(--sans); margin-top: 4px;
+    }
+
+    /* ── 순서 드래그 (소금) ── */
+    .order-list { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
+    .order-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 11px 13px; background: var(--bg);
+      border: 1px solid var(--border2); border-radius: 10px;
+      font-size: 13px; color: var(--text); cursor: grab;
+      user-select: none; touch-action: none;
+    }
+    .order-item.dragging { opacity: 0.4; }
+    .order-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--accent); color: #fff; font-size: 11px;
+      font-weight: 700; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0;
+    }
+    .order-check-btn {
+      width: 100%; padding: 11px; background: transparent;
+      border: 1px solid var(--accent); border-radius: 10px;
+      color: var(--accent2); font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: var(--sans); margin-top: 8px;
+    }
+
+    /* ── 소감 ── */
+    .reflection-area {
+      width: 100%; min-height: 130px; padding: 13px;
+      background: var(--bg); border: 1px solid var(--border2);
+      border-radius: 11px; font-size: 14px; color: var(--text);
+      font-family: var(--sans); line-height: 1.7; resize: vertical; margin-top: 10px;
+    }
+    .reflection-area::placeholder { color: var(--text3); }
+    .reflection-area:focus { outline: none; border-color: var(--accent); }
+    .char-count { text-align: right; font-size: 11px; color: var(--text3); margin-top: 4px; }
+    .final-btn {
+      width: 100%; padding: 15px; background: var(--accent); color: #fff;
+      border: none; border-radius: 13px; font-size: 15px; font-weight: 700;
+      cursor: pointer; font-family: var(--sans); margin-top: 12px;
+    }
+    .final-btn:disabled { background: var(--card2); color: var(--text3); cursor: default; }
+
+    /* ── 완료 화면 ── */
+    .done-wrap { text-align: center; padding: 60px 18px; }
+    .done-icon { font-size: 56px; margin-bottom: 18px; }
+    .done-title { font-family: var(--serif); font-size: 22px; color: var(--text); font-weight: 700; margin-bottom: 12px; }
+    .done-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0; }
+    .done-badge { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--card); border: 1px solid var(--border); }
+    .done-badge.earned { border-color: var(--gold); color: var(--gold2); background: rgba(232,169,26,0.1); }
+    .done-sub { font-size: 14px; color: var(--text2); line-height: 1.8; margin-bottom: 6px; }
+    .done-time { font-size: 12px; color: var(--text3); margin-top: 16px; }
+    .done-score { font-size: 28px; font-weight: 700; color: var(--gold2); margin: 12px 0; font-family: var(--serif); }
+
+    /* ── 토스트 ── */
+    #toast {
+      position: fixed; top: 18px; left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: rgba(30,50,80,0.95); border: 1px solid var(--border2);
+      color: var(--text); padding: 10px 20px; border-radius: 20px;
+      font-size: 13px; font-family: var(--sans); z-index: 9999;
+      transition: transform 0.3s ease; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── 미리보기 네비 ── */
+    #preview-nav {
+      display: none; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 480px; background: rgba(2,10,20,0.97);
+      border-top: 1px solid var(--border2); padding: 7px 10px;
+      z-index: 400; flex-wrap: wrap; gap: 5px;
+    }
+    #preview-nav.show { display: flex; }
+    .pnav-btn {
+      padding: 4px 9px; background: var(--card2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text2); font-size: 10px; cursor: pointer;
+      font-family: var(--sans);
+    }
+    .pnav-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  </style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="app">
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <div id="timer-banner">⏰ 시간 종료 — 지금까지 한 내용을 제출하세요</div>
+
+  <!-- ── 선생님 패널 ── -->
+  <div id="teacher-panel">
+    <div class="teacher-label">🔑 선생님 모드</div>
+    <button class="teacher-btn danger" onclick="forceEnd()">⏹ 활동 강제 종료</button>
+    <button class="teacher-btn info" onclick="showResults()">📊 현재 현황 보기</button>
+    <button class="teacher-btn info" onclick="resetAll()">🗑 전체 초기화</button>
+  </div>
+
+  <!-- ── 강제 종료 오버레이 ── -->
+  <div id="force-end-overlay">
+    <div class="force-icon">⏹</div>
+    <div class="force-title">활동이 종료되었습니다</div>
+    <div class="force-msg">선생님이 활동을 마쳤습니다.<br>지금까지 완료한 미션을 제출해 주세요.</div>
+    <button class="force-submit-btn" onclick="goForceSubmit()">지금까지 내용 제출하기 →</button>
+  </div>
+
+  <!-- ══ 로그인 ══ -->
+  <div id="screen-login" class="screen active">
+    <div class="login-hero">
+      <span class="login-emblem">⚓</span>
+      <div class="login-title">미스터리 탐험단</div>
+      <div class="login-sub">국립인천해양박물관 시간 복원 작전</div>
+    </div>
+    <div class="restore-notice" id="restore-notice">📂 이전 진행 상황을 복원했습니다.</div>
+    <div class="login-briefing">
+      <div class="briefing-label">긴급 브리핑</div>
+      <div class="briefing-text">
+        당신은 인천동양중학교 미스터리 탐험단 소속입니다.<br><br>
+        오늘, 국립인천해양박물관의 <strong style="color:var(--accent2)">시간의 톱니바퀴가 어긋났습니다.</strong><br><br>
+        수천 년의 해양 역사 기록들이 뒤섞이고 사라지기 시작했습니다. 각 층에 흩어진 <strong style="color:var(--gold2)">바다의 기억</strong>을 순서 없이 되찾아 시간을 복원하세요!
+      </div>
+    </div>
+    <div class="login-form">
+      <label class="field-label">학번</label>
+      <input class="field-input" type="text" id="student-id" inputmode="numeric" placeholder="예: 30601">
+      <label class="field-label">이름</label>
+      <input class="field-input" type="text" id="student-name" placeholder="예: 김호성">
+      <button class="start-btn" onclick="startMission()">작전 개시 →</button>
+    </div>
+  </div>
+
+  <!-- ══ 전시실 선택 ══ -->
+  <div id="screen-select" class="screen">
+    <div class="select-wrap">
+      <div class="user-badge">
+        <div class="user-avatar">🌊</div>
+        <div class="user-info">
+          <div class="user-name" id="badge-name">-</div>
+          <div class="user-id" id="badge-id">-</div>
+        </div>
+        <div class="user-stamps" id="badge-stamps">0 / 8</div>
+      </div>
+
+      <div class="stamp-mini">
+        <div class="stamp-mini-label">스탬프 현황</div>
+        <div class="stamp-mini-grid" id="stamp-mini-grid"></div>
+      </div>
+
+      <div class="section-label">미션 선택</div>
+      <div class="floor-list" id="floor-list"></div>
+
+      <div class="reflection-lock-notice" id="reflection-notice" style="display:none">
+        📝 소감 미션은 1~8번 미션 완료 후 열립니다
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 퀴즈 화면 ══ -->
+  <div id="screen-quiz" class="screen">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="goSelect()">← 목록</button>
+      <div class="quiz-title" id="quiz-title">미스터리 탐험단</div>
+      <div style="width:48px"></div>
+    </div>
+    <div class="stamp-card">
+      <div class="stamp-card-label">스탬프 현황 — 탭하면 이동</div>
+      <div class="stamp-grid" id="stamp-grid-quiz"></div>
+    </div>
+    <div class="q-wrap" id="q-wrap"></div>
+  </div>
+
+  <!-- ══ 완료 ══ -->
+  <div id="screen-done" class="screen">
+    <div class="done-wrap">
+      <div class="done-icon" id="done-icon">🎖️</div>
+      <div class="done-title" id="done-title">임무 완수!</div>
+      <div class="done-score" id="done-score"></div>
+      <div class="done-badges" id="done-badges"></div>
+      <div class="done-sub" id="done-sub">바다의 기억이 복원되었습니다.<br>시간의 톱니바퀴가 다시 돌아가기 시작합니다.</div>
+      <div class="done-sub" style="margin-top:12px;font-size:12px;color:var(--text3)">선생님의 안내에 따라 이동해 주세요.</div>
+      <div class="done-time" id="done-time"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 미리보기 네비 -->
+<div id="preview-nav">
+  <button class="pnav-btn" onclick="jumpPreview('login')">로그인</button>
+  <button class="pnav-btn" onclick="jumpPreview('select')">선택</button>
+  <button class="pnav-btn" onclick="jumpPreview(0)">M1</button>
+  <button class="pnav-btn" onclick="jumpPreview(1)">M2</button>
+  <button class="pnav-btn" onclick="jumpPreview(2)">M3</button>
+  <button class="pnav-btn" onclick="jumpPreview(3)">M4</button>
+  <button class="pnav-btn" onclick="jumpPreview(4)">M5</button>
+  <button class="pnav-btn" onclick="jumpPreview(5)">M6</button>
+  <button class="pnav-btn" onclick="jumpPreview(6)">M7</button>
+  <button class="pnav-btn" onclick="jumpPreview(7)">M8</button>
+  <button class="pnav-btn" onclick="jumpPreview(8)">소감</button>
+  <button class="pnav-btn" onclick="jumpPreview('done')">완료</button>
+</div>
+
+<script>
+/* ══════════════════════════════════
+   설정
+══════════════════════════════════ */
+const GAS_URL = 'YOUR_GAS_URL_HERE'; // ← 배포 후 여기에 GAS URL 입력
+const SAVE_KEY = 'ocean_museum_v2';
+const IS_PREVIEW = new URLSearchParams(location.search).get('preview') === 'true';
+const IS_TEACHER = new URLSearchParams(location.search).get('teacher') === 'true';
+
+/* ══════════════════════════════════
+   미션 정의 (8개 + 소감)
+══════════════════════════════════ */
+const MISSIONS = [
+  {
+    id: 0,
+    floor: '1f',
+    floorLabel: '1층 · 디지털 실감영상실',
+    icon: '🎬',
+    title: '첫 번째 시간의 열쇠',
+    story: {
+      label: '1층 — 시간 균열 발생',
+      text: '1층 어두운 방에 발을 들이는 순간, 거대한 파도 소리와 함께 시공간이 일그러졌다. 화면 속에 1624년 조선의 목선이 나타났다.'
+    },
+    type: 'text',
+    question: '영상을 집중해서 관람하세요. 1624년 조선 사신단의 바닷길 여정을 담은 이 기록화의 정확한 이름을 전시 패널에서 찾아 입력하세요.',
+    answers: ['항해조천도'],
+    placeholder: '다섯 글자 입력',
+    hints: ['전시 패널과 영상 화면 하단의 제목을 주의 깊게 살펴보세요.', '다섯 글자예요. 바닷길을 뜻하는 한자가 포함되어 있습니다.'],
+    explain: '항해조천도(航海朝天圖)! 1624년 이덕형 사신단의 명나라 사행 항해를 그린 기록화예요.'
+  },
+  {
+    id: 1,
+    floor: '2f',
+    floorLabel: '2층 · 해양교류사실 — 선사시대',
+    icon: '🔍',
+    title: '선사시대의 열쇠',
+    story: {
+      label: '2층 — 시대 I. 선사시대',
+      text: '전시실의 시간이 거꾸로 흘렀다. 수천 년 전 신석기시대 바닷가 풍경이 눈앞에 펼쳐진다.'
+    },
+    type: 'text',
+    question: '전시된 배 실물과 설명 패널을 자세히 읽어보세요. 우리나라에서 발견된 가장 오래된 이 배의 이름에 들어간 세 글자 지명은 무엇인가요?\n\n창녕 ○○○ 배',
+    answers: ['비봉리'],
+    placeholder: '세 글자 지명',
+    hints: ['전시 패널의 유물 이름 표기를 다시 확인해 보세요.', '경상남도 창녕군에 있는 지명이에요. 세 글자입니다.'],
+    explain: '비봉리! 창녕 비봉리에서 발굴된 신석기시대의 통나무배로, 약 8,000년 전에 만들어졌어요.'
+  },
+  {
+    id: 2,
+    floor: '2f',
+    floorLabel: '2층 · 해양교류사실 — 삼국시대',
+    icon: '🔍',
+    title: '삼국시대의 열쇠',
+    story: {
+      label: '2층 — 시대 II. 삼국시대',
+      text: '탐험단은 동아시아 바다 한가운데 교역선 위에 올라섰다. 이 왕국은 중국과 일본을 잇는 바닷길을 장악하며 동아시아 교역의 중심에 섰다.'
+    },
+    type: 'choice',
+    question: '삼국시대 중 동아시아 해상 교류를 주도하며 중국·일본과 활발히 교역한 나라는?',
+    choices: ['① 고구려', '② 백제', '③ 신라'],
+    answer: 1,
+    hints: ['전시 패널에 삼국의 교역 특징이 설명되어 있어요. 다시 읽어보세요.', '한강 유역을 거점으로 중국 남조, 일본과 교류한 나라예요.'],
+    explain: '백제! 한강 유역을 중심으로 남중국 및 일본과 활발한 해상 교역을 펼쳤어요.'
+  },
+  {
+    id: 3,
+    floor: '2f',
+    floorLabel: '2층 · 해양교류사실 — 남북국시대',
+    icon: '🔍',
+    title: '남북국시대의 열쇠',
+    story: {
+      label: '2층 — 시대 III. 남북국시대',
+      text: '828년, 한 인물이 전라남도 완도에 해군기지를 세우고 해적을 소탕한 뒤 동아시아 무역을 독점했다.'
+    },
+    type: 'text',
+    question: '2층 전시 패널에서 찾아보세요. 828년 완도에 청해진을 설치하고 당·신라·일본을 잇는 국제 무역을 주도한 인물의 이름은?',
+    answers: ['장보고'],
+    placeholder: '세 글자 이름',
+    hints: ['청해진 관련 전시 패널을 다시 살펴보세요.', '세 글자 이름이에요. 전시물에서 \'해상왕\'이라는 표현과 함께 등장합니다.'],
+    explain: '장보고! 청해진을 설치하고 해적을 소탕한 뒤 당·신라·일본을 잇는 해상 무역을 독점한 인물이에요.'
+  },
+  {
+    id: 4,
+    floor: '2f',
+    floorLabel: '2층 · 해양교류사실 — 고려시대',
+    icon: '🔍',
+    title: '고려시대의 열쇠',
+    story: {
+      label: '2층 — 시대 IV. 고려시대',
+      text: '고려시대 개경 항구. 동아시아는 물론 멀리 중동 상인들까지 드나들던 이 나라. 박물관 벽면의 고려 교류 기록 문구를 그대로 찾아 빈칸을 채우세요!'
+    },
+    type: 'dnd',
+    slots: [
+      { id: 'slot-0', answer: '송' },
+      { id: 'slot-1', answer: '일본' },
+      { id: 'slot-2', answer: '대식국' },
+      { id: 'slot-3', answer: '교지국' },
+      { id: 'slot-4', answer: '섬라곡국' },
+      { id: 'slot-5', answer: '예성항' },
+      { id: 'slot-6', answer: '코리아' },
+    ],
+    keywords: ['송', '일본', '대식국', '교지국', '섬라곡국', '예성항', '코리아'],
+    hints: ['전시실 벽면의 고려 교류 기록 문구를 순서대로 따라가며 채워보세요.'],
+    explain: '고려는 송·일본·대식국(아라비아)·교지국(베트남)·섬라곡국(태국) 등과 교류했고, 아라비아 상인들이 예성항에 거주하며 고려를 세계에 알려 "코리아"라는 이름이 탄생했어요!'
+  },
+  {
+    id: 5,
+    floor: '2f',
+    floorLabel: '2층 · 해양교류사실 — 조선시대',
+    icon: '🔍',
+    title: '조선시대의 열쇠',
+    story: {
+      label: '2층 — 시대 V. 조선시대',
+      text: '1592년, 왜군의 침략으로 위기. 그러나 조선 수군은 단 한 번도 패하지 않았다.'
+    },
+    type: 'choice',
+    question: '임진왜란 당시 이순신 장군이 이끈 조선 수군의 핵심 전선으로 지붕을 덮은 구조가 특징인 이 배의 이름은?',
+    choices: ['① 판옥선', '② 거북선', '③ 맹선'],
+    answer: 1,
+    hints: ['전시된 배 모형을 직접 관찰하고 설명 패널을 읽어보세요.', '등껍질처럼 덮인 지붕이 특징인 두 글자 배예요.'],
+    explain: '거북선! 등 부분을 거북등처럼 덮은 구조로, 조선 수군의 핵심 돌격선이었어요.'
+  },
+  {
+    id: 6,
+    floor: '3f',
+    floorLabel: '3층 · 해운항만실',
+    icon: '🚢',
+    title: '해운항만의 열쇠',
+    story: {
+      label: '3층 — 바다, 세계를 잇다',
+      text: '현대의 거대한 항만 시설과 세계를 잇는 해운 물류의 역사가 펼쳐진다. 전시물을 꼼꼼히 살펴 해운 물류 혁명의 핵심을 찾아내세요!'
+    },
+    type: 'text',
+    question: '3층 전시 섹션 제목을 찾아보세요.\n"○○○○○, 해운물류의 역사를 바꾼 상자"라고 적혀 있어요. 이 발명품의 이름은?',
+    answers: ['컨테이너'],
+    placeholder: '다섯 글자',
+    hints: ['3층 해운항만실 전시 섹션 제목을 찾아보세요.', '항구에서 배에 실리는 규격화된 금속 상자예요. 다섯 글자입니다.'],
+    explain: '컨테이너! 1956년 처음 도입된 이후 전 세계 해운 물류의 효율을 혁신적으로 높였어요.'
+  },
+  {
+    id: 7,
+    floor: '3f',
+    floorLabel: '3층 · 해양문화실',
+    icon: '🌊',
+    title: '해양문화의 열쇠',
+    story: {
+      label: '3층 — 소금꽃을 피우다',
+      text: '갯벌에서 소금을 만들던 오랜 지혜. 전시물 속 염전의 기록이 뒤섞여 버렸다!'
+    },
+    type: 'order',
+    question: '3층 해양문화실 \'소금꽃을 피우다\' 전시 패널을 찾아 읽어보세요. 천일염을 만드는 과정을 올바른 순서로 드래그해 배열하세요.',
+    orderItems: [
+      { text: '결정지에서 소금 결정 수확', correct: 3 },
+      { text: '바닷물을 저수지에 끌어들이기', correct: 1 },
+      { text: '수확한 소금 창고에 보관', correct: 4 },
+      { text: '증발지에서 햇볕으로 수분 증발', correct: 2 },
+    ],
+    hints: ['전시 패널의 염전 공정 그림을 다시 살펴보세요. 바닷물이 어디서 시작되나요?', '저수지 → 증발지 → 결정지 → 창고 순서로 이동해요.'],
+    explain: '바닷물 → 저수지 → 증발지 → 결정지 → 창고! 천일염이 만들어지는 4단계 공정이에요.'
+  },
+  // 인덱스 8 = 소감 (1~8 완료 후 해금)
+  {
+    id: 8,
+    floor: 'reflection',
+    floorLabel: '최종 보고',
+    icon: '📝',
+    title: '임무 완수 보고서',
+    story: {
+      label: '최종 — 시간 복원 완료',
+      text: '탐험단이 모든 층을 돌며 바다의 기억을 되찾았다. 마지막으로 탐험단의 생각을 기록해야 임무가 완수된다.'
+    },
+    type: 'reflection',
+    question: '오늘 박물관에서 가장 인상 깊었던 전시물이나 내용은 무엇인가요? 그 이유와 함께 자유롭게 써주세요. (20자 이상)'
+  }
+];
+
+/* ── 미션별 전시실 그룹 ── */
+const FLOORS = [
+  { label: '1층 · 디지털 실감영상실', ids: [0], tag: 'tag-1f', emoji: '🎬' },
+  { label: '2층 · 해양교류사실', ids: [1,2,3,4,5], tag: 'tag-2f', emoji: '🔍' },
+  { label: '3층 · 해운항만실 & 해양문화실', ids: [6,7], tag: 'tag-3f', emoji: '🚢' },
+  { label: '최종 보고 (소감)', ids: [8], tag: 'tag-reflection', emoji: '📝', locked: true },
+];
+
+/* ══════════════════════════════════
+   상태
+══════════════════════════════════ */
+let state = {
+  sid: '', sname: '',
+  stamps: [],          // 완료된 미션 id 배열
+  answers: {},         // missionId → answer string
+  reflection: '',
+  startedAt: null,
+  submittedAt: null,
+  forceEnded: false,
+};
+let currentMissionId = 0;
+let dndInitialized = false;
+let orderInitialized = false;
+let dragWord = null, dragChip = null, ghost = null, dragItem = null;
+const hintCounts = {};
+
+/* ══════════════════════════════════
+   저장 / 복원 (localStorage)
+══════════════════════════════════ */
+function saveState() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+function loadState() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
+    if (d.sid && d.sname) { Object.assign(state, d); return true; }
+  } catch(e) {}
+  return false;
+}
+function clearState() { localStorage.removeItem(SAVE_KEY); }
+
+/* ══════════════════════════════════
+   유틸
+══════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+  updateProgress();
+}
+
+function updateProgress() {
+  const pct = Math.round((state.stamps.filter(s => s < 8).length / 8) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+function showToast(msg, duration = 2400) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function normalizeAnswer(s) {
+  return s.trim().replace(/\s/g, '');
+}
+
+function checkAnswerMatch(input, answers) {
+  const inp = normalizeAnswer(input);
+  return answers.some(a => normalizeAnswer(a) === inp);
+}
+
+/* ══════════════════════════════════
+   힌트
+══════════════════════════════════ */
+function showHint(hintId, hints) {
+  hintCounts[hintId] = (hintCounts[hintId] || 0) + 1;
+  const box = document.getElementById(hintId);
+  if (!box) return;
+  box.classList.add('show');
+  const steps = box.querySelectorAll('.hint-step');
+  const n = Math.min(hintCounts[hintId] - 1, steps.length - 1);
+  steps.forEach((s, i) => s.classList.toggle('on', i <= n));
+}
+
+/* ══════════════════════════════════
+   로그인
+══════════════════════════════════ */
+function startMission() {
+  const sid = document.getElementById('student-id').value.trim();
+  const sname = document.getElementById('student-name').value.trim();
+  if (!sid || !sname) { showToast('학번과 이름을 모두 입력해주세요.'); return; }
+  state.sid = sid; state.sname = sname;
+  if (!state.startedAt) state.startedAt = new Date().toISOString();
+  saveState();
+  goSelectScreen();
+}
+
+/* ══════════════════════════════════
+   전시실 선택
+══════════════════════════════════ */
+function goSelectScreen() {
+  document.getElementById('badge-name').textContent = state.sname;
+  document.getElementById('badge-id').textContent = '학번 ' + state.sid;
+  const mainCount = state.stamps.filter(s => s < 8).length;
+  document.getElementById('badge-stamps').textContent = mainCount + ' / 8';
+  renderStampMini();
+  renderFloorList();
+  showScreen('select');
+}
+
+function renderStampMini() {
+  const grid = document.getElementById('stamp-mini-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const dot = document.createElement('div');
+    const earned = state.stamps.includes(i);
+    const isFinal = i === 8;
+    dot.className = 'stamp-dot' + (earned ? (isFinal ? ' earned final' : ' earned') : '');
+    dot.textContent = earned ? (isFinal ? '📝' : '⚓') : (isFinal ? '🔒' : '');
+    dot.title = MISSIONS[i].title;
+    grid.appendChild(dot);
+  }
+}
+
+function renderFloorList() {
+  const list = document.getElementById('floor-list');
+  list.innerHTML = '';
+  const allMain = state.stamps.filter(s => s < 8).length === 8;
+
+  FLOORS.forEach(floor => {
+    const isReflection = floor.ids.includes(8);
+    const locked = isReflection && !allMain;
+    const doneCount = floor.ids.filter(id => state.stamps.includes(id)).length;
+    const totalCount = floor.ids.length;
+    const allDone = doneCount === totalCount;
+
+    // 소감 잠김 안내
+    if (isReflection && locked) {
+      document.getElementById('reflection-notice').style.display = 'block';
+      return;
+    } else if (isReflection) {
+      document.getElementById('reflection-notice').style.display = 'none';
+    }
+
+    const btn = document.createElement('button');
+    btn.className = 'floor-btn' + (allDone ? ' all-done' : (doneCount > 0 ? ' partial' : ''));
+    btn.innerHTML = `
+      <span class="floor-name">${floor.emoji} ${floor.label}</span>
+      <span class="floor-count">${allDone ? '✓ 완료' : doneCount + ' / ' + totalCount}</span>
+    `;
+    if (!locked) {
+      btn.onclick = () => enterFloor(floor.ids);
+    }
+    list.appendChild(btn);
+  });
+}
+
+function enterFloor(ids) {
+  // 첫 번째 미완성 미션으로, 없으면 첫 번째로
+  const undone = ids.find(id => !state.stamps.includes(id));
+  currentMissionId = undone !== undefined ? undone : ids[0];
+  renderQuiz();
+  showScreen('quiz');
+}
+
+function goSelect() {
+  dndInitialized = false;
+  orderInitialized = false;
+  dragWord = null; dragChip = null;
+  if (ghost) { ghost.remove(); ghost = null; }
+  goSelectScreen();
+}
+
+/* ══════════════════════════════════
+   퀴즈 렌더
+══════════════════════════════════ */
+function renderQuiz() {
+  const mission = MISSIONS[currentMissionId];
+  document.getElementById('quiz-title').textContent = mission.floorLabel;
+  renderStampGridQuiz();
+  renderMissionContent(mission);
+  dndInitialized = false;
+  orderInitialized = false;
+}
+
+function renderStampGridQuiz() {
+  const grid = document.getElementById('stamp-grid-quiz');
+  grid.style.gridTemplateColumns = 'repeat(9, 1fr)';
+  grid.innerHTML = '';
+
+  for (let i = 0; i < 9; i++) {
+    const slot = document.createElement('div');
+    const earned = state.stamps.includes(i);
+    const isCurrent = i === currentMissionId;
+    const isFinalLock = i === 8 && state.stamps.filter(s => s < 8).length < 8;
+    slot.className = 'stamp-slot' +
+      (earned ? ' earned' : '') +
+      (isCurrent && !earned ? ' current' : '') +
+      (isFinalLock ? ' locked' : '');
+    slot.textContent = earned ? '⚓' : (i === 8 ? '📝' : (i + 1));
+    slot.title = MISSIONS[i].title;
+    if (!isFinalLock) {
+      slot.onclick = () => {
+        currentMissionId = i;
+        dndInitialized = false;
+        orderInitialized = false;
+        renderQuiz();
+      };
+    }
+    grid.appendChild(slot);
+  }
+}
+
+function renderMissionContent(mission) {
+  const wrap = document.getElementById('q-wrap');
+  wrap.innerHTML = '';
+
+  // 층 태그
+  const tag = document.createElement('div');
+  tag.className = 'floor-tag ' + (
+    mission.floor === '1f' ? 'tag-1f' :
+    mission.floor === '2f' ? 'tag-2f' :
+    mission.floor === 'reflection' ? 'tag-reflection' : 'tag-3f'
+  );
+  tag.textContent = '📍 ' + mission.floorLabel;
+  wrap.appendChild(tag);
+
+  // 미션 번호
+  const qnum = document.createElement('div');
+  qnum.className = 'q-num';
+  qnum.textContent = mission.id < 8 ? `미션 ${mission.id + 1} / 8` : '최종 미션';
+  wrap.appendChild(qnum);
+
+  // 이미 완료된 미션이면 완료 표시
+  if (state.stamps.includes(mission.id)) {
+    const doneCard = document.createElement('div');
+    doneCard.className = 'q-card';
+    doneCard.innerHTML = `
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-size:36px;margin-bottom:10px">⚓</div>
+        <div style="font-size:14px;color:var(--success);font-weight:700;margin-bottom:6px">스탬프 획득 완료!</div>
+        <div style="font-size:13px;color:var(--text3)">${mission.title}</div>
+        ${state.answers[mission.id] ? `<div style="margin-top:10px;font-size:12px;color:var(--text2)">내 답: ${state.answers[mission.id]}</div>` : ''}
+      </div>
+    `;
+    wrap.appendChild(doneCard);
+
+    // 다음 미션 버튼
+    const nextIds = MISSIONS.map(m => m.id).filter(id => !state.stamps.includes(id) && id < 8);
+    if (nextIds.length > 0) {
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'final-btn';
+      nextBtn.style.marginTop = '8px';
+      nextBtn.textContent = '다음 미완료 미션으로 →';
+      nextBtn.onclick = () => { currentMissionId = nextIds[0]; renderQuiz(); };
+      wrap.appendChild(nextBtn);
+    }
+    return;
+  }
+
+  // 스토리 카드
+  if (mission.story) {
+    const story = document.createElement('div');
+    story.className = 'q-story';
+    story.innerHTML = `<div class="q-story-label">${mission.story.label}</div><div class="q-story-text">${mission.story.text}</div>`;
+    wrap.appendChild(story);
+  }
+
+  // 미션 카드
+  const card = document.createElement('div');
+  card.className = 'q-card';
+  card.innerHTML = `<h3>${mission.icon} ${mission.title}</h3>`;
+
+  if (mission.question) {
+    const qp = document.createElement('p');
+    qp.style.whiteSpace = 'pre-line';
+    qp.textContent = mission.question;
+    card.appendChild(qp);
+  }
+
+  // 타입별 렌더
+  if (mission.type === 'text') renderText(mission, card);
+  else if (mission.type === 'choice') renderChoice(mission, card);
+  else if (mission.type === 'dnd') renderDnD(mission, card);
+  else if (mission.type === 'order') renderOrder(mission, card);
+  else if (mission.type === 'reflection') renderReflection(mission, card);
+
+  // 힌트 박스
+  if (mission.hints && mission.type !== 'reflection') {
+    const hintBox = document.createElement('div');
+    hintBox.className = 'hint-box';
+    hintBox.id = 'hint-' + mission.id;
+    hintBox.innerHTML = `<div class="hint-label">⚠ 단서</div>` +
+      mission.hints.map(h => `<div class="hint-step">${h}</div>`).join('');
+    card.appendChild(hintBox);
+  }
+
+  // 정답 피드백 박스
+  const fb = document.createElement('div');
+  fb.className = 'feedback-ok';
+  fb.id = 'feedback-' + mission.id;
+  fb.innerHTML = `<div class="feedback-ok-title">✅ 스탬프 획득!</div><div class="feedback-ok-text" id="fbtext-${mission.id}"></div>`;
+  card.appendChild(fb);
+
+  wrap.appendChild(card);
+}
+
+/* ── 단답형 ── */
+function renderText(mission, parent) {
+  const row = document.createElement('div');
+  row.className = 'answer-row';
+  const inp = document.createElement('input');
+  inp.className = 'answer-input';
+  inp.type = 'text';
+  inp.id = 'inp-' + mission.id;
+  inp.placeholder = mission.placeholder || '정답 입력';
+  const btn = document.createElement('button');
+  btn.className = 'submit-btn';
+  btn.textContent = '제출';
+  btn.onclick = () => submitText(mission, inp);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') btn.click(); });
+  row.appendChild(inp);
+  row.appendChild(btn);
+  parent.appendChild(row);
+}
+
+function submitText(mission, inp) {
+  const val = inp.value;
+  if (!val.trim()) { showToast('정답을 입력해주세요.'); return; }
+  if (checkAnswerMatch(val, mission.answers)) {
+    state.answers[mission.id] = normalizeAnswer(val);
+    inp.disabled = true;
+    inp.style.borderColor = 'var(--success)';
+    earnStamp(mission);
+  } else {
+    showToast('아쉽! 다시 한번 생각해봐요 🤔');
+    inp.style.borderColor = 'var(--danger)';
+    setTimeout(() => inp.style.borderColor = '', 600);
+    showHint('hint-' + mission.id, mission.hints);
+  }
+}
+
+/* ── 객관식 ── */
+function renderChoice(mission, parent) {
+  const list = document.createElement('div');
+  list.className = 'choice-list';
+  mission.choices.forEach((c, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = c;
+    btn.onclick = () => {
+      if (list.dataset.done) return;
+      if (i === mission.answer) {
+        list.dataset.done = '1';
+        list.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+        btn.classList.add('correct');
+        state.answers[mission.id] = c.replace(/^[①②③] /, '');
+        earnStamp(mission);
+      } else {
+        btn.classList.add('wrong');
+        showToast('아쉽! 다시 한번 생각해봐요 🤔');
+        showHint('hint-' + mission.id, mission.hints);
+        setTimeout(() => { btn.classList.remove('wrong'); btn.disabled = false; }, 700);
+      }
+    };
+    list.appendChild(btn);
+  });
+  parent.appendChild(list);
+}
+
+/* ── 드래그앤드롭 (고려) ── */
+function renderDnD(mission, parent) {
+  const passage = document.createElement('div');
+  passage.className = 'goryeo-passage';
+  passage.innerHTML = `고려의 바다에는 외국을 오가는 배들이 끊이지 않았습니다. 『고려사』에는 고려가
+    <span class="drop-slot" data-answer="송" id="slot-0">　</span>,
+    <span class="drop-slot" data-answer="일본" id="slot-1">　　</span>,
+    <span class="drop-slot" data-answer="대식국" id="slot-2">　　　</span>(아라비아),
+    <span class="drop-slot" data-answer="교지국" id="slot-3">　　　</span>(베트남),
+    <span class="drop-slot" data-answer="섬라곡국" id="slot-4">　　　　</span>(태국) 등과 교류했다고 기록되어 있습니다.
+    특히 아라비아 상인들은
+    <span class="drop-slot" data-answer="예성항" id="slot-5">　　　</span>
+    인근에 공동체를 형성하고, 이들에 의해 고려가 세계에 알려지면서 지금의
+    <span class="drop-slot" data-answer="코리아" id="slot-6">　　　</span>가 탄생했습니다.`;
+  parent.appendChild(passage);
+
+  const pool = document.createElement('div');
+  pool.className = 'keyword-pool';
+  pool.id = 'kw-pool-' + mission.id;
+  mission.keywords.forEach(word => {
+    const chip = document.createElement('div');
+    chip.className = 'kw-chip';
+    chip.draggable = true;
+    chip.dataset.word = word;
+    chip.textContent = word;
+    pool.appendChild(chip);
+  });
+  parent.appendChild(pool);
+
+  const checkBtn = document.createElement('button');
+  checkBtn.className = 'dnd-check-btn';
+  checkBtn.textContent = '확인하기 →';
+  checkBtn.onclick = () => checkDnD(mission);
+  parent.appendChild(checkBtn);
+
+  if (!dndInitialized) { dndInitialized = true; initDnD(mission); }
+}
+
+function initDnD(mission) {
+  const poolId = 'kw-pool-' + mission.id;
+  setTimeout(() => {
+    const chips = document.querySelectorAll(`#${poolId} .kw-chip`);
+    const slots = document.querySelectorAll('.drop-slot');
+    chips.forEach(chip => {
+      chip.addEventListener('dragstart', e => {
+        if (chip.classList.contains('used')) { e.preventDefault(); return; }
+        dragWord = chip.dataset.word; dragChip = chip;
+      });
+      chip.addEventListener('touchstart', e => {
+        if (chip.classList.contains('used')) return;
+        dragWord = chip.dataset.word; dragChip = chip;
+        ghost = document.createElement('div'); ghost.className = 'drag-ghost'; ghost.textContent = dragWord;
+        document.body.appendChild(ghost);
+        const t = e.touches[0]; ghost.style.left = t.clientX + 'px'; ghost.style.top = t.clientY + 'px';
+      }, { passive: true });
+      chip.addEventListener('touchmove', e => {
+        if (!ghost) return;
+        const t = e.touches[0]; ghost.style.left = t.clientX + 'px'; ghost.style.top = t.clientY + 'px';
+        slots.forEach(s => s.style.borderColor = '');
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        if (el && el.classList.contains('drop-slot')) el.style.borderColor = 'var(--gold)';
+      }, { passive: true });
+      chip.addEventListener('touchend', e => {
+        if (!ghost) return; ghost.remove(); ghost = null;
+        const t = e.changedTouches[0];
+        slots.forEach(s => s.style.borderColor = '');
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        if (el && el.classList.contains('drop-slot')) fillSlot(el, poolId);
+        dragWord = null; dragChip = null;
+      });
+    });
+    slots.forEach(slot => {
+      slot.addEventListener('dragover', e => { e.preventDefault(); slot.style.borderColor = 'var(--gold)'; });
+      slot.addEventListener('dragleave', () => slot.style.borderColor = '');
+      slot.addEventListener('drop', e => { e.preventDefault(); slot.style.borderColor = ''; fillSlot(slot, poolId); });
+      slot.addEventListener('click', () => { if (slot.dataset.filled) clearSlot(slot, poolId); });
+    });
+  }, 50);
+}
+
+function fillSlot(slot, poolId) {
+  if (!dragWord) return;
+  if (slot.dataset.filled) clearSlot(slot, poolId);
+  slot.textContent = dragWord; slot.dataset.filled = dragWord; slot.classList.add('filled');
+  if (dragChip) dragChip.classList.add('used');
+}
+
+function clearSlot(slot, poolId) {
+  const word = slot.dataset.filled;
+  document.querySelectorAll(`#${poolId} .kw-chip`).forEach(c => { if (c.dataset.word === word) c.classList.remove('used'); });
+  slot.textContent = '　'; slot.dataset.filled = ''; slot.classList.remove('filled');
+}
+
+function checkDnD(mission) {
+  const slots = document.querySelectorAll('.drop-slot');
+  let allFilled = true, allCorrect = true;
+  slots.forEach(s => {
+    if (!s.dataset.filled) allFilled = false;
+    if (s.dataset.filled !== s.dataset.answer) allCorrect = false;
+  });
+  if (!allFilled) { showHint('hint-' + mission.id, mission.hints); showToast('아직 채우지 못한 빈칸이 있어요!'); return; }
+  if (!allCorrect) { showHint('hint-' + mission.id, mission.hints); showToast('일부 빈칸이 맞지 않아요. 다시 확인해보세요.'); return; }
+  state.answers[mission.id] = mission.keywords.join(', ');
+  slots.forEach(s => s.classList.add('correct-slot'));
+  earnStamp(mission);
+}
+
+/* ── 순서 드래그 ── */
+function renderOrder(mission, parent) {
+  const list = document.createElement('div');
+  list.className = 'order-list';
+  list.id = 'order-list-' + mission.id;
+
+  // 셔플
+  const shuffled = [...mission.orderItems].sort(() => Math.random() - 0.5);
+  shuffled.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'order-item';
+    el.draggable = true;
+    el.dataset.correct = item.correct;
+    el.innerHTML = `<span class="order-num">?</span><span>${item.text}</span>`;
+    list.appendChild(el);
+  });
+  parent.appendChild(list);
+
+  const checkBtn = document.createElement('button');
+  checkBtn.className = 'order-check-btn';
+  checkBtn.textContent = '순서 확인하기 →';
+  checkBtn.onclick = () => checkOrder(mission);
+  parent.appendChild(checkBtn);
+
+  if (!orderInitialized) { orderInitialized = true; initOrder('order-list-' + mission.id); }
+}
+
+function initOrder(listId) {
+  setTimeout(() => {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    const items = list.querySelectorAll('.order-item');
+    updateOrderNums(list);
+
+    items.forEach(item => {
+      item.addEventListener('dragstart', () => { dragItem = item; item.classList.add('dragging'); });
+      item.addEventListener('dragend', () => { item.classList.remove('dragging'); dragItem = null; updateOrderNums(list); });
+      item.addEventListener('dragover', e => {
+        e.preventDefault();
+        const after = getDragAfterElement(list, e.clientY);
+        if (after === null) list.appendChild(dragItem);
+        else list.insertBefore(dragItem, after);
+      });
+      item.addEventListener('touchstart', e => { dragItem = item; item.style.opacity = '.5'; }, { passive: true });
+      item.addEventListener('touchmove', e => {
+        if (!dragItem) return;
+        const t = e.touches[0];
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        if (el && el.closest('.order-item') && el.closest('.order-item') !== dragItem) {
+          const target = el.closest('.order-item');
+          const rect = target.getBoundingClientRect();
+          if (t.clientY < rect.top + rect.height / 2) list.insertBefore(dragItem, target);
+          else list.insertBefore(dragItem, target.nextSibling);
+        }
+      }, { passive: true });
+      item.addEventListener('touchend', () => { if (dragItem) dragItem.style.opacity = '1'; dragItem = null; updateOrderNums(list); });
+    });
+  }, 50);
+}
+
+function getDragAfterElement(container, y) {
+  const items = [...container.querySelectorAll('.order-item:not(.dragging)')];
+  return items.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) return { offset, element: child };
+    return closest;
+  }, { offset: Number.NEGATIVE_INFINITY }).element || null;
+}
+
+function updateOrderNums(list) {
+  list.querySelectorAll('.order-item').forEach((item, i) => {
+    item.querySelector('.order-num').textContent = i + 1;
+  });
+}
+
+function checkOrder(mission) {
+  const list = document.getElementById('order-list-' + mission.id);
+  const items = [...list.querySelectorAll('.order-item')];
+  const current = items.map(i => i.dataset.correct);
+  const correct = ['1', '2', '3', '4'];
+  if (JSON.stringify(current) === JSON.stringify(correct)) {
+    state.answers[mission.id] = '바닷물→저수지→증발지→결정지→창고';
+    earnStamp(mission);
+  } else {
+    showToast('순서가 맞지 않아요. 다시 배열해보세요!');
+    showHint('hint-' + mission.id, mission.hints);
+  }
+}
+
+/* ── 소감 ── */
+function renderReflection(mission, parent) {
+  const ta = document.createElement('textarea');
+  ta.className = 'reflection-area';
+  ta.id = 'reflection-ta';
+  ta.placeholder = '여기에 소감을 작성하세요. (20자 이상)';
+  ta.maxLength = 500;
+  ta.value = state.reflection || '';
+  const cc = document.createElement('div');
+  cc.className = 'char-count';
+  cc.id = 'ref-count';
+  cc.textContent = (state.reflection || '').length + ' / 500자';
+  ta.addEventListener('input', () => {
+    state.reflection = ta.value;
+    cc.textContent = ta.value.length + ' / 500자';
+    saveState();
+  });
+  parent.appendChild(ta);
+  parent.appendChild(cc);
+
+  const btn = document.createElement('button');
+  btn.className = 'final-btn';
+  btn.id = 'final-submit-btn';
+  btn.textContent = '임무 완수 — 최종 제출 →';
+  btn.onclick = () => submitAll(false);
+  parent.appendChild(btn);
+}
+
+/* ══════════════════════════════════
+   스탬프 획득
+══════════════════════════════════ */
+function earnStamp(mission) {
+  if (!state.stamps.includes(mission.id)) {
+    state.stamps.push(mission.id);
+  }
+  saveState();
+
+  // 피드백 표시
+  const fb = document.getElementById('feedback-' + mission.id);
+  const fbtext = document.getElementById('fbtext-' + mission.id);
+  if (fb) fb.classList.add('show');
+  if (fbtext && mission.explain) fbtext.textContent = mission.explain;
+
+  // 그리드 갱신
+  renderStampGridQuiz();
+
+  // 약간의 딜레이 후 처리
+  setTimeout(() => {
+    // 소감이면 바로 제출
+    if (mission.id === 8) { submitAll(false); return; }
+
+    // 8개 모두 완료 → 소감 안내
+    const mainDone = state.stamps.filter(s => s < 8).length === 8;
+    if (mainDone) {
+      showToast('🎉 8개 미션 완료! 소감을 작성하세요.', 3000);
+      setTimeout(() => goSelectScreen(), 2000);
+      return;
+    }
+
+    // 다음 미션 찾기
+    const allIds = MISSIONS.filter(m => m.id < 8).map(m => m.id);
+    const nextId = allIds.find(id => !state.stamps.includes(id));
+    if (nextId !== undefined) {
+      const nextBtn = document.createElement('button');
+      nextBtn.className = 'final-btn';
+      nextBtn.style.marginTop = '8px';
+      nextBtn.textContent = `다음 미션으로 → (${MISSIONS[nextId].title})`;
+      nextBtn.onclick = () => { currentMissionId = nextId; renderQuiz(); };
+      document.getElementById('q-wrap').appendChild(nextBtn);
+    }
+  }, 600);
+}
+
+/* ══════════════════════════════════
+   최종 제출
+══════════════════════════════════ */
+async function submitAll(isForced) {
+  const ref = (state.reflection || '').trim();
+  if (!isForced && ref.length < 20) {
+    showToast('소감을 조금 더 자세히 써주세요. (20자 이상)');
+    return;
+  }
+
+  const btn = document.getElementById('final-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '전송 중...'; }
+
+  const completedMissions = MISSIONS.filter(m => state.stamps.includes(m.id)).map(m => m.title);
+  const submittedAt = new Date().toLocaleString('ko-KR');
+  state.submittedAt = submittedAt;
+  state.forceEnded = isForced;
+  saveState();
+
+  const data = {
+    studentId: state.sid,
+    studentName: state.sname,
+    submittedAt,
+    startedAt: state.startedAt || '',
+    isForced: isForced ? '강제종료' : '정상제출',
+    completedCount: state.stamps.filter(s => s < 8).length,
+    completedMissions: completedMissions.join(', '),
+    ans1_항해조천도: state.answers[0] || '',
+    ans2_비봉리: state.answers[1] || '',
+    ans3_삼국시대: state.answers[2] || '',
+    ans4_장보고: state.answers[3] || '',
+    ans5_고려: state.answers[4] || '',
+    ans6_조선: state.answers[5] || '',
+    ans7_컨테이너: state.answers[6] || '',
+    ans8_소금순서: state.answers[7] || '',
+    reflection: ref,
+  };
+
+  try {
+    await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+  } catch(e) {
+    // 전송 실패해도 완료 화면으로
+  }
+
+  showDoneScreen(isForced, data);
+}
+
+function showDoneScreen(isForced, data) {
+  const doneCount = state.stamps.filter(s => s < 8).length;
+  document.getElementById('done-icon').textContent = isForced ? '⏹' : (doneCount === 8 ? '🎖️' : '⭐');
+  document.getElementById('done-title').textContent = isForced ? '활동 종료' : '임무 완수!';
+  document.getElementById('done-score').textContent = doneCount + ' / 8 미션 완료';
+  document.getElementById('done-sub').innerHTML =
+    isForced
+      ? '활동이 종료되었습니다. 지금까지 수고하셨습니다!'
+      : '바다의 기억이 복원되었습니다.<br>시간의 톱니바퀴가 다시 돌아가기 시작합니다.';
+
+  // 배지
+  const badges = document.getElementById('done-badges');
+  badges.innerHTML = '';
+  MISSIONS.filter(m => m.id < 8).forEach(m => {
+    const b = document.createElement('div');
+    const earned = state.stamps.includes(m.id);
+    b.className = 'done-badge' + (earned ? ' earned' : '');
+    b.textContent = (earned ? '⚓ ' : '○ ') + m.title;
+    badges.appendChild(b);
+  });
+
+  document.getElementById('done-time').textContent = '제출 시각: ' + (state.submittedAt || '');
+  showScreen('done');
+}
+
+/* ══════════════════════════════════
+   선생님 기능
+══════════════════════════════════ */
+function forceEnd() {
+  if (!confirm('정말 활동을 강제 종료하시겠습니까? 모든 학생 화면에서 종료 오버레이가 표시됩니다.')) return;
+  // 로컬에서 강제 종료 오버레이 표시
+  showForceEndOverlay();
+}
+
+function showForceEndOverlay() {
+  document.getElementById('force-end-overlay').classList.add('show');
+  document.getElementById('timer-banner').style.display = 'block';
+  document.getElementById('timer-banner').textContent = '⏹ 선생님이 활동을 종료했습니다. 지금까지 내용을 제출하세요.';
+}
+
+function goForceSubmit() {
+  document.getElementById('force-end-overlay').classList.remove('show');
+  submitAll(true);
+}
+
+function showResults() {
+  const doneCount = state.stamps.filter(s => s < 8).length;
+  const lines = [
+    `학생: ${state.sname} (${state.sid})`,
+    `완료 미션: ${doneCount}/8`,
+    `스탬프: ${state.stamps.map(s => MISSIONS[s]?.title).join(', ')}`,
+  ];
+  alert(lines.join('\n'));
+}
+
+function resetAll() {
+  if (!confirm('현재 학생 데이터를 초기화하시겠습니까?')) return;
+  clearState();
+  state = { sid:'', sname:'', stamps:[], answers:{}, reflection:'', startedAt: null, submittedAt: null, forceEnded: false };
+  showScreen('login');
+}
+
+/* ══════════════════════════════════
+   미리보기
+══════════════════════════════════ */
+function jumpPreview(target) {
+  if (target === 'login') { showScreen('login'); return; }
+  if (target === 'select') {
+    if (!state.sid) { state.sid = '99999'; state.sname = '미리보기'; }
+    goSelectScreen(); return;
+  }
+  if (target === 'done') { showDoneScreen(false, {}); return; }
+  if (!state.sid) { state.sid = '99999'; state.sname = '미리보기'; }
+  currentMissionId = target;
+  renderQuiz();
+  showScreen('quiz');
+}
+
+/* ══════════════════════════════════
+   초기화
+══════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  // 미리보기 모드
+  if (IS_PREVIEW) {
+    document.getElementById('preview-nav').classList.add('show');
+    state.sid = '99999'; state.sname = '미리보기T';
+    goSelectScreen();
+  }
+  // 선생님 모드
+  if (IS_TEACHER) {
+    document.getElementById('teacher-panel').classList.add('show');
+  }
+  // 저장된 상태 복원
+  if (!IS_PREVIEW && loadState()) {
+    if (state.submittedAt) {
+      // 이미 제출 완료
+      showDoneScreen(state.forceEnded, {});
+    } else if (state.sid && state.sname) {
+      document.getElementById('restore-notice').style.display = 'block';
+      document.getElementById('student-id').value = state.sid;
+      document.getElementById('student-name').value = state.sname;
+      // 로그인 화면에서 바로 진입 가능하도록 둠
+    }
+  }
+});
+
+// 엔터 키 로그인
+['student-id', 'student-name'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') startMission(); });
+});
+</script>
+</body>
+</html>
