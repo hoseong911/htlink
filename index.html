@@ -19,14 +19,11 @@
 }
 body{background:var(--bg);font-family:'Noto Sans KR',sans-serif;min-height:100vh;overflow-x:hidden}
 
-/* BG glows */
 .bg-glow1{position:fixed;top:-200px;left:-200px;width:500px;height:500px;background:radial-gradient(circle,rgba(0,255,100,.07) 0%,transparent 70%);pointer-events:none;z-index:0}
 .bg-glow2{position:fixed;bottom:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(0,200,255,.05) 0%,transparent 70%);pointer-events:none;z-index:0}
 
-/* LAYOUT */
 .page{position:relative;z-index:1;padding:40px 20px 60px;max-width:1200px;margin:0 auto}
 
-/* PROFILE */
 .profile-area{text-align:center;margin-bottom:44px}
 .avatar-ring{display:inline-flex;align-items:center;justify-content:center;width:88px;height:88px;border-radius:50%;border:2.5px solid var(--accent);margin-bottom:14px;position:relative}
 .avatar-ring::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(0,255,100,.2)}
@@ -35,35 +32,17 @@ body{background:var(--bg);font-family:'Noto Sans KR',sans-serif;min-height:100vh
 .profile-name span{color:var(--accent)}
 .profile-sub{font-size:13px;color:rgba(255,255,255,.45);margin-top:4px;letter-spacing:.5px}
 
-/* GRID */
-.cards-grid{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:12px;
-}
+.cards-grid{display:grid;grid-template-columns:1fr;gap:12px;}
 
-/* CARD */
 .link-card{
-  display:flex;
-  flex-direction:row;
-  align-items:center;
-  justify-content:flex-start;
-  background:var(--card-bg);
-  border:1px solid var(--card-border);
-  border-radius:16px;
-  padding:18px 20px;
-  cursor:pointer;
-  text-decoration:none;
-  position:relative;
-  overflow:hidden;
-  transition:background .2s,border-color .2s,transform .15s,box-shadow .2s;
-  min-height:80px;
-  gap:16px;
+  display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
+  background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;
+  padding:18px 20px;cursor:pointer;text-decoration:none;position:relative;overflow:hidden;
+  transition:background .2s,border-color .2s,transform .15s,box-shadow .2s;min-height:80px;gap:16px;
 }
 .link-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
 .link-card:hover{background:rgba(255,255,255,.07);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
 
-/* mobile: row layout */
 .link-card .card-inner{display:flex;align-items:center;gap:16px;width:100%}
 .card-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
 .icon-green{background:rgba(0,255,100,.12);border:1px solid rgba(0,255,100,.25)}
@@ -71,29 +50,25 @@ body{background:var(--bg);font-family:'Noto Sans KR',sans-serif;min-height:100vh
 .icon-amber{background:rgba(255,190,0,.12);border:1px solid rgba(255,190,0,.25)}
 .icon-purple{background:rgba(160,100,255,.12);border:1px solid rgba(160,100,255,.25)}
 .icon-pink{background:rgba(255,100,180,.12);border:1px solid rgba(255,100,180,.25)}
+
 .card-text{flex:1;text-align:center}
 .card-title{font-size:16px;font-weight:700;color:#fff;line-height:1.4}
 .card-desc{font-size:13px;color:rgba(255,255,255,.38);margin-top:4px;line-height:1.4}
 .card-arrow-mob{font-size:18px;color:rgba(255,255,255,.2);transition:color .2s;flex-shrink:0}
 .link-card:hover .card-arrow-mob{color:var(--accent)}
-/* pc-only elements hidden on mobile */
 .card-arrow-pc{display:none}
 
-/* LOCKED card */
 .link-card.locked{opacity:.45;cursor:not-allowed}
 .link-card.locked:hover{transform:none;box-shadow:none;background:var(--card-bg);border-color:var(--card-border)}
 .lock-badge{font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.35);margin-left:6px;vertical-align:middle}
 
-/* FOOTER */
 .footer{text-align:center;margin-top:44px}
 .footer-tag{font-size:11px;color:rgba(255,255,255,.2);letter-spacing:1px}
 .footer-tag span{color:rgba(0,255,100,.5)}
 
-/* ADMIN BUTTON */
 .admin-btn{display:block;margin:28px auto 0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 20px;color:rgba(255,255,255,.25);font-size:11px;cursor:pointer;letter-spacing:1px;font-family:inherit;transition:all .2s}
 .admin-btn:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.5)}
 
-/* ADMIN PANEL */
 .admin-panel{display:none;margin-top:20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;animation:fadeIn .3s}
 .admin-panel.open{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -103,31 +78,92 @@ body{background:var(--bg);font-family:'Noto Sans KR',sans-serif;min-height:100vh
 .admin-pw-input:focus{border-color:var(--accent)}
 .admin-pw-btn{background:rgba(0,255,100,.12);border:1px solid rgba(0,255,100,.3);border-radius:8px;padding:8px 14px;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
 .admin-pw-btn:hover{background:rgba(0,255,100,.2)}
+
+/* ADMIN TABS */
+.admin-tabs{display:flex;gap:8px;margin-bottom:20px}
+.admin-tab{flex:1;padding:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;text-align:center}
+.admin-tab.active{background:rgba(0,255,100,.1);border-color:rgba(0,255,100,.3);color:var(--accent)}
+
+/* 카드 목록 관리 */
 .admin-links-list{display:flex;flex-direction:column;gap:8px}
 .admin-link-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid rgba(255,255,255,.07)}
 .admin-link-label{flex:1;font-size:12px;color:rgba(255,255,255,.6)}
+.admin-link-label small{display:block;font-size:10px;color:rgba(255,255,255,.3);margin-top:2px}
+.admin-row-btns{display:flex;gap:6px;align-items:center}
 .toggle-btn{position:relative;width:40px;height:22px;border-radius:20px;border:none;cursor:pointer;transition:background .25s;flex-shrink:0}
 .toggle-btn.on{background:var(--accent)}
 .toggle-btn.off{background:rgba(255,255,255,.15)}
 .toggle-btn::after{content:'';position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .25s}
 .toggle-btn.on::after{left:21px}
 .toggle-btn.off::after{left:3px}
+.del-btn{background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.25);border-radius:6px;padding:4px 8px;color:rgba(255,100,100,.7);font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s}
+.del-btn:hover{background:rgba(255,80,80,.2);color:#ff5050}
+.edit-btn{background:rgba(255,190,0,.1);border:1px solid rgba(255,190,0,.25);border-radius:6px;padding:4px 8px;color:rgba(255,190,0,.7);font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s}
+.edit-btn:hover{background:rgba(255,190,0,.2);color:#ffbe00}
+
+/* 카드 추가 폼 */
+.add-form{display:flex;flex-direction:column;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.5px}
+.form-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;width:100%;transition:border-color .2s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:rgba(255,255,255,.25)}
+
+/* 이모지 팔레트 */
+.emoji-palette-wrap{position:relative}
+.emoji-display{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:10px 12px;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .2s}
+.emoji-display:hover{border-color:rgba(255,255,255,.3)}
+.emoji-display span.hint{font-size:12px;color:rgba(255,255,255,.3)}
+.emoji-picker{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;background:#1a1a1a;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:12px;z-index:100;animation:fadeIn .2s}
+.emoji-picker.open{display:block}
+.emoji-categories{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.emoji-cat-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px 8px;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s}
+.emoji-cat-btn.active{background:rgba(0,255,100,.1);border-color:rgba(0,255,100,.3);color:var(--accent)}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-height:180px;overflow-y:auto}
+.emoji-btn{background:transparent;border:none;font-size:22px;cursor:pointer;padding:6px;border-radius:8px;transition:background .15s;line-height:1}
+.emoji-btn:hover{background:rgba(255,255,255,.1)}
+
+/* 색상 선택 */
+.color-options{display:flex;gap:8px;flex-wrap:wrap}
+.color-opt{width:36px;height:36px;border-radius:10px;cursor:pointer;border:2px solid transparent;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:14px}
+.color-opt:hover{transform:scale(1.1)}
+.color-opt.selected{border-color:#fff;transform:scale(1.1)}
+.color-opt.c-green{background:rgba(0,255,100,.2);border-color:rgba(0,255,100,.4)}
+.color-opt.c-cyan{background:rgba(0,220,255,.2);border-color:rgba(0,220,255,.4)}
+.color-opt.c-amber{background:rgba(255,190,0,.2);border-color:rgba(255,190,0,.4)}
+.color-opt.c-purple{background:rgba(160,100,255,.2);border-color:rgba(160,100,255,.4)}
+.color-opt.c-pink{background:rgba(255,100,180,.2);border-color:rgba(255,100,180,.4)}
+.color-opt.selected.c-green{border-color:rgba(0,255,100,1)}
+.color-opt.selected.c-cyan{border-color:rgba(0,220,255,1)}
+.color-opt.selected.c-amber{border-color:rgba(255,190,0,1)}
+.color-opt.selected.c-purple{border-color:rgba(160,100,255,1)}
+.color-opt.selected.c-pink{border-color:rgba(255,100,180,1)}
+
+.submit-btn{background:rgba(0,255,100,.15);border:1px solid rgba(0,255,100,.4);border-radius:10px;padding:12px;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;margin-top:4px}
+.submit-btn:hover{background:rgba(0,255,100,.25)}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed}
+
 .admin-hint{font-size:10px;color:rgba(255,255,255,.2);margin-top:12px;text-align:center}
 
-/* ===== PC LAYOUT ===== */
+/* 알림 토스트 */
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,255,100,.15);border:1px solid rgba(0,255,100,.3);border-radius:10px;padding:10px 20px;color:var(--accent);font-size:13px;opacity:0;transition:all .3s;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.error{background:rgba(255,80,80,.15);border-color:rgba(255,80,80,.3);color:#ff6464}
+
+/* 로딩 스피너 */
+.loading-wrap{text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 드래그 순서 */
+.admin-link-row.dragging{opacity:.5;border-style:dashed}
+.admin-link-row.drag-over{border-color:var(--accent);background:rgba(0,255,100,.05)}
+.drag-handle{color:rgba(255,255,255,.2);cursor:grab;padding:0 4px;font-size:14px}
+.drag-handle:active{cursor:grabbing}
+
 @media(min-width:768px){
-  .cards-grid{
-    grid-template-columns:repeat(4,1fr);
-    gap:16px;
-  }
-  .link-card{
-    flex-direction:column;
-    align-items:flex-start;
-    justify-content:space-between;
-    aspect-ratio:1/1;
-    min-height:unset;
-    padding:22px;
-  }
+  .cards-grid{grid-template-columns:repeat(4,1fr);gap:16px;}
+  .link-card{flex-direction:column;align-items:flex-start;justify-content:space-between;aspect-ratio:1/1;min-height:unset;padding:22px;}
   .link-card .card-inner{flex-direction:column;align-items:flex-start;gap:14px;flex:1;width:100%}
   .card-icon{width:56px;height:56px;font-size:26px;border-radius:14px}
   .card-text{flex:1;text-align:left}
@@ -141,12 +177,16 @@ body{background:var(--bg);font-family:'Noto Sans KR',sans-serif;min-height:100vh
   .link-card.c-amber:hover{border-color:rgba(255,190,0,.35)}
   .link-card.c-purple:hover{border-color:rgba(160,100,255,.35)}
   .link-card.c-pink:hover{border-color:rgba(255,100,180,.35)}
+  .add-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-group.full{grid-column:1/-1}
+  .emoji-grid{grid-template-columns:repeat(10,1fr)}
 }
 </style>
 </head>
 <body>
 <div class="bg-glow1"></div>
 <div class="bg-glow2"></div>
+<div class="toast" id="toast"></div>
 
 <div class="page">
   <div class="profile-area">
@@ -156,92 +196,86 @@ body{background:var(--bg);font-family:'Noto Sans KR',sans-serif;min-height:100vh
   </div>
 
   <div class="cards-grid" id="cardsGrid">
-
-    <a class="link-card c-green" id="card-samguk-game" href="https://m.site.naver.com/25ta6" target="_blank">
-      <div class="card-inner">
-        <div class="card-icon icon-green">🏛️</div>
-        <div class="card-text">
-          <div class="card-title">삼국시대 문화유산 맞추기 게임</div>
-          <div class="card-desc">고구려·백제·신라 유물을 맞춰봐!</div>
-        </div>
-        <span class="card-arrow-mob">→</span>
-      </div>
-      <span class="card-arrow-pc">→</span>
-    </a>
-
-    <a class="link-card c-cyan" id="card-goods" href="https://hoseong911.github.io/htlink/samguk-goods.html" target="_blank">
-      <div class="card-inner">
-        <div class="card-icon icon-cyan">🛍️</div>
-        <div class="card-text">
-          <div class="card-title">삼국시대 문화유산 굿즈 온라인 기획전</div>
-          <div class="card-desc">학생들이 기획한 역사 굿즈 전시</div>
-        </div>
-        <span class="card-arrow-mob">→</span>
-      </div>
-      <span class="card-arrow-pc">→</span>
-    </a>
-
-    <a class="link-card c-amber" id="card-escape" href="https://hoseong911.github.io/htlink/quiz/escape202604.html" target="_blank">
-      <div class="card-inner">
-        <div class="card-icon icon-amber">🚪</div>
-        <div class="card-text">
-          <div class="card-title">나 역사 속에 떨어졌는데 집에 갈 수 있겠지?</div>
-          <div class="card-desc">역사 방탈출 게임</div>
-        </div>
-        <span class="card-arrow-mob">→</span>
-      </div>
-      <span class="card-arrow-pc">→</span>
-    </a>
-
-    <a class="link-card c-purple" id="card-ox" href="https://hoseong911.github.io/htlink/quiz/ox202604.html" target="_blank">
-      <div class="card-inner">
-        <div class="card-icon icon-purple">❓</div>
-        <div class="card-text">
-          <div class="card-title">1회시험 대비 역사 OX퀴즈 문제 창고</div>
-          <div class="card-desc">200문항 OX 퀴즈 풀어보기</div>
-        </div>
-        <span class="card-arrow-mob">→</span>
-      </div>
-      <span class="card-arrow-pc">→</span>
-    </a>
-
-    <a class="link-card c-pink" id="card-mileage" href="https://m.site.naver.com/25iKN" target="_blank">
-      <div class="card-inner">
-        <div class="card-icon icon-pink">⭐</div>
-        <div class="card-text">
-          <div class="card-title">인천동양중 3학년 역사 열공 마일리지</div>
-          <div class="card-desc">내 학습 포인트 확인하기</div>
-        </div>
-        <span class="card-arrow-mob">→</span>
-      </div>
-      <span class="card-arrow-pc">→</span>
-    </a>
-
-    <a class="link-card c-green" id="card-club" href="https://hoseong911.github.io/idyhbc" target="_blank">
-      <div class="card-inner">
-        <div class="card-icon icon-green">🧭</div>
-        <div class="card-text">
-          <div class="card-title">역사콘텐츠탐구반 & 역사답사반 베이스캠프</div>
-          <div class="card-desc">동아리 활동 안내 및 기록</div>
-        </div>
-        <span class="card-arrow-mob">→</span>
-      </div>
-      <span class="card-arrow-pc">→</span>
-    </a>
-
-  </div><!-- /cards-grid -->
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+      <div>콘텐츠 불러오는 중...</div>
+    </div>
+  </div>
 
   <button class="admin-btn" onclick="toggleAdminPanel()">⚙ 관리자</button>
 
   <div class="admin-panel" id="adminPanel">
     <div class="admin-title">관리자 모드</div>
+
+    <!-- 비밀번호 입력 -->
     <div class="admin-pw-wrap" id="pwWrap">
       <input class="admin-pw-input" type="password" id="pwInput" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')checkPw()">
       <button class="admin-pw-btn" onclick="checkPw()">확인</button>
     </div>
+
+    <!-- 인증 후 컨트롤 -->
     <div id="adminControls" style="display:none">
-      <div class="admin-links-list" id="adminList"></div>
-      <p class="admin-hint">변경사항은 이 기기의 로컬스토리지에 저장됩니다</p>
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="switchTab('list')">📋 카드 목록</button>
+        <button class="admin-tab" onclick="switchTab('add')" id="tabAddBtn">➕ 카드 추가</button>
+      </div>
+
+      <!-- 탭1: 카드 목록 -->
+      <div id="tabList">
+        <div class="admin-links-list" id="adminList"></div>
+        <p class="admin-hint">☁️ 변경사항은 Firebase에 저장되어 모든 기기에 반영됩니다 · 드래그로 순서 변경 가능</p>
+      </div>
+
+      <!-- 탭2: 카드 추가/수정 -->
+      <div id="tabAdd" style="display:none">
+        <input type="hidden" id="editingDocId">
+        <div class="add-form">
+          <div class="form-group full">
+            <label class="form-label">아이콘 이모지</label>
+            <div class="emoji-palette-wrap">
+              <div class="emoji-display" onclick="toggleEmojiPicker()">
+                <span id="selectedEmoji">🏛️</span>
+                <span class="hint">클릭해서 이모지 선택</span>
+              </div>
+              <div class="emoji-picker" id="emojiPicker">
+                <div class="emoji-categories" id="emojiCats"></div>
+                <div class="emoji-grid" id="emojiGrid"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label class="form-label">카드 색상</label>
+            <div class="color-options">
+              <div class="color-opt c-green selected" data-color="green" onclick="selectColor(this)" title="초록">✓</div>
+              <div class="color-opt c-cyan" data-color="cyan" onclick="selectColor(this)" title="하늘">　</div>
+              <div class="color-opt c-amber" data-color="amber" onclick="selectColor(this)" title="황금">　</div>
+              <div class="color-opt c-purple" data-color="purple" onclick="selectColor(this)" title="보라">　</div>
+              <div class="color-opt c-pink" data-color="pink" onclick="selectColor(this)" title="분홍">　</div>
+            </div>
+          </div>
+
+          <div class="form-group full">
+            <label class="form-label">카드 제목</label>
+            <input class="form-input" type="text" id="fTitle" placeholder="예) 삼국시대 문화유산 맞추기 게임">
+          </div>
+
+          <div class="form-group full">
+            <label class="form-label">설명 (짧게)</label>
+            <input class="form-input" type="text" id="fDesc" placeholder="예) 고구려·백제·신라 유물을 맞춰봐!">
+          </div>
+
+          <div class="form-group full">
+            <label class="form-label">링크 URL</label>
+            <input class="form-input" type="url" id="fUrl" placeholder="https://...">
+          </div>
+
+          <div class="form-group full">
+            <button class="submit-btn" id="submitBtn" onclick="submitCard()">카드 추가하기</button>
+          </div>
+        </div>
+        <p class="admin-hint">추가 즉시 Firebase에 저장되어 학생들 화면에 반영됩니다</p>
+      </div>
     </div>
   </div>
 
@@ -250,106 +284,355 @@ body{background:var(--bg);font-family:'Noto Sans KR',sans-serif;min-height:100vh
   </div>
 </div>
 
+<!-- ===================== Firebase SDK ===================== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ======================================================
+// 🔧 여기에 Firebase 설정을 입력하세요
+// Firebase 콘솔 → 프로젝트 설정 → 내 앱 → SDK 설정 및 구성
+// ======================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
+  authDomain: "ho0911seong-56638.firebaseapp.com",
+  databaseURL: "https://ho0911seong-56638-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ho0911seong-56638",
+  storageBucket: "ho0911seong-56638.firebasestorage.app",
+  messagingSenderId: "994509567071",
+  appId: "1:994509567071:web:8b33bb03a3d8f3a9f557ea"
+};
+// ======================================================
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const COLLECTION = "cards";
+
+// 전역에서 접근 가능하도록
+window._db = db;
+window._collection = collection;
+window._addDoc = addDoc;
+window._updateDoc = updateDoc;
+window._deleteDoc = deleteDoc;
+window._doc = doc;
+window._query = query;
+window._orderBy = orderBy;
+window._writeBatch = writeBatch;
+window._COLLECTION = COLLECTION;
+
+// 실시간 구독
+const q = query(collection(db, COLLECTION), orderBy("order", "asc"));
+window._unsubscribe = onSnapshot(q, (snapshot) => {
+  const cards = [];
+  snapshot.forEach(d => cards.push({ docId: d.id, ...d.data() }));
+  window._cards = cards;
+  renderCards(cards);
+  if (window._adminOpen) buildAdminList(cards);
+}, (err) => {
+  console.error(err);
+  document.getElementById('cardsGrid').innerHTML = '<div class="loading-wrap" style="color:#ff6464">Firebase 연결 오류. 설정을 확인해주세요.</div>';
+});
+</script>
+
 <script>
-const CARDS = [
-  {id:'card-samguk-game', label:'삼국시대 문화유산 맞추기 게임', url:'https://m.site.naver.com/25ta6'},
-  {id:'card-goods',       label:'삼국시대 굿즈 온라인 기획전',    url:'https://hoseong911.github.io/htlink/samguk-goods.html'},
-  {id:'card-escape',      label:'역사 방탈출 게임',               url:'https://hoseong911.github.io/htlink/quiz/escape202604.html'},
-  {id:'card-ox',          label:'1회고사 OX퀴즈 문제 창고',       url:'https://hoseong911.github.io/htlink/quiz/ox202604.html'},
-  {id:'card-mileage',     label:'역사 열공 마일리지',             url:'https://m.site.naver.com/25iKN'},
-  {id:'card-club',        label:'역사 동아리 베이스캠프',          url:'https://hoseong911.github.io/idyhbc'},
-];
+/* ===== 이모지 데이터 ===== */
+const EMOJI_DATA = {
+  '교육·역사': ['🏛️','📚','📖','📜','🗺️','🗿','⚔️','🛡️','🏺','🪙','🔭','🔬','✏️','📝','🎓','🏫','🧭','🗓️','📅','🪶'],
+  '게임·활동': ['🎮','🕹️','🎲','🎯','🏆','🥇','🎖️','🚪','🔑','🗝️','💡','🧩','🎪','🎠','🎡','🎢','🎭','🎨','🎬','🎤'],
+  '자연·장소': ['🌍','🌏','🏔️','🗻','🌋','⛩️','🏯','🗼','🗽','🌉','🌃','🌄','🌅','🌊','🏖️','🏕️','🌸','🍀','🌿','🍃'],
+  '사물·기타': ['⭐','🌟','💫','✨','🔥','💎','🛍️','🎁','📦','💌','🔔','📣','💬','🌈','❤️','💙','💚','💛','💜','🩷'],
+  '동물': ['🦅','🦁','🐯','🦊','🐺','🦋','🦚','🦜','🐉','🦄','🐘','🦒','🐬','🦈','🦅','🦉','🐧','🦀','🦑','🐙'],
+};
 
-const PW = 'ghtjd12!@';
-const LS_KEY = 'hs_card_locks';
+let selectedEmoji = '🏛️';
+let selectedColor = 'green';
+let currentEmojiCat = Object.keys(EMOJI_DATA)[0];
+let adminOpen = false;
+let currentTab = 'list';
+let dragSrcIndex = null;
 
-function loadLocks(){
-  try{ return JSON.parse(localStorage.getItem(LS_KEY))||{}; }
-  catch(e){ return {}; }
-}
-function saveLocks(locks){ localStorage.setItem(LS_KEY, JSON.stringify(locks)); }
-
-function applyLocks(){
-  const locks = loadLocks();
-  CARDS.forEach(c=>{
-    const el = document.getElementById(c.id);
-    if(!el) return;
-    const locked = locks[c.id] === true;
-    if(locked){
-      el.classList.add('locked');
-      el.removeAttribute('href');
-      el.onclick = e=>e.preventDefault();
-      if(!el.querySelector('.lock-badge')){
-        const t = el.querySelector('.card-title');
-        if(t){
-          const b=document.createElement('span');
-          b.className='lock-badge';b.textContent='🔒 준비중';
-          t.appendChild(b);
-        }
-      }
-    } else {
-      el.classList.remove('locked');
-      el.href = c.url;
-      el.onclick = null;
-      const b = el.querySelector('.lock-badge');
-      if(b) b.remove();
-    }
+/* ===== 카드 렌더링 ===== */
+function renderCards(cards) {
+  const grid = document.getElementById('cardsGrid');
+  if (!cards || cards.length === 0) {
+    grid.innerHTML = '<div class="loading-wrap">아직 등록된 카드가 없어요</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  cards.forEach(card => {
+    const el = createCardEl(card);
+    grid.appendChild(el);
   });
 }
 
-let adminOpen = false;
-function toggleAdminPanel(){
+function createCardEl(card) {
+  const a = document.createElement('a');
+  a.className = `link-card c-${card.color || 'green'}${card.locked ? ' locked' : ''}`;
+  a.id = 'card-' + card.docId;
+  if (!card.locked) {
+    a.href = card.url;
+    a.target = '_blank';
+  }
+  a.innerHTML = `
+    <div class="card-inner">
+      <div class="card-icon icon-${card.color || 'green'}">${card.emoji || '📌'}</div>
+      <div class="card-text">
+        <div class="card-title">${card.title}${card.locked ? '<span class="lock-badge">🔒 준비중</span>' : ''}</div>
+        <div class="card-desc">${card.desc || ''}</div>
+      </div>
+      <span class="card-arrow-mob">→</span>
+    </div>
+    <span class="card-arrow-pc">→</span>
+  `;
+  if (card.locked) a.onclick = e => e.preventDefault();
+  return a;
+}
+
+/* ===== 관리자 패널 ===== */
+function toggleAdminPanel() {
   adminOpen = !adminOpen;
+  window._adminOpen = adminOpen;
   document.getElementById('adminPanel').classList.toggle('open', adminOpen);
-  if(!adminOpen){
-    document.getElementById('adminControls').style.display='none';
-    document.getElementById('pwWrap').style.display='flex';
-    document.getElementById('pwInput').value='';
+  if (!adminOpen) {
+    document.getElementById('adminControls').style.display = 'none';
+    document.getElementById('pwWrap').style.display = 'flex';
+    document.getElementById('pwInput').value = '';
   }
 }
+window.toggleAdminPanel = toggleAdminPanel;
 
-function checkPw(){
+const PW = 'ghtjd12!@';
+function checkPw() {
   const v = document.getElementById('pwInput').value;
-  if(v === PW){
-    document.getElementById('pwWrap').style.display='none';
-    document.getElementById('adminControls').style.display='block';
-    buildAdminList();
+  if (v === PW) {
+    document.getElementById('pwWrap').style.display = 'none';
+    document.getElementById('adminControls').style.display = 'block';
+    buildAdminList(window._cards || []);
+    initEmojiPicker();
   } else {
-    document.getElementById('pwInput').style.borderColor='#ff4444';
-    document.getElementById('pwInput').value='';
-    document.getElementById('pwInput').placeholder='틀렸어요. 다시 입력';
-    setTimeout(()=>{
-      document.getElementById('pwInput').style.borderColor='';
-      document.getElementById('pwInput').placeholder='비밀번호 입력';
-    },1500);
+    const inp = document.getElementById('pwInput');
+    inp.style.borderColor = '#ff4444';
+    inp.value = '';
+    inp.placeholder = '틀렸어요. 다시 입력';
+    setTimeout(() => { inp.style.borderColor = ''; inp.placeholder = '비밀번호 입력'; }, 1500);
   }
 }
+window.checkPw = checkPw;
 
-function buildAdminList(){
-  const locks = loadLocks();
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.admin-tab').forEach((el, i) => el.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'add')));
+  document.getElementById('tabList').style.display = tab === 'list' ? 'block' : 'none';
+  document.getElementById('tabAdd').style.display = tab === 'add' ? 'block' : 'none';
+  if (tab === 'add') {
+    // 새 카드 추가 모드로 초기화
+    const editId = document.getElementById('editingDocId').value;
+    if (!editId) resetAddForm();
+  }
+}
+window.switchTab = switchTab;
+
+function buildAdminList(cards) {
   const list = document.getElementById('adminList');
-  list.innerHTML='';
-  CARDS.forEach(c=>{
-    const isLocked = locks[c.id]===true;
-    const row=document.createElement('div');
-    row.className='admin-link-row';
-    row.innerHTML=`
-      <span class="admin-link-label">${c.label}</span>
-      <button class="toggle-btn ${isLocked?'off':'on'}" id="toggle-${c.id}" onclick="toggleCard('${c.id}')"></button>
+  list.innerHTML = '';
+  if (!cards || cards.length === 0) {
+    list.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:12px;text-align:center;padding:16px">카드가 없습니다. 카드 추가 탭에서 추가해보세요!</p>';
+    return;
+  }
+  cards.forEach((card, idx) => {
+    const row = document.createElement('div');
+    row.className = 'admin-link-row';
+    row.dataset.docId = card.docId;
+    row.dataset.idx = idx;
+    row.draggable = true;
+    row.innerHTML = `
+      <span class="drag-handle" title="드래그로 순서 변경">⠿</span>
+      <div class="admin-link-label">
+        ${card.emoji || ''} ${card.title}
+        <small>${card.url || ''}</small>
+      </div>
+      <div class="admin-row-btns">
+        <button class="edit-btn" onclick="startEdit('${card.docId}')">수정</button>
+        <button class="toggle-btn ${card.locked ? 'off' : 'on'}" onclick="toggleLock('${card.docId}', ${!!card.locked})"></button>
+        <button class="del-btn" onclick="deleteCard('${card.docId}')">삭제</button>
+      </div>
     `;
+    // 드래그 이벤트
+    row.addEventListener('dragstart', e => { dragSrcIndex = idx; row.classList.add('dragging'); });
+    row.addEventListener('dragend', e => { row.classList.remove('dragging'); document.querySelectorAll('.admin-link-row').forEach(r => r.classList.remove('drag-over')); });
+    row.addEventListener('dragover', e => { e.preventDefault(); row.classList.add('drag-over'); });
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+    row.addEventListener('drop', e => { e.preventDefault(); row.classList.remove('drag-over'); reorderCards(dragSrcIndex, idx); });
     list.appendChild(row);
   });
 }
 
-function toggleCard(id){
-  const locks = loadLocks();
-  locks[id] = !locks[id];
-  saveLocks(locks);
-  applyLocks();
-  buildAdminList();
+/* ===== Firebase CRUD ===== */
+async function toggleLock(docId, isLocked) {
+  try {
+    await window._updateDoc(window._doc(window._db, window._COLLECTION, docId), { locked: !isLocked });
+    showToast(!isLocked ? '🔒 카드를 잠갔어요' : '✅ 카드를 열었어요');
+  } catch(e) { showToast('오류: ' + e.message, true); }
+}
+window.toggleLock = toggleLock;
+
+async function deleteCard(docId) {
+  if (!confirm('이 카드를 삭제할까요?')) return;
+  try {
+    await window._deleteDoc(window._doc(window._db, window._COLLECTION, docId));
+    showToast('🗑️ 카드를 삭제했어요');
+  } catch(e) { showToast('오류: ' + e.message, true); }
+}
+window.deleteCard = deleteCard;
+
+function startEdit(docId) {
+  const card = (window._cards || []).find(c => c.docId === docId);
+  if (!card) return;
+  document.getElementById('editingDocId').value = docId;
+  document.getElementById('fTitle').value = card.title || '';
+  document.getElementById('fDesc').value = card.desc || '';
+  document.getElementById('fUrl').value = card.url || '';
+  selectedEmoji = card.emoji || '📌';
+  document.getElementById('selectedEmoji').textContent = selectedEmoji;
+  selectedColor = card.color || 'green';
+  document.querySelectorAll('.color-opt').forEach(el => {
+    el.classList.toggle('selected', el.dataset.color === selectedColor);
+    el.textContent = el.dataset.color === selectedColor ? '✓' : '　';
+  });
+  document.getElementById('submitBtn').textContent = '카드 수정 저장';
+  switchTab('add');
+}
+window.startEdit = startEdit;
+
+async function submitCard() {
+  const title = document.getElementById('fTitle').value.trim();
+  const desc = document.getElementById('fDesc').value.trim();
+  const url = document.getElementById('fUrl').value.trim();
+  const editId = document.getElementById('editingDocId').value;
+
+  if (!title || !url) { showToast('제목과 URL은 필수예요!', true); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+
+  const data = { emoji: selectedEmoji, color: selectedColor, title, desc, url, locked: false };
+
+  try {
+    if (editId) {
+      await window._updateDoc(window._doc(window._db, window._COLLECTION, editId), { emoji: selectedEmoji, color: selectedColor, title, desc, url });
+      showToast('✅ 카드를 수정했어요');
+      document.getElementById('editingDocId').value = '';
+    } else {
+      const cards = window._cards || [];
+      data.order = cards.length > 0 ? Math.max(...cards.map(c => c.order || 0)) + 1 : 0;
+      await window._addDoc(window._collection(window._db, window._COLLECTION), data);
+      showToast('✅ 카드를 추가했어요! 학생들 화면에 바로 보여요');
+    }
+    resetAddForm();
+    switchTab('list');
+  } catch(e) {
+    showToast('오류: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = editId ? '카드 수정 저장' : '카드 추가하기';
+  }
+}
+window.submitCard = submitCard;
+
+async function reorderCards(fromIdx, toIdx) {
+  if (fromIdx === toIdx) return;
+  const cards = [...(window._cards || [])];
+  const [moved] = cards.splice(fromIdx, 1);
+  cards.splice(toIdx, 0, moved);
+  try {
+    const batch = window._writeBatch(window._db);
+    cards.forEach((c, i) => {
+      batch.update(window._doc(window._db, window._COLLECTION, c.docId), { order: i });
+    });
+    await batch.commit();
+    showToast('🔃 순서를 저장했어요');
+  } catch(e) { showToast('순서 저장 오류: ' + e.message, true); }
 }
 
-applyLocks();
+/* ===== 이모지 팔레트 ===== */
+function initEmojiPicker() {
+  const cats = document.getElementById('emojiCats');
+  if (cats.children.length > 0) return; // 이미 초기화됨
+  Object.keys(EMOJI_DATA).forEach((cat, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-cat-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = () => {
+      currentEmojiCat = cat;
+      document.querySelectorAll('.emoji-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderEmojiGrid();
+    };
+    cats.appendChild(btn);
+  });
+  renderEmojiGrid();
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.emoji-palette-wrap')) closeEmojiPicker();
+  });
+}
+
+function renderEmojiGrid() {
+  const grid = document.getElementById('emojiGrid');
+  grid.innerHTML = '';
+  (EMOJI_DATA[currentEmojiCat] || []).forEach(em => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-btn';
+    btn.textContent = em;
+    btn.onclick = () => { selectedEmoji = em; document.getElementById('selectedEmoji').textContent = em; closeEmojiPicker(); };
+    grid.appendChild(btn);
+  });
+}
+
+function toggleEmojiPicker() {
+  document.getElementById('emojiPicker').classList.toggle('open');
+}
+function closeEmojiPicker() {
+  document.getElementById('emojiPicker').classList.remove('open');
+}
+window.toggleEmojiPicker = toggleEmojiPicker;
+
+/* ===== 색상 선택 ===== */
+function selectColor(el) {
+  selectedColor = el.dataset.color;
+  document.querySelectorAll('.color-opt').forEach(opt => {
+    opt.classList.remove('selected');
+    opt.textContent = '　';
+  });
+  el.classList.add('selected');
+  el.textContent = '✓';
+}
+window.selectColor = selectColor;
+
+/* ===== 폼 초기화 ===== */
+function resetAddForm() {
+  document.getElementById('editingDocId').value = '';
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fUrl').value = '';
+  selectedEmoji = '🏛️';
+  document.getElementById('selectedEmoji').textContent = '🏛️';
+  selectedColor = 'green';
+  document.querySelectorAll('.color-opt').forEach(el => {
+    el.classList.toggle('selected', el.dataset.color === 'green');
+    el.textContent = el.dataset.color === 'green' ? '✓' : '　';
+  });
+  document.getElementById('submitBtn').textContent = '카드 추가하기';
+}
+
+/* ===== 토스트 알림 ===== */
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError ? ' error' : '');
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
 </script>
 </body>
 </html>
