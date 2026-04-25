@@ -430,6 +430,37 @@
     .notice { background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 12px 14px; font-size: 12px; color: #7a6000; margin-bottom: 14px; }
 
     footer { padding: 24px 16px; text-align: center; font-size: 11px; color: var(--muted); }
+
+
+    /* ── 픽 배지 & 버튼 ── */
+    .pick-badge {
+      display: inline-block;
+      background: #fff8e1; color: #b8860b;
+      border: 1px solid #ffe082;
+      border-radius: 5px; padding: 1px 7px;
+      font-size: 11px; font-weight: 700;
+      margin-right: 6px; vertical-align: middle;
+    }
+    .pick-btn {
+      font-size: 18px; color: #ccc;
+      transition: color 0.15s; margin-left: auto;
+    }
+    .pick-btn:hover { color: #f5a623; }
+    .pick-btn.picked { color: #f5a623; }
+    /* 토글 스위치 */
+    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: #ccc; border-radius: 24px; transition: 0.2s;
+    }
+    .toggle-slider:before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; left: 3px; bottom: 3px;
+      background: #fff; border-radius: 50%; transition: 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
   </style>
 </head>
 <body>
@@ -439,7 +470,7 @@
   <div class="login-wrap">
     <div class="login-logo">
       <div class="logo-text">blind</div>
-      <div class="logo-sub">고려 관료 익명 커뮤니티 · 체제 정비</div>
+      <div class="logo-sub">고려 관료 익명 커뮤니티</div>
     </div>
 
     <div style="margin-bottom:14px;">
@@ -494,7 +525,11 @@
     <div class="header-top">
       <div class="header-logo">blind</div>
       <div class="header-right">
-        <button class="icon-btn" onclick="openAdminAuth()" title="관리자">⚙</button>
+        <div id="adminModeBanner" style="display:none; align-items:center; gap:6px; background:#fff8e1; border:1px solid #ffe082; border-radius:8px; padding:4px 10px; font-size:12px; font-weight:700; color:#b8860b;">
+          👑 관리자
+          <button onclick="exitAdminMode()" style="background:none; border:none; color:#b8860b; cursor:pointer; font-size:14px; line-height:1; padding:0 0 0 4px;">×</button>
+        </div>
+        <button class="icon-btn" id="adminLoginBtn" onclick="openAdminAuth()" title="관리자">⚙</button>
         <button class="icon-btn" onclick="openProfileModal()" title="프로필">👤</button>
       </div>
     </div>
@@ -504,6 +539,7 @@
       <button class="tab-item" onclick="setFilter('local',this)">지방 기관</button>
       <button class="tab-item" onclick="setFilter('military',this)">군사 기관</button>
       <button class="tab-item" onclick="setFilter('edu',this)">교육 기관</button>
+      <button class="tab-item" onclick="setFilter('pick',this)">⭐ Pick</button>
     </div>
   </header>
 
@@ -624,8 +660,22 @@
     </div>
 
     <div id="tab-tools" class="admin-panel">
+      <div style="background:#f0f7ff; border:1px solid #c8dff7; border-radius:10px; padding:14px; margin-bottom:14px;">
+        <div style="font-size:13px; font-weight:700; color:#1a6db5; margin-bottom:10px;">📝 더미 게시글</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <span style="font-size:13px; color:#444;">피드에 더미 표시</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dummyToggle" checked onchange="toggleDummy(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="tool-btn" style="background:#1a6db5; color:#fff;" onclick="initDummy()">더미 생성</button>
+          <button class="tool-btn" style="background:#fff0f0; color:var(--danger); border:1px solid #ffd0d0;" onclick="deleteDummy()">더미만 삭제</button>
+        </div>
+        <div style="font-size:11px; color:#888; margin-top:8px;">더미는 학번 00000 · System 계정으로 저장됩니다.</div>
+      </div>
       <div class="notice">⚠️ 아래 기능은 되돌릴 수 없습니다.</div>
-      <button class="tool-btn" style="background:#e8f4ff; color:#1a6db5;" onclick="initDummy()">더미 게시글 생성</button>
       <button class="tool-btn" style="background:#fff0f0; color:var(--danger);" onclick="resetAll()">전체 초기화</button>
     </div>
   </div>
@@ -778,9 +828,12 @@
     const feed = document.getElementById('feed');
     feed.innerHTML = '';
 
-    let posts = [...allPostsCache];
-    if (currentFilter !== 'all') {
+    let posts = allPostsCache.filter(p => dummyVisible || p.studentId !== '00000');
+    if (currentFilter === 'pick') {
+      posts = posts.filter(p => p.adminPick === true);
+    } else if (currentFilter !== 'all') {
       posts = posts.filter(p => (p.org?.cat === currentFilter) || (p.orgs||[]).some(o=>o.cat===currentFilter));
+    }
     }
     if (currentSort === 'popular') {
       posts.sort((a,b) => (b.likes||0)-(a.likes||0) || b.id.localeCompare(a.id));
@@ -838,12 +891,30 @@
       const actions = document.createElement('div');
       actions.className = 'post-actions';
 
+      // 픽 배지 (피드에서 모두에게 보임)
+      if (post.adminPick) {
+        const pickBadge = document.createElement('span');
+        pickBadge.className = 'pick-badge';
+        pickBadge.textContent = '⭐ Pick';
+        top.insertBefore(pickBadge, top.firstChild);
+      }
+
       // 좋아요
       const likeBtn = document.createElement('button');
       likeBtn.className = `action-btn${isLiked?' liked':''}`;
       likeBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="${isLiked?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${post.likes||0}`;
       likeBtn.onclick = (e) => { e.stopPropagation(); toggleLike(post.id, !!isLiked); };
       actions.appendChild(likeBtn);
+
+      // 관리자 모드일 때 ☆/★ 픽 버튼
+      if (isAdminMode) {
+        const pickBtn = document.createElement('button');
+        pickBtn.className = `action-btn pick-btn${post.adminPick ? ' picked' : ''}`;
+        pickBtn.textContent = post.adminPick ? '★' : '☆';
+        pickBtn.title = post.adminPick ? '픽 취소' : '픽하기';
+        pickBtn.onclick = (e) => { e.stopPropagation(); togglePick(post.id, !!post.adminPick); };
+        actions.appendChild(pickBtn);
+      }
 
       card.append(top, body, actions);
       feed.appendChild(card);
@@ -890,6 +961,20 @@
   };
 
   // ── 관리자 ──
+  let isAdminMode = false;
+
+  function setAdminMode(on) {
+    isAdminMode = on;
+    document.getElementById('adminModeBanner').style.display = on ? 'flex' : 'none';
+    document.getElementById('adminLoginBtn').style.display = on ? 'none' : 'flex';
+    renderFeed(); // 픽 버튼 토글
+  }
+
+  window.exitAdminMode = () => {
+    setAdminMode(false);
+    document.getElementById('adminOverlay').style.display = 'none';
+  };
+
   window.openAdminAuth = () => {
     document.getElementById('adminPwInput').value = '';
     document.getElementById('adminAuthModal').classList.add('show');
@@ -900,10 +985,18 @@
     const hash = await sha256(document.getElementById('adminPwInput').value);
     if (hash === ADMIN_PW_HASH) {
       closeAdminAuth();
+      setAdminMode(true);
       document.getElementById('adminOverlay').style.display = 'flex';
     } else { alert('Access Denied'); }
   };
   window.closeAdmin = () => document.getElementById('adminOverlay').style.display = 'none';
+
+  // ── 픽 토글 ──
+  window.togglePick = async (postId, isPicked) => {
+    const updates = {};
+    updates[`goryeo_v2/${postId}/adminPick`] = isPicked ? null : true;
+    await update(ref(db), updates);
+  };
 
   window.switchAdminTab = (tab) => {
     document.querySelectorAll('.admin-tab').forEach((el,i) => {
@@ -931,10 +1024,12 @@
 
     const esc = s => { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; };
     let html = `<table class="admin-table"><thead><tr>
-      <th>학번</th><th>이름</th><th>닉네임</th><th>기관</th><th>내용</th><th>❤</th><th>삭제</th>
+      <th>학번</th><th>이름</th><th>닉네임</th><th>기관</th><th>내용</th><th>❤</th><th>⭐</th><th>삭제</th>
     </tr></thead><tbody>`;
     sorted.forEach(p => {
       const orgStr = p.org?.name || (p.orgs||[]).map(o=>o.name).join(', ') || '';
+      const pickIcon = p.adminPick ? '★' : '☆';
+      const pickStyle = p.adminPick ? 'color:#f5a623; font-size:16px; background:none; border:none; cursor:pointer;' : 'color:#ccc; font-size:16px; background:none; border:none; cursor:pointer;';
       html += `<tr>
         <td>${esc(p.studentId||'')}</td>
         <td>${esc(p.realName||'')}</td>
@@ -942,6 +1037,7 @@
         <td style="font-size:11px;color:var(--muted);">${esc(orgStr)}</td>
         <td style="max-width:140px;word-break:break-all;">${esc(p.content||'')}</td>
         <td>${p.likes||0}</td>
+        <td><button style="${pickStyle}" onclick="togglePick('${p.id}', ${!!p.adminPick})">${pickIcon}</button></td>
         <td><button class="del-btn" onclick="deletePost('${p.id}')">삭제</button></td>
       </tr>`;
     });
@@ -984,31 +1080,67 @@
     if (confirm('⚠️ 전체 게시글을 삭제합니까?')) remove(postsRef);
   };
 
+  let dummyVisible = true;
+
+  window.toggleDummy = (show) => {
+    dummyVisible = show;
+    renderFeed();
+  };
+
+  window.deleteDummy = () => {
+    if (!confirm('더미 게시글을 모두 삭제할까요?')) return;
+    const toDelete = allPostsCache.filter(p => p.studentId === '00000');
+    toDelete.forEach(p => remove(ref(db, `goryeo_v2/${p.id}`)));
+    alert(`더미 ${toDelete.length}개 삭제 완료`);
+  };
+
   window.initDummy = () => {
-    const dummy = [
-      { nickname:"jungsil_97", org:{name:'중서문하성',cat:'central'},
-        content:"오늘 문하시중 회의에서 6위 군사 배치 문제가 또 올라왔다. 북계 상황이 심각한데 중앙에선 너무 느긋한 것 같아서 답답합니다.", likes:14 },
-      { nickname:"censor_eo", org:{name:'어사대',cat:'central'},
-        content:"지방관들 기강 해이가 너무 심합니다. 어사대 감찰 기능 강화 건의를 수차례 올렸는데 윗선에서 묵묵부답이네요. 이러려고 음서로 들어왔나 싶습니다.", likes:31 },
-      { nickname:"gukja_scholar", org:{name:'국자감',cat:'edu'},
-        content:"국자감 입학 정원 확대 요청 또 기각됐습니다. 과거제로 인재 뽑자고 해놓고 자리가 없으면 무슨 의미인가요... 음서 출신들은 아직도 요직 다 차지하고 있고.", likes:52 },
-      { nickname:"bukgye_soldier", org:{name:'북계 관리',cat:'local'},
-        content:"북계 주진군 인원이 너무 부족합니다. 우리끼리는 웃으면서 '이래도 나라냐' 하는데 솔직히 불안합니다. 중추원에 계신 분들 한번만 직접 와보세요.", likes:67 },
-      { nickname:"samsa_acc", org:{name:'삼사',cat:'central'},
-        content:"양광도 세수 결산 맞추려고 또 야근입니다. 각 도에서 올라오는 보고 양식이 다 달라서 집계가 너무 힘들어요. 표준화가 시급합니다.", likes:9 },
-      { nickname:"yukwi_guard", org:{name:'6위 소속',cat:'military'},
-        content:"6위 당직 서면서 느끼는 건데, 장비가 너무 낡았습니다. 2군이랑 차별이 너무 심한 거 아닙니까? 중추원에 건의 좀 해주세요.", likes:23 },
-      { nickname:"gyeonggi_local", org:{name:'경기 관리',cat:'local'},
-        content:"개경 주변 경기 지역 세금 징수 나갔다가 민심이 너무 흉흉한 거 느꼈습니다. 중앙에서 쏟아내는 공문 처리하느라 실제 백성 민심은 챙길 여유가 없어요.", likes:18 },
-    ];
     const now = new Date();
     const time = `${now.getMonth()+1}.${now.getDate()}. ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const dummy = [
+      { org:{name:'중서문하성',cat:'central'},
+        content:"오늘 회의 또 세 시간 넘겼다. 안건은 산더미인데 결론은 없고. 상서성이랑 맨날 이러는데 이게 말이 되냐 진짜." },
+      { org:{name:'상서성',cat:'central'},
+        content:"병부 형들 이부 탓하고 이부 형들 병부 탓하고. 공문 회람만 세 번째인데 결재가 아직도 없다. 이러면 언제 일 끝나?" },
+      { org:{name:'중추원',cat:'central'},
+        content:"기밀 문서 정리하다 보면 북계 상황이 생각보다 훨씬 심각한 거 보인다. 근데 위에 형들은 아직도 모르는 것 같음. 걱정돼." },
+      { org:{name:'어사대',cat:'central'},
+        content:"지방 감찰 다녀왔는데 비리가 한두 개가 아니야. 보고서 올렸더니 윗선에서 또 흐지부지. 어사대가 왜 있는 건지 모르겠음." },
+      { org:{name:'삼사',cat:'central'},
+        content:"각 도에서 올라오는 세수 양식이 다 제각각인데 이게 말이 돼? 집계할 때마다 새로 정리해야 해서 야근이 반복되고 있잖아." },
+      { org:{name:'서해도 관리',cat:'local'},
+        content:"서해도 수령들 공문 기한 안 지키는 게 절반이 넘는다. 독촉 공문 보내는 것도 이제 지쳤어. 중앙에서 관리 좀 해줘야 하는 거 아님?" },
+      { org:{name:'교주도 관리',cat:'local'},
+        content:"산간 지형이라 세금 징수가 유독 힘든데 인력 지원 요청해도 중앙에선 감감무소식이야. 우리보고 어떻게 하라는 거야 진짜." },
+      { org:{name:'양광도 관리',cat:'local'},
+        content:"올해 수확이 작년보다 확 줄었는데 징수 목표치는 그대로 유지하래. 이게 현장을 모르고 하는 소리지. 현실이 어떤지 한번 와봐라." },
+      { org:{name:'전라도 관리',cat:'local'},
+        content:"우리 쪽 수령이 세율 멋대로 올려서 민원이 폭주했다. 어사대에 신고는 했는데 처리될지 모르겠음. 저 형 진짜 왜 저러는 거야." },
+      { org:{name:'경상도 관리',cat:'local'},
+        content:"동남쪽 해안 치안이 요즘 심상치 않다. 주진군 지원 요청 올린 지 한참 됐는데 배치는 기약이 없어. 뭔가 터지면 누가 책임질 거야?" },
+      { org:{name:'동계 관리',cat:'local'},
+        content:"동계 겨울이 얼마나 긴데, 백성들 생계가 매년 이맘때면 위기야. 구휼 지원 요청하면 서류만 오가다 봄이 다 됨. 그게 말이 돼?" },
+      { org:{name:'북계 관리',cat:'local'},
+        content:"국경 근처가 요즘 긴장감이 장난 아니야. 주진군 병력이 충분한지 매일 체크하고 있는데 중앙 형들은 개경에서 뭐 하는 거야 진짜." },
+      { org:{name:'경기 관리',cat:'local'},
+        content:"개경 바로 옆인데 민심이 이 정돈데 지방은 어떻겠냐. 공문 처리에 치여서 실제 민정은 하나도 못 챙기고 있음." },
+      { org:{name:'2군 소속',cat:'military'},
+        content:"요즘 훈련 강도가 갑자기 확 올라갔는데 공식 설명은 없어. 북계 때문인 건 다 아는데 형들이 말을 안 해주니까 더 불안하지." },
+      { org:{name:'6위 소속',cat:'military'},
+        content:"같은 중앙군인데 2군이랑 장비 차이가 이렇게 나는 게 말이 돼? 개선 요청하면 매번 예산 타령이야. 우리가 싸우다 죽으면 누가 책임져?" },
+      { org:{name:'주현군 소속',cat:'military'},
+        content:"평소엔 농사짓다가 유사시에 소집되는 구조인데 훈련은 거의 없어. 진짜 전투 상황 오면 우리가 제대로 싸울 수 있을지 솔직히 모르겠다." },
+      { org:{name:'주진군 소속',cat:'military'},
+        content:"국경에 배치된 인원이 얼마나 부족한지 중추원 형들은 알기나 해? 우리끼리 버티고 있는데 지원은 없고 공문만 내려오고 있음." },
+      { org:{name:'국자감',cat:'edu'},
+        content:"정원 확대 요청 또 기각됐다. 과거제로 인재 뽑겠다면서 배울 자리는 안 늘려주는 게 말이 되냐. 음서 출신 자리는 그대로인데 ㅎㅎ." },
+    ];
     dummy.forEach(d => {
       const r = push(postsRef);
-      set(r, { ...d, id:r.key, studentId:'00000', realName:'System', time, likedBy:{init:true} });
+      set(r, { ...d, id:r.key, studentId:'00000', realName:'System', nickname:'더미', time, likes:0, likedBy:{init:true} });
     });
     alert(`더미 ${dummy.length}개 생성 완료`);
-  };
+  }
 </script>
 </body>
 </html>
