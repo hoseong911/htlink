@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3학년 6반 개항장 역사 탐험</title>
+    <style>
+        /* 기본 스타일 및 폰트 */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body { margin: 0; font-family: 'Pretendard', sans-serif; background: #f4f4f4; overflow: hidden; }
+        
+        /* 로그인 화면 */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: white; z-index: 3000; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .input-group { margin-bottom: 15px; width: 100%; max-width: 300px; }
+        .input-group input { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        #login-btn { padding: 15px; width: 100%; max-width: 300px; background: #0056b3; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
+
+        /* 지도 영역 */
+        #map-container { position: relative; width: 100vw; height: 100vh; overflow: auto; background: #e0e0e0; touch-action: pan-x pan-y; }
+        #map-image { width: 1200px; height: auto; display: block; }
+        
+        /* 마커 스타일 */
+        .marker { position: absolute; width: 34px; height: 34px; background: #ff4757; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); cursor: pointer; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 10; transition: transform 0.2s; }
+        .marker:active { transform: rotate(-45deg) scale(0.9); }
+        .marker.completed { background: #2ed573; }
+        .marker::after { content: ''; position: absolute; width: 14px; height: 14px; background: white; border-radius: 50%; top: 8px; left: 8px; }
+        .marker-label { position: absolute; top: -25px; left: -15px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; white-space: nowrap; transform: rotate(45deg); font-weight: bold; }
+
+        /* 바텀 시트 (미션 상세) */
+        #bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 24px 24px 0 0; transition: bottom 0.4s cubic-bezier(0.1, 1, 0.2, 1); z-index: 2000; padding: 25px; box-sizing: border-box; box-shadow: 0 -10px 25px rgba(0,0,0,0.15); }
+        #bottom-sheet.open { bottom: 0; }
+        .close-btn { position: absolute; top: 20px; right: 25px; font-size: 28px; cursor: pointer; color: #888; font-weight: bold; }
+        #mission-title { margin: 0 0 10px 0; font-size: 22px; color: #333; }
+        #mission-desc { color: #666; line-height: 1.5; margin-bottom: 20px; }
+        
+        /* 사진 업로드 버튼 디자인 */
+        .file-upload-wrapper { position: relative; margin-bottom: 15px; }
+        .file-upload-wrapper input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .custom-file-upload { display: flex; align-items: center; justify-content: center; padding: 15px; background: #f1f2f6; border: 2px dashed #ced6e0; border-radius: 12px; font-size: 16px; color: #57606f; font-weight: bold; }
+        #submit-btn { width: 100%; padding: 16px; background: #2ed573; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        #submit-btn:disabled { background: #a4b0be; }
+        
+        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 4000; justify-content: center; align-items: center; color: white; font-size: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <h2>🗺️ 역사 탐험대 접속</h2>
+    <p>학번과 이름을 입력해주세요.</p>
+    <div class="input-group">
+        <input type="number" id="student-id" placeholder="학번 (예: 30601)" />
+    </div>
+    <div class="input-group">
+        <input type="text" id="student-name" placeholder="이름 (예: 홍길동)" />
+    </div>
+    <button id="login-btn">탐험 시작하기</button>
+</div>
+
+<div id="map-container">
+    <img src="map_image.jpg" id="map-image" alt="인천 개항장 지도" onerror="this.src='https://via.placeholder.com/1200x1600.png?text=지도+이미지를+여기에+연결하세요'">
+    
+    <div class="marker" style="top: 300px; left: 400px;" onclick="window.openMission('자유공원', '맥아더 장군 동상과 같은 포즈로 인증샷을 찍어주세요!')">
+        <div class="marker-label">자유공원</div>
+    </div>
+    <div class="marker" style="top: 500px; left: 600px;" onclick="window.openMission('개항박물관', '과거 일본 제1은행 건물이었습니다. 옛 은행 시절의 흔적을 찾아 사진을 찍어주세요.')">
+        <div class="marker-label">개항박물관</div>
+    </div>
+    <div class="marker" style="top: 650px; left: 350px;" onclick="window.openMission('짜장면 박물관', '옛 공화춘 건물 앞에서 역동적인 수타면 뽑는 포즈로 단체 사진을 찍어주세요!')">
+        <div class="marker-label">짜장면 박물관</div>
+    </div>
+</div>
+
+<div id="bottom-sheet">
+    <div class="close-btn" onclick="window.closeMission()">&times;</div>
+    <h2 id="mission-title">미션 제목</h2>
+    <p id="mission-desc">미션 설명</p>
+    
+    <div class="file-upload-wrapper">
+        <div class="custom-file-upload">📸 사진 찍기 또는 앨범 선택</div>
+        <input type="file" accept="image/*" capture="camera" id="photo-upload">
+    </div>
+    <p id="file-name-display" style="font-size: 14px; color: #0056b3; margin-top: -5px; margin-bottom: 15px; display: none;"></p>
+
+    <button id="submit-btn" onclick="window.submitMission()">미션 완료 인증하기 (마일리지 적립)</button>
+</div>
+
+<div id="loading-overlay">업로드 중입니다... 잠시만 기다려주세요.</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getDatabase, ref as dbRef, set } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+    import { getStorage, ref as storageRef, uploadBytes } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-storage.js";
+
+    // 1. Firebase 구성 (선생님께서 제공해주신 정보)
+    const firebaseConfig = {
+        apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
+        authDomain: "ho0911seong-56638.firebaseapp.com",
+        databaseURL: "https://ho0911seong-56638-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "ho0911seong-56638",
+        storageBucket: "ho0911seong-56638.firebasestorage.app",
+        messagingSenderId: "994509567071",
+        appId: "1:994509567071:web:2bc0f31f542bf8c3f557ea"
+    };
+
+    // 2. Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const storage = getStorage(app);
+
+    // 전역 변수
+    let currentMission = "";
+    let isGpsEnabled = false; // 테스트 편의를 위해 일단 false 설정. 나중에 관리자 연동 가능
+
+    // --- 로그인 로직 ---
+    const loginScreen = document.getElementById('login-screen');
+    const loginBtn = document.getElementById('login-btn');
+
+    // 기존 로그인 정보 확인
+    if(localStorage.getItem('studentId') && localStorage.getItem('studentName')) {
+        loginScreen.style.display = 'none';
+    }
+
+    loginBtn.addEventListener('click', () => {
+        const id = document.getElementById('student-id').value;
+        const name = document.getElementById('student-name').value;
+        if(id && name) {
+            localStorage.setItem('studentId', id);
+            localStorage.setItem('studentName', name);
+            loginScreen.style.display = 'none';
+        } else {
+            alert('학번과 이름을 모두 입력해주세요!');
+        }
+    });
+
+    // --- 파일 이름 표시 로직 ---
+    document.getElementById('photo-upload').addEventListener('change', function(e) {
+        const fileNameDisplay = document.getElementById('file-name-display');
+        if(e.target.files.length > 0) {
+            fileNameDisplay.textContent = "선택된 파일: " + e.target.files[0].name;
+            fileNameDisplay.style.display = "block";
+        }
+    });
+
+    // --- UI 조작 함수 (전역 window 객체에 할당하여 HTML onClick에서 호출 가능하게 함) ---
+    window.openMission = function(title, desc) {
+        currentMission = title;
+        document.getElementById('mission-title').innerText = title;
+        document.getElementById('mission-desc').innerText = desc;
+        document.getElementById('photo-upload').value = ""; // 초기화
+        document.getElementById('file-name-display').style.display = "none";
+        document.getElementById('bottom-sheet').classList.add('open');
+    };
+
+    window.closeMission = function() {
+        document.getElementById('bottom-sheet').classList.remove('open');
+    };
+
+    // --- 미션 제출 및 Firebase 업로드 ---
+    window.submitMission = async function() {
+        const file = document.getElementById('photo-upload').files[0];
+        const studentId = localStorage.getItem('studentId');
+        const studentName = localStorage.getItem('studentName');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        if (!file) { 
+            alert("미션 인증 사진을 찍어주세요!"); 
+            return; 
+        }
+
+        // GPS 로직 (활성화 시)
+        if (isGpsEnabled) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => proceedUpload(pos, file, studentId, studentName, loadingOverlay),
+                () => alert("GPS 정보를 가져올 수 없습니다. 위치 권한을 허용해주세요.")
+            );
+        } else {
+            proceedUpload(null, file, studentId, studentName, loadingOverlay);
+        }
+    };
+
+    async function proceedUpload(pos, file, studentId, studentName, loadingOverlay) {
+        loadingOverlay.style.display = 'flex';
+        
+        try {
+            // 1. Storage에 사진 업로드
+            // 경로: missions/30601_홍길동_자유공원.jpg
+            const fileRef = storageRef(storage, `missions/${studentId}_${studentName}_${currentMission}.jpg`);
+            await uploadBytes(fileRef, file);
+
+            // 2. Realtime Database에 상태 기록
+            // 경로: status/30601_홍길동/자유공원
+            const dataRef = dbRef(db, `status/${studentId}_${studentName}/${currentMission}`);
+            await set(dataRef, {
+                status: "완료",
+                time: new Date().toISOString(),
+                location: pos ? { lat: pos.coords.latitude, lng: pos.coords.longitude } : "GPS_OFF"
+            });
+
+            alert("미션 완료! 인증 사진이 성공적으로 업로드되었습니다.");
+            
+            // UI 업데이트 (완료된 마커 색상 변경 로직 추가 시 활용)
+            
+            window.closeMission();
+        } catch (error) {
+            console.error("업로드 에러:", error);
+            alert("업로드 중 문제가 발생했습니다: " + error.message);
+        } finally {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
