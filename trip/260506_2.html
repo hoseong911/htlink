@@ -7,18 +7,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Noto+Serif+KR:wght@400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --ink: #1a1208; --parchment: #f5edd8; --parchment-dark: #e8d9b8;
-            --sepia: #8b6914; --sepia-light: #c4973a; --rust: #9b3a1a;
-            --green-done: #2a6b3c; --stamp-red: #8b1a1a; --hud-h: 78px;
+            --ink:#1a1208; --parchment:#f5edd8; --parchment-dark:#e8d9b8;
+            --sepia:#8b6914; --sepia-light:#c4973a; --rust:#9b3a1a;
+            --green-done:#2a6b3c; --stamp-red:#8b1a1a;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
-        html, body { font-family:'Noto Serif KR',serif; background:var(--ink); height:100%; overflow:hidden; }
+        html { font-family:'Noto Serif KR',serif; background:var(--ink); }
 
         /* ══ 로그인 ══ */
         #login-screen {
             position:fixed; inset:0; z-index:3000; background:var(--parchment);
             display:flex; flex-direction:column; justify-content:center; align-items:center; padding:32px 24px;
-            background-image: radial-gradient(ellipse at 20% 80%,rgba(139,105,20,0.12) 0%,transparent 60%), radial-gradient(ellipse at 80% 20%,rgba(155,58,26,0.08) 0%,transparent 50%);
+            background-image:radial-gradient(ellipse at 20% 80%,rgba(139,105,20,0.12) 0%,transparent 60%),
+                             radial-gradient(ellipse at 80% 20%,rgba(155,58,26,0.08) 0%,transparent 50%);
         }
         .login-deco-line { width:120px; height:1px; background:linear-gradient(90deg,transparent,var(--sepia),transparent); margin:16px auto; }
         .login-eyebrow { font-family:'DM Mono',monospace; font-size:15px; letter-spacing:0.1em; color:var(--sepia); text-align:center; }
@@ -29,13 +30,12 @@
         .login-form input { width:100%; padding:14px 18px; background:rgba(255,255,255,0.6); border:1.5px solid var(--parchment-dark); border-radius:4px; font-family:'Noto Serif KR',serif; font-size:17px; color:var(--ink); outline:none; transition:border-color 0.2s,box-shadow 0.2s; }
         .login-form input:focus { border-color:var(--sepia); box-shadow:0 0 0 3px rgba(139,105,20,0.12); }
         .login-form input::placeholder { color:#b0956a; }
-        #login-btn { width:100%; padding:16px; background:var(--ink); color:var(--parchment); border:none; border-radius:4px; font-family:'Playfair Display',serif; font-size:18px; font-weight:700; cursor:pointer; transition:background 0.2s,transform 0.1s; }
-        #login-btn:active { transform:scale(0.98); }
+        #login-btn { width:100%; padding:16px; background:var(--ink); color:var(--parchment); border:none; border-radius:4px; font-family:'Playfair Display',serif; font-size:18px; font-weight:700; cursor:pointer; }
         .login-note { margin-top:16px; font-family:'DM Mono',monospace; font-size:13px; color:#a08050; text-align:center; }
 
-        /* ══ HUD 고정 ══ */
+        /* ══ HUD — 항상 고정 ══ */
         #hud {
-            position:fixed; top:0; left:0; right:0; z-index:1500;
+            position:fixed; top:0; left:0; right:0; z-index:500;
             background:rgba(26,18,8,0.97); backdrop-filter:blur(8px);
             padding:10px 16px; display:flex; align-items:center; justify-content:space-between;
             border-bottom:2px solid var(--sepia);
@@ -47,7 +47,7 @@
         .admin-link { font-family:'DM Mono',monospace; font-size:10px; color:var(--sepia); background:rgba(139,105,20,0.2); border:1px solid rgba(139,105,20,0.4); padding:4px 8px; border-radius:3px; text-decoration:none; }
 
         #progress-wrap {
-            position:fixed; top:48px; left:0; right:0; z-index:1400;
+            position:fixed; top:48px; left:0; right:0; z-index:500;
             background:rgba(232,217,184,0.97); backdrop-filter:blur(8px);
             padding:5px 16px; display:flex; align-items:center; gap:10px;
             border-bottom:1px solid #d4b87a;
@@ -57,31 +57,30 @@
         .progress-bar-fill { height:100%; width:0%; background:linear-gradient(90deg,var(--sepia),var(--sepia-light)); border-radius:99px; transition:width 0.6s cubic-bezier(0.4,0,0.2,1); }
         #progress-count { font-family:'DM Mono',monospace; font-size:13px; color:var(--sepia); font-weight:500; }
 
-        /* ══ 전체 레이아웃: HUD 아래 flex column ══ */
-        #app-root {
-            position:fixed;
-            top:var(--hud-h); left:0; right:0; bottom:0;
-            display:flex; flex-direction:column;
-            overflow:hidden;
+        /* ══ 메인 페이지 — 세로 스크롤 ══ */
+        #page {
+            /* HUD 높이만큼 아래로 */
+            margin-top:78px;
         }
 
-        /* ══ 지도 뷰포트: 남은 공간 차지, 내부 스크롤 ══ */
-        #map-viewport {
-            flex:1;
-            overflow:scroll;          /* 상하좌우 스크롤 */
+        /* ── 섹션1: 지도 ── */
+        #map-section {
+            /* 지도 뷰포트: 가로 100vw, 세로는 적당히 */
+            width:100vw;
+            height:calc(100vh - 78px);  /* 화면에서 HUD 빼고 꽉 채움 */
+            overflow:scroll;
             -webkit-overflow-scrolling:touch;
             background:#2a1f0e;
             position:relative;
         }
         /* 스크롤바 숨김 */
-        #map-viewport::-webkit-scrollbar { display:none; }
-        #map-viewport { -ms-overflow-style:none; scrollbar-width:none; }
+        #map-section::-webkit-scrollbar { display:none; }
+        #map-section { -ms-overflow-style:none; scrollbar-width:none; }
 
-        /* 지도 래퍼: 200vw x 비율 고정 크기 */
+        /* 지도 래퍼: 200vw × 비율 */
         #map-wrap {
             position:relative;
             width:200vw;
-            /* 1022:830 비율 유지 */
             height:calc(200vw * 830 / 1022);
             flex-shrink:0;
         }
@@ -89,18 +88,15 @@
             position:absolute; inset:0;
             width:100%; height:100%;
             display:block; user-select:none; pointer-events:none;
+            -webkit-user-drag:none;
         }
 
-        /* ══ 마커 ══ */
+        /* ── 마커 ── */
         .marker {
-            position:absolute;
-            cursor:pointer; z-index:10;
+            position:absolute; cursor:pointer; z-index:10;
             transform:translate(-50%,-100%);
-            transition:transform 0.15s;
-            user-select:none;
             -webkit-tap-highlight-color:transparent;
         }
-        .marker:active { transform:translate(-50%,-100%) scale(0.85); }
         .marker-pin {
             width:26px; height:26px;
             background:var(--rust);
@@ -109,14 +105,13 @@
             border:2.5px solid white;
             box-shadow:0 3px 8px rgba(0,0,0,0.5);
             display:flex; align-items:center; justify-content:center;
-            transition:background 0.2s;
+            transition:background 0.2s, box-shadow 0.2s;
         }
         .marker.completed .marker-pin { background:var(--green-done); }
-        .marker.active-marker .marker-pin { box-shadow:0 4px 14px rgba(0,0,0,0.7); }
-        .marker-num {
-            transform:rotate(45deg);
-            font-family:'DM Mono',monospace; font-size:11px; font-weight:700; color:white; line-height:1;
-        }
+        .marker.active-marker .marker-pin { box-shadow:0 4px 16px rgba(0,0,0,0.7); }
+        .marker-num { transform:rotate(45deg); font-family:'DM Mono',monospace; font-size:11px; font-weight:700; color:white; line-height:1; }
+
+        /* 말풍선 — 탭시 잠깐 표시 */
         .marker-label {
             position:absolute; bottom:30px; left:50%;
             background:rgba(26,18,8,0.92); backdrop-filter:blur(6px);
@@ -125,64 +120,66 @@
             white-space:nowrap; border-bottom:2px solid var(--sepia-light);
             pointer-events:none;
             opacity:0; transform:translateX(-50%) translateY(6px);
-            transition:opacity 0.18s, transform 0.18s;
+            transition:opacity 0.18s,transform 0.18s;
         }
         .marker-label::after { content:''; position:absolute; bottom:-7px; left:50%; transform:translateX(-50%); border:4px solid transparent; border-top-color:rgba(26,18,8,0.92); }
         .marker.label-show .marker-label { opacity:1; transform:translateX(-50%) translateY(0); }
         .marker.completed .marker-label { border-bottom-color:#5aad74; }
 
-        /* ══ 어디서든 퀘스트 탭바 ══ */
-        #sidequest-bar {
-            background:var(--ink); border-top:2px solid var(--sepia); border-bottom:2px solid var(--sepia);
-            display:flex; flex-shrink:0;
+        /* ── 섹션2: 미션 탭바 (항상 보임) ── */
+        #mission-bar {
+            background:var(--ink);
+            border-top:2px solid var(--sepia);
+            border-bottom:2px solid var(--sepia);
+            display:flex;
         }
-        .sq-tab {
+        .m-tab {
             flex:1; padding:12px 6px;
-            display:flex; flex-direction:column; align-items:center; gap:4px;
+            display:flex; flex-direction:column; align-items:center; gap:3px;
             cursor:pointer; border:none; background:none;
             border-right:1px solid rgba(139,105,20,0.3);
-            transition:background 0.15s; position:relative;
             -webkit-tap-highlight-color:transparent;
+            position:relative; transition:background 0.15s;
         }
-        .sq-tab:last-child { border-right:none; }
-        .sq-tab:active { background:rgba(139,105,20,0.15); }
-        .sq-tab.active { background:rgba(139,105,20,0.2); }
-        .sq-tab.completed { background:rgba(42,107,60,0.12); }
-        .sq-tab-icon { font-size:20px; }
-        .sq-tab-num { font-family:'DM Mono',monospace; font-size:9px; color:var(--sepia-light); letter-spacing:0.08em; }
-        .sq-tab-title { font-family:'Noto Serif KR',serif; font-size:10px; font-weight:700; color:var(--parchment); text-align:center; line-height:1.3; }
-        .sq-tab.completed .sq-tab-title { color:#5aad74; }
-        .sq-done-dot { position:absolute; top:8px; right:8px; width:8px; height:8px; background:var(--green-done); border-radius:50%; display:none; }
-        .sq-tab.completed .sq-done-dot { display:block; }
+        .m-tab:last-child { border-right:none; }
+        .m-tab:active { background:rgba(139,105,20,0.15); }
+        .m-tab.active { background:rgba(139,105,20,0.22); }
+        .m-tab.completed { background:rgba(42,107,60,0.12); }
+        .m-tab-icon { font-size:19px; }
+        .m-tab-num { font-family:'DM Mono',monospace; font-size:9px; color:var(--sepia-light); }
+        .m-tab-title { font-family:'Noto Serif KR',serif; font-size:10px; font-weight:700; color:var(--parchment); text-align:center; line-height:1.3; }
+        .m-tab.completed .m-tab-title { color:#5aad74; }
+        .m-done-dot { position:absolute; top:8px; right:8px; width:8px; height:8px; background:var(--green-done); border-radius:50%; display:none; }
+        .m-tab.completed .m-done-dot { display:block; }
 
-        /* ══ 미션 패널 (스크롤 가능) ══ */
+        /* ── 섹션3: 미션 패널 ── */
         #mission-panel {
             background:var(--parchment);
-            overflow:hidden; max-height:0;
+            /* 기본: 숨김 (height:0) */
+            max-height:0; overflow:hidden;
             transition:max-height 0.4s cubic-bezier(0.16,1,0.3,1);
-            flex-shrink:0;
         }
-        #mission-panel.open { max-height:70vh; overflow-y:auto; }
+        #mission-panel.open {
+            max-height:2000px; /* 충분히 큰 값 */
+        }
 
-        .mission-panel-inner { padding:20px 20px 40px; }
+        .mp-inner { padding:20px 20px 48px; }
 
         #back-to-map {
-            display:flex; align-items:center; gap:6px;
+            display:inline-flex; align-items:center; gap:6px;
             background:none; border:1px solid var(--parchment-dark); border-radius:4px;
             padding:7px 14px; font-family:'DM Mono',monospace; font-size:12px; color:var(--sepia);
-            cursor:pointer; margin-bottom:18px; transition:background 0.15s;
+            cursor:pointer; margin-bottom:18px;
             -webkit-tap-highlight-color:transparent;
         }
-        #back-to-map:active { background:var(--parchment-dark); }
 
-        .mission-eyebrow { font-family:'DM Mono',monospace; font-size:12px; letter-spacing:0.12em; color:var(--sepia); margin-bottom:4px; }
+        .m-eyebrow { font-family:'DM Mono',monospace; font-size:12px; letter-spacing:0.12em; color:var(--sepia); margin-bottom:4px; }
         #mission-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--ink); margin-bottom:10px; }
         #mission-desc { font-size:15px; color:#5a4520; line-height:1.75; margin-bottom:6px; padding:14px 16px; background:rgba(139,105,20,0.07); border-left:3px solid var(--sepia-light); border-radius:0 6px 6px 0; }
         #mission-verify { font-family:'DM Mono',monospace; font-size:12px; color:var(--sepia); margin-bottom:18px; padding:8px 12px; background:rgba(139,105,20,0.05); border-radius:4px; }
 
         #text-answer-section { display:none; margin-bottom:14px; }
-        #text-answer-section textarea { width:100%; padding:12px 14px; border:1.5px solid var(--parchment-dark); border-radius:6px; font-family:'Noto Serif KR',serif; font-size:15px; color:var(--ink); background:white; outline:none; resize:none; height:80px; transition:border-color 0.2s; }
-        #text-answer-section textarea:focus { border-color:var(--sepia); }
+        #text-answer-section textarea { width:100%; padding:12px 14px; border:1.5px solid var(--parchment-dark); border-radius:6px; font-family:'Noto Serif KR',serif; font-size:15px; color:var(--ink); background:white; outline:none; resize:none; height:80px; }
         #text-answer-section textarea::placeholder { color:#b0956a; }
 
         #already-done-badge { display:none; align-items:center; gap:8px; padding:12px 16px; background:rgba(42,107,60,0.1); border:1.5px solid var(--green-done); border-radius:6px; margin-bottom:16px; }
@@ -190,20 +187,19 @@
         .badge-icon { font-size:22px; }
         .badge-text { font-family:'DM Mono',monospace; font-size:14px; color:var(--green-done); font-weight:500; }
 
-        .file-upload-wrapper { position:relative; margin-bottom:12px; border:2px dashed var(--parchment-dark); border-radius:8px; overflow:hidden; transition:border-color 0.2s; }
+        .file-upload-wrapper { position:relative; margin-bottom:12px; border:2px dashed var(--parchment-dark); border-radius:8px; overflow:hidden; }
         .file-upload-wrapper input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
         .custom-file-upload { display:flex; align-items:center; justify-content:center; gap:10px; padding:18px; background:rgba(255,255,255,0.5); font-family:'Noto Serif KR',serif; font-size:17px; color:var(--sepia); font-weight:700; }
         #file-name-display { font-family:'DM Mono',monospace; font-size:13px; color:var(--sepia); margin-bottom:14px; padding:6px 10px; background:rgba(139,105,20,0.08); border-radius:4px; display:none; }
-        #submit-btn { width:100%; padding:16px; background:var(--ink); color:var(--parchment); border:none; border-radius:6px; font-family:'Playfair Display',serif; font-size:18px; font-weight:700; cursor:pointer; transition:background 0.2s,transform 0.1s,opacity 0.2s; }
-        #submit-btn:active { transform:scale(0.98); }
+        #submit-btn { width:100%; padding:16px; background:var(--ink); color:var(--parchment); border:none; border-radius:6px; font-family:'Playfair Display',serif; font-size:18px; font-weight:700; cursor:pointer; }
         #submit-btn:disabled { opacity:0.45; cursor:not-allowed; }
 
-        /* ══ 로딩 / 토스트 / 스탬프 ══ */
+        /* ══ 오버레이 ══ */
         #loading-overlay { display:none; position:fixed; inset:0; background:rgba(26,18,8,0.75); z-index:4000; justify-content:center; align-items:center; flex-direction:column; gap:16px; }
         #loading-overlay.show { display:flex; }
         .loading-spinner { width:40px; height:40px; border:3px solid rgba(245,237,216,0.2); border-top-color:var(--parchment); border-radius:50%; animation:spin 0.8s linear infinite; }
         @keyframes spin { to { transform:rotate(360deg); } }
-        .loading-text { font-family:'DM Mono',monospace; font-size:14px; color:var(--parchment); letter-spacing:0.1em; }
+        .loading-text { font-family:'DM Mono',monospace; font-size:14px; color:var(--parchment); }
 
         #toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--parchment); padding:12px 22px; border-radius:99px; font-family:'DM Mono',monospace; font-size:14px; opacity:0; transition:opacity 0.3s,transform 0.3s; z-index:5000; white-space:nowrap; border:1px solid var(--sepia); pointer-events:none; }
         #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -249,73 +245,72 @@
     <span id="progress-count">0 / 10</span>
 </div>
 
-<!-- ─── 앱 루트 ─── -->
-<div id="app-root">
+<!-- ─── 페이지 본문 (세로 스크롤) ─── -->
+<div id="page">
 
-    <!-- 지도 뷰포트: 상하좌우 스크롤 -->
-    <div id="map-viewport">
+    <!-- 섹션1: 지도 (내부에서 상하좌우 스크롤) -->
+    <div id="map-section">
         <div id="map-wrap">
             <img src="map_image.png" id="map-image" alt="개항장 차이나타운 관광안내지도" draggable="false">
 
-            <!-- 마커 -->
-            <div class="marker" id="marker-자유공원"           style="left:49.9%;top:48.2%;" onclick="window.openMission('자유공원')">
+            <div class="marker" id="marker-자유공원"           style="left:49.9%;top:48.2%;" onclick="openMission('자유공원')">
                 <div class="marker-pin"><span class="marker-num">①</span></div>
                 <div class="marker-label">자유공원</div>
             </div>
-            <div class="marker" id="marker-인천개항박물관"     style="left:40.6%;top:75.9%;" onclick="window.openMission('인천개항박물관')">
+            <div class="marker" id="marker-인천개항박물관"     style="left:40.6%;top:75.9%;" onclick="openMission('인천개항박물관')">
                 <div class="marker-pin"><span class="marker-num">②</span></div>
                 <div class="marker-label">인천개항박물관</div>
             </div>
-            <div class="marker" id="marker-대불호텔전시관"     style="left:35.4%;top:69.6%;" onclick="window.openMission('대불호텔전시관')">
+            <div class="marker" id="marker-대불호텔전시관"     style="left:35.4%;top:69.6%;" onclick="openMission('대불호텔전시관')">
                 <div class="marker-pin"><span class="marker-num">③</span></div>
                 <div class="marker-label">대불호텔 전시관</div>
             </div>
-            <div class="marker" id="marker-청일조계지경계계단" style="left:42.9%;top:66.0%;" onclick="window.openMission('청일조계지경계계단')">
+            <div class="marker" id="marker-청일조계지경계계단" style="left:42.9%;top:66.0%;" onclick="openMission('청일조계지경계계단')">
                 <div class="marker-pin"><span class="marker-num">④</span></div>
                 <div class="marker-label">청일 조계지 경계계단</div>
             </div>
-            <div class="marker" id="marker-제물포구락부"       style="left:64.4%;top:62.0%;" onclick="window.openMission('제물포구락부')">
+            <div class="marker" id="marker-제물포구락부"       style="left:64.4%;top:62.0%;" onclick="openMission('제물포구락부')">
                 <div class="marker-pin"><span class="marker-num">⑤</span></div>
                 <div class="marker-label">제물포 구락부</div>
             </div>
-            <div class="marker" id="marker-짜장면박물관"       style="left:21.3%;top:62.4%;" onclick="window.openMission('짜장면박물관')">
+            <div class="marker" id="marker-짜장면박물관"       style="left:21.3%;top:62.4%;" onclick="openMission('짜장면박물관')">
                 <div class="marker-pin"><span class="marker-num">⑥</span></div>
                 <div class="marker-label">짜장면 박물관</div>
             </div>
-            <div class="marker" id="marker-삼국지벽화거리"     style="left:27.2%;top:52.0%;" onclick="window.openMission('삼국지벽화거리')">
+            <div class="marker" id="marker-삼국지벽화거리"     style="left:27.2%;top:52.0%;" onclick="openMission('삼국지벽화거리')">
                 <div class="marker-pin"><span class="marker-num">⑦</span></div>
                 <div class="marker-label">삼국지 벽화거리</div>
             </div>
         </div>
     </div>
 
-    <!-- 어디서든 퀘스트 탭바 -->
-    <div id="sidequest-bar">
-        <button class="sq-tab" id="sq-개항기미식회" onclick="window.openMission('개항기미식회')">
-            <div class="sq-done-dot"></div>
-            <div class="sq-tab-icon">🍡</div>
-            <div class="sq-tab-num">QUEST 08</div>
-            <div class="sq-tab-title">개항기 미식회</div>
+    <!-- 섹션2: 어디서든 미션 탭바 -->
+    <div id="mission-bar">
+        <button class="m-tab" id="sq-개항기미식회" onclick="openMission('개항기미식회')">
+            <div class="m-done-dot"></div>
+            <div class="m-tab-icon">🍡</div>
+            <div class="m-tab-num">미션 08</div>
+            <div class="m-tab-title">개항기 미식회</div>
         </button>
-        <button class="sq-tab" id="sq-한자간판수집가" onclick="window.openMission('한자간판수집가')">
-            <div class="sq-done-dot"></div>
-            <div class="sq-tab-icon">🪧</div>
-            <div class="sq-tab-num">QUEST 09</div>
-            <div class="sq-tab-title">한자 간판 수집가</div>
+        <button class="m-tab" id="sq-한자간판수집가" onclick="openMission('한자간판수집가')">
+            <div class="m-done-dot"></div>
+            <div class="m-tab-icon">🪧</div>
+            <div class="m-tab-num">미션 09</div>
+            <div class="m-tab-title">한자 간판 수집가</div>
         </button>
-        <button class="sq-tab" id="sq-선생님을찾아라" onclick="window.openMission('선생님을찾아라')">
-            <div class="sq-done-dot"></div>
-            <div class="sq-tab-icon">🕵️</div>
-            <div class="sq-tab-num">QUEST 10</div>
-            <div class="sq-tab-title">선생님을 찾아라!</div>
+        <button class="m-tab" id="sq-선생님을찾아라" onclick="openMission('선생님을찾아라')">
+            <div class="m-done-dot"></div>
+            <div class="m-tab-icon">🕵️</div>
+            <div class="m-tab-num">미션 10</div>
+            <div class="m-tab-title">선생님을 찾아라!</div>
         </button>
     </div>
 
-    <!-- 미션 패널 -->
+    <!-- 섹션3: 미션 패널 (접혔다 펼쳐짐) -->
     <div id="mission-panel">
-        <div class="mission-panel-inner">
-            <button id="back-to-map" onclick="window.backToMap()">지도로 돌아가기</button>
-            <div class="mission-eyebrow" id="mission-type-label">📍 장소 미션</div>
+        <div class="mp-inner">
+            <button id="back-to-map" onclick="backToMap()">지도로 돌아가기</button>
+            <div class="m-eyebrow" id="mission-type-label">📍 장소 미션</div>
             <h2 id="mission-title">미션 제목</h2>
             <p id="mission-desc">미션 설명</p>
             <p id="mission-verify"></p>
@@ -323,21 +318,19 @@
                 <span class="badge-icon">✅</span>
                 <span class="badge-text">이미 완료한 미션입니다</span>
             </div>
-            <div id="upload-section">
-                <div id="text-answer-section">
-                    <textarea id="text-answer" placeholder="답변을 입력해주세요..."></textarea>
-                </div>
-                <div class="file-upload-wrapper">
-                    <div class="custom-file-upload">📸 사진 찍기 또는 앨범 선택</div>
-                    <input type="file" accept="image/*" capture="environment" id="photo-upload">
-                </div>
-                <div id="file-name-display"></div>
-                <button id="submit-btn" onclick="window.submitMission()">미션 완료 인증하기</button>
+            <div id="text-answer-section">
+                <textarea id="text-answer" placeholder="답변을 입력해주세요..."></textarea>
             </div>
+            <div class="file-upload-wrapper">
+                <div class="custom-file-upload">📸 사진 찍기 또는 앨범 선택</div>
+                <input type="file" accept="image/*" capture="environment" id="photo-upload">
+            </div>
+            <div id="file-name-display"></div>
+            <button id="submit-btn" onclick="submitMission()">미션 완료 인증하기</button>
         </div>
     </div>
 
-</div>
+</div><!-- /page -->
 
 <!-- ─── 오버레이 ─── -->
 <div id="loading-overlay"><div class="loading-spinner"></div><div class="loading-text">업로드 중입니다...</div></div>
@@ -369,33 +362,21 @@
     const db      = getDatabase(app);
     const storage = getStorage(app);
 
-    /* ─── 기본 미션 데이터 (Firebase 없을 때 폴백) ─── */
-        const DEFAULT_MISSIONS = {
-        '자유공원':           { type:'photo',      label:'📍 장소 미션 01', title:'맥아더 장군과 하이파이브!',              desc:`우리나라 최초의 서구식 공원인 자유공원에 올라가, 맥아더 장군 동상과 같은 포즈(쌍안경을 든 모습 등)를 취하고 인증샷을 찍어주세요!`, verify:`📷 인증: 동상과 학생이 모두 나온 사진 업로드` },
-        '인천개항박물관':     { type:'photo',      label:'📍 장소 미션 02', title:'은행 털기? 아니, 흔적 찾기!',            desc:`이 건물은 과거 '일본 제1은행'이었습니다. 건물 외관이나 입구에서 옛 은행 시절의 흔적(예: 돔형 지붕, 석조 기둥)을 하나 찾아 사진을 찍어주세요.`, verify:`📷 인증: 건축물 특정 포인트 사진 업로드` },
-        '대불호텔전시관':     { type:'text+photo', label:'📍 장소 미션 03', title:'최초의 서양식 호텔 체크인',              desc:`우리나라 최초의 서양식 호텔인 '대불호텔'은 당시 숙박비가 꽤 비쌌다고 합니다. 전시관(또는 안내판)을 살펴보고, 당시 1박 요금이나 팔았던 커피의 종류를 알아내세요!`, verify:`✏️ 인증: 정답 텍스트 입력 + 관련 전시물 사진` },
-        '청일조계지경계계단': { type:'photo',      label:'📍 장소 미션 04', title:'두 세계의 경계선',                      desc:`계단을 오르며 양옆의 가로등(석등) 모양을 비교해 보세요. 중국식과 일본식 석등의 모양이 다릅니다. 양쪽 석등에 각각 한 손씩 얹고 인증샷을 찍어주세요!`, verify:`📷 인증: 양쪽 석등이 모두 담긴 친구들과 사진 업로드` },
-        '제물포구락부':       { type:'photo',      label:'📍 장소 미션 05', title:'개항기 핫플레이스 잠입',                desc:`드라마 '도깨비' 촬영지이기도 한 이곳은 과거 외국인들의 사교 클럽이었습니다. 건물 안팎을 둘러보고 가장 이국적인 스팟에서 '모던 보이/모던 걸'처럼 진지하게 사진을 찍어주세요.`, verify:`📷 인증: 컨셉 사진 업로드` },
-        '짜장면박물관':       { type:'photo',      label:'📍 장소 미션 06', title:'공화춘 셰프 되기',                      desc:`옛 '공화춘' 건물인 짜장면 박물관 앞에서, 친구들과 다 같이 '수타면을 뽑는 역동적인 포즈'로 사진을 찍어주세요.`, verify:`📷 인증: 수타면 뽑는 포즈 친구들과 사진 업로드` },
-        '삼국지벽화거리':     { type:'photo',      label:'📍 장소 미션 07', title:'도원결의 맺기',                         desc:`수많은 삼국지 벽화 중 '도원결의(유비, 관우, 장비가 의형제를 맺는 장면)' 벽화를 찾아, 세 명의 친구들이 그 앞에서 똑같이 결의를 다지는 포즈를 취해주세요!`, verify:`📷 인증: 도원결의 패러디 친구들과 사진 업로드` },
-        '개항기미식회':       { type:'text+photo', label:'📋 어디서든 퀘스트 08', title:'오감 만족 — 개항기 미식회',        desc:`차이나타운이나 개항장 거리에서 파는 길거리 간식(화덕만두, 공갈빵, 탕후루, 펑리수 등)을 하나 사서 나눠 먹고, 친구들의 만장일치 '별점과 한 줄 평'을 남겨주세요.`, verify:`✏️ 인증: 간식 사진 + 별점/한 줄 평 텍스트 입력` },
-        '한자간판수집가':     { type:'photo',      label:'📋 어디서든 퀘스트 09', title:'타임머신 — 한자 & 옛날 간판 수집가', desc:`거리를 걷다가 한자로만 적혀 있거나, 오른쪽에서 왼쪽으로 읽어야 하는 옛날 방식의 간판을 찾아 2개 이상 사진을 찍어오세요.`, verify:`📷 인증: 간판 사진 2장 이상 업로드` },
-        '선생님을찾아라':     { type:'photo',      label:'📋 어디서든 퀘스트 10', title:'미션 임파서블 — 선생님을 찾아라!', desc:`차이나타운 어딘가를 배회하고 있는 선생님을 찾아 "대한 독립 만세!"를 외치고 같이 셀카를 찍어주세요. (선생님의 위치는 랜덤하게 바뀝니다)`, verify:`📷 인증: 선생님과 함께 찍은 친구들과 사진 업로드` }
+    /* ─── 기본 미션 데이터 ─── */
+    const DEFAULT_MISSIONS = {
+        '자유공원':           { type:'photo',      label:'📍 장소 미션 01', title:'맥아더 장군과 하이파이브!',               desc:`우리나라 최초의 서구식 공원인 자유공원에 올라가, 맥아더 장군 동상과 같은 포즈(쌍안경을 든 모습 등)를 취하고 인증샷을 찍어주세요!`,                                                                                     verify:`📷 인증: 동상과 학생이 모두 나온 사진 업로드` },
+        '인천개항박물관':     { type:'photo',      label:'📍 장소 미션 02', title:'은행 털기? 아니, 흔적 찾기!',             desc:`이 건물은 과거 '일본 제1은행'이었습니다. 건물 외관이나 입구에서 옛 은행 시절의 흔적(예: 돔형 지붕, 석조 기둥)을 하나 찾아 사진을 찍어주세요.`,                                                                         verify:`📷 인증: 건축물 특정 포인트 사진 업로드` },
+        '대불호텔전시관':     { type:'text+photo', label:'📍 장소 미션 03', title:'최초의 서양식 호텔 체크인',               desc:`우리나라 최초의 서양식 호텔인 '대불호텔'은 당시 숙박비가 꽤 비쌌다고 합니다. 전시관(또는 안내판)을 살펴보고, 당시 1박 요금이나 팔았던 커피의 종류를 알아내세요!`,                                                    verify:`✏️ 인증: 정답 텍스트 입력 + 관련 전시물 사진` },
+        '청일조계지경계계단': { type:'photo',      label:'📍 장소 미션 04', title:'두 세계의 경계선',                       desc:`계단을 오르며 양옆의 가로등(석등) 모양을 비교해 보세요. 중국식과 일본식 석등의 모양이 다릅니다. 양쪽 석등에 각각 한 손씩 얹고 인증샷을 찍어주세요!`,                                                                 verify:`📷 인증: 양쪽 석등이 모두 담긴 친구들과 사진 업로드` },
+        '제물포구락부':       { type:'photo',      label:'📍 장소 미션 05', title:'개항기 핫플레이스 잠입',                 desc:`드라마 '도깨비' 촬영지이기도 한 이곳은 과거 외국인들의 사교 클럽이었습니다. 건물 안팎을 둘러보고 가장 이국적인 스팟에서 '모던 보이/모던 걸'처럼 진지하게 사진을 찍어주세요.`,                                    verify:`📷 인증: 컨셉 사진 업로드` },
+        '짜장면박물관':       { type:'photo',      label:'📍 장소 미션 06', title:'공화춘 셰프 되기',                       desc:`옛 '공화춘' 건물인 짜장면 박물관 앞에서, 친구들과 다 같이 '수타면을 뽑는 역동적인 포즈'로 사진을 찍어주세요.`,                                                                                                     verify:`📷 인증: 수타면 뽑는 포즈 친구들과 사진 업로드` },
+        '삼국지벽화거리':     { type:'photo',      label:'📍 장소 미션 07', title:'도원결의 맺기',                          desc:`수많은 삼국지 벽화 중 '도원결의(유비, 관우, 장비가 의형제를 맺는 장면)' 벽화를 찾아, 세 명의 친구들이 그 앞에서 똑같이 결의를 다지는 포즈를 취해주세요!`,                                                         verify:`📷 인증: 도원결의 패러디 친구들과 사진 업로드` },
+        '개항기미식회':       { type:'text+photo', label:'📋 어디서든 미션 08', title:'오감 만족 — 개항기 미식회',           desc:`차이나타운이나 개항장 거리에서 파는 길거리 간식(화덕만두, 공갈빵, 탕후루, 펑리수 등)을 하나 사서 나눠 먹고, 친구들의 만장일치 '별점과 한 줄 평'을 남겨주세요.`,                                                  verify:`✏️ 인증: 간식 사진 + 별점/한 줄 평 텍스트 입력` },
+        '한자간판수집가':     { type:'photo',      label:'📋 어디서든 미션 09', title:'타임머신 — 한자 & 옛날 간판 수집가',  desc:`거리를 걷다가 한자로만 적혀 있거나, 오른쪽에서 왼쪽으로 읽어야 하는 옛날 방식의 간판을 찾아 2개 이상 사진을 찍어오세요.`,                                                                                        verify:`📷 인증: 간판 사진 2장 이상 업로드` },
+        '선생님을찾아라':     { type:'photo',      label:'📋 어디서든 미션 10', title:'미션 임파서블 — 선생님을 찾아라!',    desc:`차이나타운 어딘가를 배회하고 있는 선생님을 찾아 "대한 독립 만세!"를 외치고 같이 셀카를 찍어주세요. (선생님의 위치는 랜덤하게 바뀝니다)`,                                                                        verify:`📷 인증: 선생님과 함께 찍은 친구들과 사진 업로드` }
     };
     let MISSIONS = JSON.parse(JSON.stringify(DEFAULT_MISSIONS));
-    const TOTAL = Object.keys(MISSIONS).length;
-
-    /* ─── Firebase에서 미션 데이터 불러오기 ─── */
-    async function loadMissionData() {
-        try {
-            const snap = await get(dbRef(db, 'missionData'));
-            if (snap.exists()) {
-                Object.entries(snap.val()).forEach(([key, saved]) => {
-                    if (MISSIONS[key]) MISSIONS[key] = { ...MISSIONS[key], ...saved };
-                });
-            }
-        } catch(e) { console.warn('미션 데이터 로드 실패:', e); }
-    }
+    const TOTAL  = Object.keys(MISSIONS).length;
 
     /* ─── 상태 ─── */
     let currentMission = '';
@@ -405,166 +386,171 @@
 
     /* ─── 유틸 ─── */
     function showToast(msg, dur=2500) {
-        const el = document.getElementById('toast');
-        el.textContent = msg; el.classList.add('show');
-        setTimeout(()=>el.classList.remove('show'), dur);
+        const el=document.getElementById('toast');
+        el.textContent=msg; el.classList.add('show');
+        setTimeout(()=>el.classList.remove('show'),dur);
     }
     function updateProgress() {
-        const c = completedSet.size;
-        document.getElementById('progress-fill').style.width = `${(c/TOTAL)*100}%`;
-        document.getElementById('progress-count').textContent = `${c} / ${TOTAL}`;
+        const c=completedSet.size;
+        document.getElementById('progress-fill').style.width=`${(c/TOTAL)*100}%`;
+        document.getElementById('progress-count').textContent=`${c} / ${TOTAL}`;
     }
     function markCompleted(key) {
         completedSet.add(key);
-        const m = document.getElementById(`marker-${key}`);
-        if (m) m.classList.add('completed');
-        const sq = document.getElementById(`sq-${key}`);
-        if (sq) sq.classList.add('completed');
+        const m=document.getElementById(`marker-${key}`);
+        if(m) m.classList.add('completed');
+        const sq=document.getElementById(`sq-${key}`);
+        if(sq) sq.classList.add('completed');
         updateProgress();
     }
 
-    /* ─── 지도로 돌아가기: 미션 패널 닫기 ─── */
+    /* ─── 스크롤 헬퍼 ─── */
+    function scrollToMissionPanel() {
+        // mission-bar 위치로 window 스크롤
+        const bar = document.getElementById('mission-bar');
+        const top = bar.getBoundingClientRect().top + window.pageYOffset - 78; // HUD 높이 제외
+        window.scrollTo({ top, behavior:'smooth' });
+    }
+    function scrollToMap() {
+        window.scrollTo({ top:0, behavior:'smooth' });
+    }
     window.backToMap = function() {
         document.getElementById('mission-panel').classList.remove('open');
-        document.querySelectorAll('.marker').forEach(el => el.classList.remove('active-marker','label-show'));
-        document.querySelectorAll('.sq-tab').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.marker').forEach(el=>el.classList.remove('active-marker','label-show'));
+        document.querySelectorAll('.m-tab').forEach(el=>el.classList.remove('active'));
+        scrollToMap();
     };
 
-    /* ─── Firebase 마커 위치 실시간 반영 ─── */
-    onValue(dbRef(db,'markerPositions'), snap => {
-        if (!snap.exists()) return;
-        Object.entries(snap.val()).forEach(([key,pos]) => {
-            const el = document.getElementById(`marker-${key}`);
-            if (el) { el.style.left = pos.x+'%'; el.style.top = pos.y+'%'; }
+    /* ─── Firebase 마커 위치 ─── */
+    onValue(dbRef(db,'markerPositions'), snap=>{
+        if(!snap.exists()) return;
+        Object.entries(snap.val()).forEach(([key,pos])=>{
+            const el=document.getElementById(`marker-${key}`);
+            if(el){ el.style.left=pos.x+'%'; el.style.top=pos.y+'%'; }
         });
     });
 
+    /* ─── Firebase 미션 데이터 ─── */
+    async function loadMissionData() {
+        try {
+            const snap=await get(dbRef(db,'missionData'));
+            if(snap.exists()) {
+                Object.entries(snap.val()).forEach(([key,saved])=>{
+                    if(MISSIONS[key]) MISSIONS[key]={...MISSIONS[key],...saved};
+                });
+            }
+        } catch(e){ console.warn('미션 데이터 로드 실패, 기본값 사용:',e); }
+    }
+
     /* ─── 로그인 ─── */
     async function init(id, name) {
-        document.getElementById('hud-user').textContent = `${id} · ${name}`;
-        // 미션 데이터 + 완료 상태 병렬 로드
+        document.getElementById('hud-user').textContent=`${id} · ${name}`;
+        try { await loadMissionData(); } catch(e){}
         try {
-            await loadMissionData();
-        } catch(e) { console.warn('미션 데이터 로드 실패, 기본값 사용:', e); }
-        try {
-            const snap = await get(dbRef(db,`status/${id}_${name}`));
-            if (snap.exists()) {
-                Object.entries(snap.val()).forEach(([k,v]) => { if(v.status==='완료') markCompleted(k); });
-                if (completedSet.size > 0) showToast(`완료한 미션 ${completedSet.size}개 복원됨`);
+            const snap=await get(dbRef(db,`status/${id}_${name}`));
+            if(snap.exists()) {
+                Object.entries(snap.val()).forEach(([k,v])=>{ if(v.status==='완료') markCompleted(k); });
+                if(completedSet.size>0) showToast(`완료한 미션 ${completedSet.size}개 복원됨`);
             }
-        } catch(e) { console.warn(e); }
+        } catch(e){ console.warn(e); }
     }
 
-    const loginScreen = document.getElementById('login-screen');
+    const loginScreen=document.getElementById('login-screen');
+    const savedId=localStorage.getItem('studentId'), savedName=localStorage.getItem('studentName');
+    if(savedId && savedName){ loginScreen.style.display='none'; init(savedId,savedName); }
 
-    // 로그인 처리 함수
-    async function doLogin(id, name) {
-        if (!id || !name) { showToast('학번과 이름을 모두 입력해주세요'); return; }
-        if (!/^\d+$/.test(id)) { showToast('학번은 숫자만 입력해주세요'); return; }
-        localStorage.setItem('studentId', id);
-        localStorage.setItem('studentName', name);
-        loginScreen.style.display = 'none';
-        await init(id, name);
+    async function doLogin(id,name){
+        if(!id||!name){ showToast('학번과 이름을 모두 입력해주세요'); return; }
+        if(!/^\d+$/.test(id)){ showToast('학번은 숫자만 입력해주세요'); return; }
+        localStorage.setItem('studentId',id); localStorage.setItem('studentName',name);
+        loginScreen.style.display='none';
+        await init(id,name);
     }
-
-    // 저장된 로그인 정보 확인
-    const savedId = localStorage.getItem('studentId');
-    const savedName = localStorage.getItem('studentName');
-    if (savedId && savedName) {
-        loginScreen.style.display = 'none';
-        init(savedId, savedName);
-    }
-
-    // 버튼 클릭
-    document.getElementById('login-btn').addEventListener('click', () => {
-        const id   = document.getElementById('student-id').value.trim();
-        const name = document.getElementById('student-name').value.trim();
-        doLogin(id, name);
+    document.getElementById('login-btn').addEventListener('click',()=>{
+        doLogin(document.getElementById('student-id').value.trim(), document.getElementById('student-name').value.trim());
     });
-
-    // 엔터키 지원
-    document.getElementById('student-name').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            const id   = document.getElementById('student-id').value.trim();
-            const name = document.getElementById('student-name').value.trim();
-            doLogin(id, name);
-        }
+    document.getElementById('student-name').addEventListener('keydown',e=>{
+        if(e.key==='Enter') doLogin(document.getElementById('student-id').value.trim(), document.getElementById('student-name').value.trim());
     });
 
     /* ─── 미션 열기 ─── */
     window.openMission = function(key) {
-        const m = MISSIONS[key]; if (!m) return;
-        currentMission = key;
-
-        // 마커/탭 상태 초기화
-        document.querySelectorAll('.marker').forEach(el => el.classList.remove('label-show','active-marker'));
-        document.querySelectorAll('.sq-tab').forEach(el => el.classList.remove('active'));
+        const m=MISSIONS[key]; if(!m) return;
+        currentMission=key;
 
         // 마커 라벨 잠깐 표시
-        const markerEl = document.getElementById(`marker-${key}`);
-        if (markerEl) {
+        document.querySelectorAll('.marker').forEach(el=>el.classList.remove('label-show','active-marker'));
+        document.querySelectorAll('.m-tab').forEach(el=>el.classList.remove('active'));
+        const markerEl=document.getElementById(`marker-${key}`);
+        if(markerEl){
             markerEl.classList.add('label-show','active-marker');
-            if (labelTimer) clearTimeout(labelTimer);
-            labelTimer = setTimeout(()=>markerEl.classList.remove('label-show'), 1500);
+            if(labelTimer) clearTimeout(labelTimer);
+            labelTimer=setTimeout(()=>markerEl.classList.remove('label-show'),1500);
         }
-        const sqEl = document.getElementById(`sq-${key}`);
-        if (sqEl) sqEl.classList.add('active');
+        const sqEl=document.getElementById(`sq-${key}`);
+        if(sqEl) sqEl.classList.add('active');
 
-        // 패널 내용
-        document.getElementById('mission-type-label').textContent = m.label;
-        document.getElementById('mission-title').textContent      = m.title;
-        document.getElementById('mission-desc').textContent       = m.desc;
-        document.getElementById('mission-verify').textContent     = m.verify;
-        document.getElementById('text-answer-section').style.display = m.type==='text+photo'?'block':'none';
-        document.getElementById('text-answer').value  = '';
-        document.getElementById('photo-upload').value = '';
-        document.getElementById('file-name-display').style.display = 'none';
+        // 패널 내용 채우기
+        document.getElementById('mission-type-label').textContent=m.label;
+        document.getElementById('mission-title').textContent=m.title;
+        document.getElementById('mission-desc').textContent=m.desc;
+        document.getElementById('mission-verify').textContent=m.verify;
+        document.getElementById('text-answer-section').style.display=m.type==='text+photo'?'block':'none';
+        document.getElementById('text-answer').value='';
+        document.getElementById('photo-upload').value='';
+        document.getElementById('file-name-display').style.display='none';
 
-        const isDone = completedSet.has(key);
-        document.getElementById('already-done-badge').classList.toggle('show', isDone);
-        document.getElementById('submit-btn').disabled = isDone;
+        const isDone=completedSet.has(key);
+        document.getElementById('already-done-badge').classList.toggle('show',isDone);
+        document.getElementById('submit-btn').disabled=isDone;
 
-        // 패널 열기
+        // 패널 열기 → 스크롤
         document.getElementById('mission-panel').classList.add('open');
+        // 약간 딜레이 후 스크롤 (패널 열리는 애니메이션 고려)
+        setTimeout(scrollToMissionPanel, 50);
     };
 
     /* ─── 파일 선택 ─── */
-    document.getElementById('photo-upload').addEventListener('change', function(e) {
-        const d = document.getElementById('file-name-display');
-        if (e.target.files.length > 0) { d.textContent='📎 '+e.target.files[0].name; d.style.display='block'; }
+    document.getElementById('photo-upload').addEventListener('change',function(e){
+        const d=document.getElementById('file-name-display');
+        if(e.target.files.length>0){ d.textContent='📎 '+e.target.files[0].name; d.style.display='block'; }
         else { d.style.display='none'; }
     });
 
     /* ─── 제출 ─── */
     window.submitMission = async function() {
-        if (isSubmitting) return;
-        const m          = MISSIONS[currentMission];
-        const file       = document.getElementById('photo-upload').files[0];
-        const textAnswer = document.getElementById('text-answer').value.trim();
-        const studentId  = localStorage.getItem('studentId');
-        const studentName= localStorage.getItem('studentName');
-        const btn        = document.getElementById('submit-btn');
+        if(isSubmitting) return;
+        const m=MISSIONS[currentMission];
+        const file=document.getElementById('photo-upload').files[0];
+        const textAnswer=document.getElementById('text-answer').value.trim();
+        const studentId=localStorage.getItem('studentId');
+        const studentName=localStorage.getItem('studentName');
+        const btn=document.getElementById('submit-btn');
 
-        if (completedSet.has(currentMission)) { showToast('이미 완료한 미션입니다'); return; }
-        if (m.type==='text+photo' && !textAnswer) { showToast('텍스트 답변을 입력해주세요'); return; }
-        if (!file) { showToast('사진을 먼저 선택해주세요 📸'); return; }
+        if(completedSet.has(currentMission)){ showToast('이미 완료한 미션입니다'); return; }
+        if(m.type==='text+photo' && !textAnswer){ showToast('텍스트 답변을 입력해주세요'); return; }
+        if(!file){ showToast('사진을 먼저 선택해주세요 📸'); return; }
 
         isSubmitting=true; btn.disabled=true;
         document.getElementById('loading-overlay').classList.add('show');
         try {
-            const ext = file.name.includes('.')?file.name.split('.').pop():'jpg';
-            await uploadBytes(storageRef(storage,`missions/${studentId}_${studentName}_${currentMission}.${ext}`), file);
-            await set(dbRef(db,`status/${studentId}_${studentName}/${currentMission}`), {
+            const ext=file.name.includes('.')?file.name.split('.').pop():'jpg';
+            await uploadBytes(storageRef(storage,`missions/${studentId}_${studentName}_${currentMission}.${ext}`),file);
+            await set(dbRef(db,`status/${studentId}_${studentName}/${currentMission}`),{
                 status:'완료', missionTitle:m.title, textAnswer:textAnswer||null,
                 time:new Date().toISOString(), location:'GPS_OFF'
             });
             markCompleted(currentMission);
-            window.backToMap();
-            document.getElementById('stamp-mission-name').textContent = m.title;
+            // 패널 닫고 지도로
+            document.getElementById('mission-panel').classList.remove('open');
+            document.querySelectorAll('.marker').forEach(el=>el.classList.remove('active-marker'));
+            document.querySelectorAll('.m-tab').forEach(el=>el.classList.remove('active'));
+            scrollToMap();
+            document.getElementById('stamp-mission-name').textContent=m.title;
             document.getElementById('stamp-overlay').classList.add('show');
-            setTimeout(()=>document.getElementById('stamp-overlay').classList.remove('show'), 2800);
-        } catch(err) {
-            console.error(err); showToast('업로드 오류: '+err.message, 4000); btn.disabled=false;
+            setTimeout(()=>document.getElementById('stamp-overlay').classList.remove('show'),2800);
+        } catch(err){
+            console.error(err); showToast('업로드 오류: '+err.message,4000); btn.disabled=false;
         } finally {
             document.getElementById('loading-overlay').classList.remove('show');
             isSubmitting=false;
