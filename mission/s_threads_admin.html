@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 센터 — S_threads</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a; --card: #111; --text: #f0f0f0; --sub: #888; --muted: #555;
+      --border: #222; --accent: #fff; --danger: #f91880; --success: #2ecc71;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Pretendard', sans-serif; min-height: 100vh;
+    }
+
+    /* ── 로그인 ── */
+    #loginScreen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: #000;
+    }
+    .login-card {
+      width: 100%; max-width: 380px; text-align: center; padding: 40px 32px;
+    }
+    .login-card h1 {
+      font-family: 'Jua', sans-serif; font-size: 2.8rem; margin-bottom: 6px;
+    }
+    .login-card .sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+    .login-card input {
+      width: 100%; padding: 14px 16px; background: #1a1a1a;
+      border: 1px solid #333; border-radius: 12px; color: #fff;
+      font-size: 15px; font-family: 'Pretendard', sans-serif;
+      outline: none; margin-bottom: 12px; transition: border-color 0.15s;
+    }
+    .login-card input:focus { border-color: #fff; }
+    .login-card button {
+      width: 100%; padding: 14px; background: #fff; color: #000;
+      border: none; border-radius: 30px; font-size: 15px; font-weight: 700;
+      font-family: 'Pretendard', sans-serif; cursor: pointer;
+    }
+    .login-err { font-size: 12px; color: var(--danger); margin-top: 10px; display: none; }
+
+    /* ── 메인 ── */
+    #adminApp { display: none; }
+    .top-bar {
+      background: #000; border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 54px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand .logo { font-family: 'Jua', sans-serif; font-size: 1.2rem; }
+    .brand .badge {
+      font-size: 11px; font-weight: 700; color: #000;
+      background: #fff; border-radius: 6px; padding: 2px 8px;
+    }
+    .logout-btn {
+      font-size: 12px; color: var(--muted);
+      background: #1a1a1a; border: 1px solid var(--border);
+      border-radius: 7px; padding: 6px 12px; cursor: pointer;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .logout-btn:hover { color: var(--danger); border-color: #500; }
+
+    .admin-layout { display: flex; min-height: calc(100vh - 54px); }
+
+    .sidebar {
+      width: 200px; background: #000; border-right: 1px solid var(--border);
+      padding: 20px 12px; flex-shrink: 0;
+      position: sticky; top: 54px; height: calc(100vh - 54px); overflow-y: auto;
+    }
+    .sidebar-label {
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0 8px; margin-bottom: 6px; margin-top: 16px;
+    }
+    .sidebar-label:first-child { margin-top: 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px; border-radius: 8px; cursor: pointer;
+      font-size: 13px; font-weight: 500; color: var(--sub);
+      transition: 0.12s; border: none; background: none;
+      width: 100%; text-align: left; font-family: 'Pretendard', sans-serif;
+    }
+    .nav-item:hover { background: #1a1a1a; color: var(--text); }
+    .nav-item.active { background: #1a1a1a; color: #fff; font-weight: 700; }
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .content { flex: 1; padding: 24px; max-width: 960px; }
+    .page-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; font-family: 'Jua', sans-serif; }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px; margin-bottom: 16px;
+    }
+    .card-title { font-size: 13px; font-weight: 700; color: var(--sub); margin-bottom: 14px; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px; text-align: center;
+    }
+    .stat-num { font-size: 28px; font-weight: 800; font-family: 'Jua', sans-serif; }
+    .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    .filter-bar {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center;
+    }
+    .filter-bar input, .filter-bar select {
+      padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 13px; font-family: 'Pretendard', sans-serif;
+      outline: none; background: #1a1a1a; color: var(--text);
+    }
+    .filter-bar input { flex: 1; min-width: 200px; }
+    .filter-bar input:focus, .filter-bar select:focus { border-color: #fff; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th {
+      background: #0a0a0a; padding: 10px 8px; text-align: left;
+      border-bottom: 1px solid var(--border); color: var(--sub);
+      font-weight: 700; font-size: 11px; white-space: nowrap;
+    }
+    td { padding: 9px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:hover td { background: #161616; }
+    .td-content { max-width: 200px; word-break: break-all; font-size: 12px; color: #aaa; line-height: 1.4; }
+
+    .role-badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      border-radius: 4px; padding: 2px 6px; white-space: nowrap;
+      background: #1a1a1a; color: #aaa; border: 1px solid #333;
+    }
+
+    .btn-sm { padding: 4px 9px; font-size: 11px; border-radius: 5px; border: none; cursor: pointer; font-family: 'Pretendard', sans-serif; }
+    .btn-danger-sm { background: #2a0000; color: var(--danger); border: 1px solid #500; }
+    .btn-danger-sm:hover { background: #400000; }
+    .btn-pick { background: none; border: none; cursor: pointer; font-size: 16px; color: #333; transition: color 0.15s; padding: 0 4px; }
+    .btn-pick.picked { color: #f5a623; }
+    .btn-pick:hover { color: #f5a623; }
+
+    .btn { padding: 9px 16px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Pretendard', sans-serif; }
+    .btn-primary { background: #fff; color: #000; }
+    .btn-primary:hover { background: #eee; }
+    .btn-warn    { background: #2a2000; color: #f5a623; border: 1px solid #6a5000; }
+    .btn-warn:hover { background: #3a2d00; }
+    .btn-reset   { background: #2a0000; color: var(--danger); border: 1px solid #500; }
+    .btn-reset:hover { background: #400000; }
+
+    .bar-wrap { margin-bottom: 10px; }
+    .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--sub); margin-bottom: 3px; }
+    .bar-bg { background: #222; border-radius: 3px; height: 7px; }
+    .bar-fill { background: #fff; height: 7px; border-radius: 3px; transition: width 0.5s; }
+
+    .tool-section {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px; margin-bottom: 14px;
+    }
+    .tool-section-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+    .tool-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .notice {
+      background: #2a2000; border: 1px solid #6a5000; border-radius: 8px;
+      padding: 10px 14px; font-size: 12px; color: #c8a060; margin-bottom: 14px;
+    }
+    .danger-zone {
+      background: #150000; border: 1px solid #400; border-radius: 14px;
+      padding: 20px; margin-bottom: 14px;
+    }
+
+    .class-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .class-chip {
+      padding: 5px 12px; border: 1.5px solid #333; border-radius: 20px;
+      font-size: 12px; font-weight: 500; color: var(--sub);
+      background: #1a1a1a; cursor: pointer; font-family: 'Pretendard', sans-serif; transition: 0.12s;
+    }
+    .class-chip:hover { border-color: #fff; color: #fff; }
+    .class-chip.active { background: #fff; border-color: #fff; color: #000; font-weight: 700; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .table-wrap { overflow-x: auto; }
+  </style>
+</head>
+<body>
+
+<!-- 로그인 -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>S_threads</h1>
+    <div class="sub">관리자 센터 — 신라 하대 스레드</div>
+    <input type="password" id="adminPw" placeholder="관리자 비밀번호"
+      onkeydown="if(event.key==='Enter') tryLogin()">
+    <button onclick="tryLogin()">접속하기</button>
+    <div class="login-err" id="loginErr">비밀번호가 올바르지 않습니다.</div>
+  </div>
+</div>
+
+<!-- 어드민 앱 -->
+<div id="adminApp">
+  <div class="top-bar">
+    <div class="brand">
+      <span class="logo">S_threads</span>
+      <span class="badge">관리자 센터</span>
+    </div>
+    <button class="logout-btn" onclick="logoutAdmin()">로그아웃</button>
+  </div>
+
+  <div class="admin-layout">
+    <nav class="sidebar">
+      <div class="sidebar-label">메뉴</div>
+      <button class="nav-item active" onclick="showPanel('posts')"><span class="icon">📋</span> 게시글 관리</button>
+      <button class="nav-item" onclick="showPanel('stats')"><span class="icon">📊</span> 통계</button>
+      <button class="nav-item" onclick="showPanel('tools')"><span class="icon">🔧</span> 도구</button>
+    </nav>
+
+    <main class="content">
+
+      <!-- 게시글 관리 -->
+      <div id="panel-posts" class="panel active">
+        <div class="page-title">📋 게시글 관리</div>
+        <div class="filter-bar">
+          <input type="text" id="searchInput" placeholder="🔍 학번, 이름, 닉네임, 신분, 내용 검색..."
+            oninput="applyFilters()">
+          <select id="roleFilter" onchange="applyFilters()">
+            <option value="">전체 신분</option>
+            <option value="진골">👑 진골 귀족</option>
+            <option value="6두품">📜 6두품 지식인</option>
+            <option value="호족">🏰 지방 호족</option>
+            <option value="농민">🌾 일반 농민</option>
+            <option value="선종 승려">🧘 선종 승려</option>
+            <option value="풍수지리사">🧭 풍수지리사</option>
+          </select>
+          <select id="pickFilter" onchange="applyFilters()">
+            <option value="">전체 (픽 포함)</option>
+            <option value="pick">⭐ 픽된 글만</option>
+            <option value="nopick">픽 없는 글만</option>
+          </select>
+        </div>
+
+        <!-- 반별 필터 -->
+        <div style="margin-bottom:12px;">
+          <div style="font-size:11px; font-weight:700; color:var(--muted); margin-bottom:8px; letter-spacing:0.06em;">반별 필터</div>
+          <div class="class-chips" id="classChips">
+            <button class="class-chip active" onclick="setClassFilter('all', this)">전체 반</button>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>학번</th><th>반</th><th>이름</th><th>닉네임</th>
+                  <th>신분</th><th>내용</th><th>❤</th><th>픽</th><th>삭제</th>
+                </tr>
+              </thead>
+              <tbody id="postsBody"></tbody>
+            </table>
+          </div>
+          <div id="tableCount" style="padding:10px 14px; font-size:11px; color:var(--muted); text-align:right; border-top:1px solid var(--border);"></div>
+        </div>
+      </div>
+
+      <!-- 통계 -->
+      <div id="panel-stats" class="panel">
+        <div class="page-title">📊 통계</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-num" id="st-total">-</div><div class="stat-lbl">전체 게시글</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-students">-</div><div class="stat-lbl">참여 학생</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-likes">-</div><div class="stat-lbl">총 좋아요</div></div>
+          <div class="stat-card"><div class="stat-num" id="st-avg">-</div><div class="stat-lbl">평균 좋아요</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏛️ 신분별 게시글</div>
+          <div id="roleStats"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏫 반별 참여 현황</div>
+          <div id="classStats"></div>
+        </div>
+      </div>
+
+      <!-- 도구 -->
+      <div id="panel-tools" class="panel">
+        <div class="page-title">🔧 도구</div>
+        <div class="tool-section">
+          <div class="tool-section-title">📝 더미 게시글</div>
+          <div class="tool-row">
+            <button class="btn btn-primary" onclick="initDummy()">더미 생성</button>
+            <button class="btn btn-warn" onclick="deleteDummy()">더미만 삭제</button>
+          </div>
+          <div style="font-size:11px; color:var(--muted); margin-top:6px;">더미는 학번 00000 · System 계정으로 저장됩니다.</div>
+        </div>
+        <div class="tool-section">
+          <div class="tool-section-title">🎭 신분별 삭제</div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <select id="roleDeleteSelect" style="padding:8px 12px; background:#1a1a1a; border:1px solid #333; border-radius:8px; color:#fff; font-family:'Pretendard',sans-serif;">
+              <option value="">신분 선택</option>
+              <option value="진골">👑 진골 귀족</option>
+              <option value="6두품">📜 6두품 지식인</option>
+              <option value="호족">🏰 지방 호족</option>
+              <option value="농민">🌾 일반 농민</option>
+              <option value="선종 승려">🧘 선종 승려</option>
+              <option value="풍수지리사">🧭 풍수지리사</option>
+            </select>
+            <button class="btn btn-warn" onclick="deleteAllByRole()">해당 신분 전체 삭제</button>
+          </div>
+        </div>
+        <div class="danger-zone">
+          <div class="tool-section-title" style="color:var(--danger);">⚠️ 위험 구역</div>
+          <div class="notice">아래 기능은 되돌릴 수 없습니다. 신중하게 사용하세요.</div>
+          <button class="btn btn-reset" onclick="resetAll()">🗑️ 전체 게시글 초기화</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getDatabase, ref, set, push, onValue, remove, update }
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
+    authDomain: "ho0911seong-56638.firebaseapp.com",
+    databaseURL: "https://ho0911seong-56638-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "ho0911seong-56638",
+    storageBucket: "ho0911seong-56638.firebasestorage.app",
+    messagingSenderId: "994509567071",
+    appId: "1:994509567071:web:de99e71c125ec2a3f557ea"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  const postsRef = ref(db, 'posts');
+  const toastRef = ref(db, 'silla_toast');
+
+  const ADMIN_PW_HASH = "57765044de4726b8a55db8c3846a7b6a038a2beaff40c0cc5113744ad8b62694";
+  const roleIcons = { "진골":"👑","6두품":"📜","호족":"🏰","농민":"🌾","선종 승려":"🧘","풍수지리사":"🧭" };
+
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+  let allPosts = [];
+  let currentClassFilter = 'all';
+
+  window.tryLogin = async () => {
+    const hash = await sha256(document.getElementById('adminPw').value);
+    if (hash === ADMIN_PW_HASH) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminApp').style.display = 'block';
+      startListening();
+    } else {
+      document.getElementById('loginErr').style.display = 'block';
+    }
+  };
+  window.logoutAdmin = () => location.reload();
+
+  window.showPanel = (name) => {
+    document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById(`panel-${name}`).classList.add('active');
+    [...document.querySelectorAll('.nav-item')].find(el =>
+      el.textContent.includes({posts:'게시글',stats:'통계',tools:'도구'}[name])
+    )?.classList.add('active');
+  };
+
+  function startListening() {
+    onValue(postsRef, snap => {
+      const data = snap.val();
+      allPosts = data ? Object.values(data).filter(p => p.id) : [];
+      buildClassChips();
+      applyFilters();
+      renderStats();
+    });
+  }
+
+  function buildClassChips() {
+    const classes = new Set(
+      allPosts
+        .filter(p => p.studentId && p.studentId !== '00000' && /^\d{5}$/.test(p.studentId))
+        .map(p => p.studentId.slice(0,3))
+    );
+    const container = document.getElementById('classChips');
+    const current = currentClassFilter;
+    container.innerHTML = `<button class="class-chip${current==='all'?' active':''}" onclick="setClassFilter('all', this)">전체 반</button>`;
+    [...classes].sort().forEach(cls => {
+      const label = `${cls[0]}학년 ${parseInt(cls.slice(1))}반`;
+      container.innerHTML += `<button class="class-chip${current===cls?' active':''}" onclick="setClassFilter('${cls}', this)">${label}</button>`;
+    });
+  }
+
+  window.setClassFilter = (cls, btn) => {
+    currentClassFilter = cls;
+    document.querySelectorAll('.class-chip').forEach(el => el.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  };
+
+  window.applyFilters = () => {
+    const q      = (document.getElementById('searchInput')?.value||'').toLowerCase();
+    const roleF  = document.getElementById('roleFilter')?.value||'';
+    const pickF  = document.getElementById('pickFilter')?.value||'';
+
+    let filtered = allPosts.filter(p => p.studentId !== '00000');
+    if (currentClassFilter !== 'all') filtered = filtered.filter(p => (p.studentId||'').startsWith(currentClassFilter));
+    if (roleF) filtered = filtered.filter(p => p.role === roleF);
+    if (pickF === 'pick')   filtered = filtered.filter(p => p.adminPick === true);
+    if (pickF === 'nopick') filtered = filtered.filter(p => !p.adminPick);
+    if (q) filtered = filtered.filter(p =>
+      (p.studentId||'').includes(q) ||
+      (p.realName||'').toLowerCase().includes(q) ||
+      (p.nickname||'').toLowerCase().includes(q) ||
+      (p.content||'').toLowerCase().includes(q) ||
+      (p.role||'').includes(q)
+    );
+
+    filtered.sort((a,b) => b.id.localeCompare(a.id));
+    renderTable(filtered);
+  };
+
+  function renderTable(posts) {
+    const tbody = document.getElementById('postsBody');
+    tbody.innerHTML = '';
+    posts.forEach(p => {
+      const cls = (p.studentId||'').slice(0,3);
+      const clsLabel = /^\d{3}$/.test(cls) ? `${cls[0]}학년 ${parseInt(cls.slice(1))}반` : '-';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${esc(p.studentId||'')}</td>
+        <td style="font-size:11px; color:var(--muted);">${clsLabel}</td>
+        <td>${esc(p.realName||'')}</td>
+        <td style="color:var(--muted);">${esc(p.nickname||'')}</td>
+        <td><span class="role-badge">${roleIcons[p.role]||''} ${esc(p.role||'')}</span></td>
+        <td class="td-content">${esc(p.content||'')}</td>
+        <td>${p.likes||0}</td>
+        <td>
+          <button class="btn-pick${p.adminPick?' picked':''}"
+            onclick="togglePick('${p.id}', ${!!p.adminPick}, \`${(p.content||'').slice(0,80).replace(/`/g,"'")}\`, '${esc(p.nickname||'')}')">
+            ${p.adminPick ? '★' : '☆'}
+          </button>
+        </td>
+        <td><button class="btn-sm btn-danger-sm" onclick="deletePost('${p.id}')">삭제</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('tableCount').textContent = `${posts.length}개 표시 중`;
+  }
+
+  // ── 픽 토글 + 토스트 발신 ──
+  window.togglePick = async (postId, isPicked, content, nickname) => {
+    const newPick = !isPicked;
+    const updates = {};
+    updates[`posts/${postId}/adminPick`] = newPick ? true : null;
+    await update(ref(db), updates);
+
+    if (newPick) {
+      await set(toastRef, {
+        key: `${postId}_${Date.now()}`,
+        postId, content, nickname,
+        ts: Date.now()
+      });
+    }
+  };
+
+  function renderStats() {
+    const real = allPosts.filter(p => p.studentId !== '00000');
+    const total    = real.length;
+    const students = new Set(real.map(p => p.studentId)).size;
+    const likes    = real.reduce((s,p) => s+(p.likes||0), 0);
+    document.getElementById('st-total').textContent    = total;
+    document.getElementById('st-students').textContent = students;
+    document.getElementById('st-likes').textContent    = likes;
+    document.getElementById('st-avg').textContent      = total ? (likes/total).toFixed(1) : 0;
+
+    // 신분별
+    const roleCounts = {};
+    real.forEach(p => { roleCounts[p.role] = (roleCounts[p.role]||0)+1; });
+    const maxR = Math.max(...Object.values(roleCounts), 1);
+    document.getElementById('roleStats').innerHTML = Object.entries(roleCounts)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([role,cnt]) => `
+        <div class="bar-wrap">
+          <div class="bar-label"><span>${roleIcons[role]||''} ${role}</span><span>${cnt}개</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(cnt/maxR*100)}%;"></div></div>
+        </div>`).join('');
+
+    // 반별
+    const classCounts = {};
+    real.forEach(p => {
+      const cls = (p.studentId||'').slice(0,3);
+      if (/^\d{3}$/.test(cls)) classCounts[cls] = (classCounts[cls]||0)+1;
+    });
+    const maxC = Math.max(...Object.values(classCounts), 1);
+    document.getElementById('classStats').innerHTML = Object.entries(classCounts)
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .map(([cls,cnt]) => `
+        <div class="bar-wrap">
+          <div class="bar-label"><span>${cls[0]}학년 ${parseInt(cls.slice(1))}반</span><span>${cnt}개</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(cnt/maxC*100)}%;"></div></div>
+        </div>`).join('');
+  }
+
+  window.deletePost = (id) => {
+    if (confirm('이 게시글을 삭제하시겠습니까?')) remove(ref(db, `posts/${id}`));
+  };
+  window.resetAll = () => {
+    if (confirm('⚠️ 모든 게시글을 삭제합니까?'))
+      if (confirm('정말요? 되돌릴 수 없습니다.')) remove(postsRef);
+  };
+  window.deleteDummy = () => {
+    if (!confirm('더미 게시글을 모두 삭제할까요?')) return;
+    const toDelete = allPosts.filter(p => p.studentId === '00000');
+    toDelete.forEach(p => remove(ref(db, `posts/${p.id}`)));
+    alert(`더미 ${toDelete.length}개 삭제 완료`);
+  };
+  window.deleteAllByRole = () => {
+    const role = document.getElementById('roleDeleteSelect').value;
+    if (!role) return alert("신분을 선택하세요.");
+    if (!confirm(`"${role}" 신분의 모든 게시글을 삭제합니까?`)) return;
+    const toDelete = allPosts.filter(p => p.role === role && p.studentId !== '00000');
+    toDelete.forEach(p => remove(ref(db, `posts/${p.id}`)));
+    alert(`${toDelete.length}개 삭제 완료`);
+  };
+  window.initDummy = () => {
+    const now = new Date();
+    const time = `${now.getMonth()+1}.${now.getDate()}. ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const dummy = [
+      { role:"진골", content:"오늘 안압지 팟 구함~ 🥂 진골끼리만요" },
+      { role:"농민", content:"세금이 너무 많다! 이러다 다 굶어 죽겠어 😡" },
+      { role:"선종 승려", content:"마음을 비우면 모든 것이 보입니다 🧘" },
+      { role:"풍수지리사", content:"새 도읍지를 찾아야 할 때입니다. 한강 주변이 길지입니다 🧭" },
+      { role:"6두품", content:"능력으로 인정받고 싶은데 골품제가 너무 답답해. 당나라라도 가야 하나..." },
+      { role:"호족", content:"중앙 통제가 약해진 틈을 타 우리 지역 세력을 키울 때가 됐다. 독자 군사도 갖출 것." },
+    ];
+    dummy.forEach(d => {
+      const r = push(postsRef);
+      set(r, { ...d, id:r.key, studentId:'00000', realName:'System', nickname:'더미', time, likes:0, likedBy:{init:true} });
+    });
+    alert(`더미 ${dummy.length}개 생성 완료`);
+  };
+
+  function esc(s) {
+    const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+  }
+</script>
+</body>
+</html>
