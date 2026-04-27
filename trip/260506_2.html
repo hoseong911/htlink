@@ -61,8 +61,10 @@
         #page { margin-top:78px; }
 
         /* 지도 섹션 */
-        #map-section {
-            width:100vw; height:calc(100vh - 78px);
+#map-section {
+    width:100vw;
+    height:auto;          /* 변경 */
+    max-height:calc(100vh - 78px);  /* 추가 */
             overflow:scroll; -webkit-overflow-scrolling:touch;
             background:#2a1f0e; position:relative; display:block; font-size:0;
         }
