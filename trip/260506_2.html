@@ -59,19 +59,22 @@
 
         /* ══ 메인 페이지 — 세로 스크롤 ══ */
         #page {
-            /* HUD 높이만큼 아래로 */
             margin-top:78px;
+            display:flex;
+            flex-direction:column;
+            gap:0;
         }
 
         /* ── 섹션1: 지도 ── */
         #map-section {
-            /* 지도 뷰포트: 가로 100vw, 세로는 적당히 */
             width:100vw;
-            height:calc(100vh - 78px);  /* 화면에서 HUD 빼고 꽉 채움 */
+            height:calc(100vh - 78px);
             overflow:scroll;
             -webkit-overflow-scrolling:touch;
             background:#2a1f0e;
             position:relative;
+            display:block;
+            font-size:0; /* 인라인 공백 제거 */
         }
         /* 스크롤바 숨김 */
         #map-section::-webkit-scrollbar { display:none; }
