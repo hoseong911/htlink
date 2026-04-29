@@ -249,7 +249,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <body>
 <div id="toast"></div>
 
-<!-- 로그인 -->
 <div id="screen-login">
   <div class="login-logo">🏛️</div>
   <div class="login-title">관리자 모드</div>
@@ -262,14 +261,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<!-- 메인 -->
 <div id="screen-main">
   <div class="admin-header">
     <div class="admin-header-title">🏛️ &nbsp;관리자 모드</div>
     <span class="admin-header-badge">ADMIN</span>
   </div>
 
-  <!-- 활동 선택 -->
   <div id="screen-select">
     <div style="padding:28px 18px;max-width:480px;margin:0 auto;">
       <div class="select-heading">관리할 활동을 선택하세요</div>
@@ -292,7 +289,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 
-  <!-- 활동 화면 -->
   <div id="screen-activity">
     <div class="back-row">
       <button class="back-btn-sm" onclick="goSelect()">← 활동 선택으로</button>
@@ -323,46 +319,46 @@ const GAS_URL    = 'https://script.google.com/macros/s/AKfycbwyI-lc4yoCKr2yzj28U
 const DRIVE_URL1 = 'https://drive.google.com/drive/folders/18IhanvaL52hdphwegBs02H_I-Gg8GttZ';
 const DRIVE_URL2 = 'https://drive.google.com/drive/folders/1DNRv6Rckfu9ftk1z9BHp2SVLFxZvvZ-W';
 
-// ── 활동 1 미션 데이터 ──
+// ★★★ 이 부분이 수정된 관리자 앱의 19개 미션 데이터입니다! ★★★
 const OCEAN_MISSIONS = [
   {id:0,title:'시간의 첫 파문',icon:'🎬',type:'text_with_mini_reflection',
-    desc:'박물관 입구 영상실에서 1624년 이덕형 사신단의 항해 기록화 이름을 찾아보자.',answers:['항해조천도']},
+    desc:'🔍 영상을 끝까지 관람하고 화면 속 기록화의 이름을 찾아보자.\n\n1624년 이덕형 사신단이 명나라로 가는 험난한 뱃길을 그린 이 기록화의 이름은 무엇일까?',answers:['항해조천도']},
   {id:1,title:'8,000년 전 뱃사공',icon:'🪵',type:'image_text',
-    desc:'창녕 비봉리에서 발견된 통나무배 — 세 글자 지명은?',answers:['비봉리']},
+    desc:'🔍 이 통나무배가 발견된 곳의 지명이 배의 이름에 들어가 있어.\n\n"창녕 ○○○ 배" — 세 글자 지명은 무엇일까?',answers:['비봉리']},
   {id:2,title:'바다를 건너온 낯선 그릇',icon:'🏺',type:'image_text',
-    desc:'일본 기원전 문화에서 만들어진 토기가 한반도에서 발견됐다. 이 토기의 이름은?',answers:['야요이 토기','야요이토기']},
+    desc:'🔍 일본 기원전 문화에서 만들어진 이 토기가 한반도에서 발견됐다는 건, 그때부터 이미 바다를 건너 교류했다는 뜻이야.\n\n이 토기의 이름은?',answers:['야요이 토기','야요이토기']},
   {id:3,title:'동아시아 바다의 패자',icon:'⚓',type:'text',
-    desc:'삼국 중 한강 유역 거점으로 동아시아 해상 무역을 주도한 나라는?',answers:['백제']},
+    desc:'🔍 삼국 중 한강 유역을 거점 삼아 중국 남조, 일본과 가장 활발하게 교역하며 동아시아 해상 무역을 주도한 나라는?',answers:['백제']},
   {id:4,title:'바다를 건너간 가야의 유산',icon:'🏛️',type:'photo',
-    desc:'삼국시대 전시 공간에서 굽다리접시(고배)를 찾아 사진 인증.',answers:[]},
+    desc:'📷 삼국시대 전시 공간에서 "굽다리접시(고배)"를 찾아보세요.\n\n굽다리접시와 함께 찍은 사진을 제출하면 스탬프를 드려요!',answers:[]},
   {id:5,title:'천 년의 침묵을 깨고',icon:'⛵',type:'text',
-    desc:'인천 옹진군 앞바다에서 발견된 통일신라시대 화물선의 이름은?',answers:['영흥도선','영흥도배']},
+    desc:'🔍 인천 옹진군 앞바다에서 발견된 통일신라시대 화물선.\n\n발견된 섬의 이름이 그대로 배 이름이 됐어. 이 배의 이름은?',answers:['영흥도선','영흥도배']},
   {id:6,title:'푸른 빛을 실어나르다',icon:'💙',type:'text',
-    desc:'고려시대 독자 발전, 신비로운 푸른빛 도자기 이름은?',answers:['청자','고려청자']},
+    desc:'🔍 고려시대 독자적으로 발전시킨 도자기로, 신비로운 푸른빛이 특징이야.\n\n송나라 문인들까지 감탄한 "비색(翡色)"의 이 도자기 이름은?',answers:['청자','고려청자']},
   {id:7,title:'코리아, 세계와 만나다',icon:'🌐',type:'dnd',
     desc:'고려 교류 기록 문구 빈칸 채우기 (드래그앤드롭)',answers:[]},
   {id:8,title:'불멸의 철갑 전설',icon:'🐢',type:'two_step',
     desc:'임진왜란 무패 장군 + 비밀 병기 돌격선 이름은?',answers:['이순신','거북선']},
   {id:9,title:'500명의 문화 대사',icon:'🏮',type:'text',
-    desc:'조선이 일본 막부에 파견한 공식 외교·문화 사절단 이름은?',answers:['통신사','조선통신사']},
+    desc:'🔍 조선이 일본 막부에 파견한 공식 외교·문화 사절단.\n\n"믿음을 나눈다(信)"는 뜻을 담은 이 사절단의 이름은?',answers:['통신사','조선통신사']},
   {id:10,title:'근대의 파도가 밀려오다',icon:'📸',type:'photo',
-    desc:'개항기 섹션에서 당시 인천항 인물 패널과 함께 사진 인증.',answers:[]},
+    desc:'📷 개항기 섹션에서 당시 인천항 사람들의 삶을 담은 인물 패널을 찾아보세요.\n\n패널 속 인물이 잘 보이도록 함께 사진을 찍어 제출하세요!',answers:[]},
   {id:11,title:'빼앗긴 바다의 기록',icon:'🗺️',type:'text',
-    desc:'일제강점기 조선 바다 수산 자원 조사 지도의 이름은?',answers:['한국연해수산물분포도','한국연해 수산물분포도']},
+    desc:'🔍 일제강점기, 일본이 조선 바다의 수산 자원을 빠짐없이 조사해 만든 지도가 전시되어 있어.\n\n이 지도의 이름은?',answers:['한국연해수산물분포도','한국연해 수산물분포도']},
   {id:12,title:'바다 위의 거인들',icon:'🚢',type:'text',
-    desc:'대형 컨테이너선 모형 선체에 크게 적힌 영문 약자 3글자는?',answers:['HMM']},
+    desc:'🚢 2층에 전시된 대형 컨테이너선 모형 선체에 크게 적힌 영문 약자 3글자는?\n\n모형을 직접 찾아서 눈으로 확인해보자!',answers:['HMM']},
   {id:13,title:'세계를 바꾼 철제 상자',icon:'📦',type:'text',
-    desc:'해운물류의 역사를 바꾼 상자 — 이 발명품의 이름은?',answers:['컨테이너']},
+    desc:'📦 2층 전시 섹션 제목을 찾아봐.\n\n"○○○○, 해운물류의 역사를 바꾼 상자"\n\n이 발명품의 이름은?',answers:['컨테이너']},
   {id:14,title:'선장 없는 배의 시대',icon:'🤖',type:'two_step',
     desc:'사물인터넷 약자(3글자) + AI 자율 항해 선박(5글자)',answers:['IoT','IOT','자율운항선박']},
   {id:15,title:'생명이 숨 쉬는 진흙 바다',icon:'🌊',type:'text',
-    desc:'서해안 썰물 때 드러나는 진흙 지형 — 유네스코 세계자연유산',answers:['갯벌']},
+    desc:'🔍 조수간만의 차가 큰 서해안에 발달한, 썰물 때 드러나는 진흙 지형.\n\n다양한 생물의 서식지이자 천연 정수기 역할을 하는 이곳의 이름은?',answers:['갯벌']},
   {id:16,title:'하얀 꽃이 피는 갯벌',icon:'🧂',type:'text',
-    desc:'인천 주안 지역 최대 규모 근대식 천일염전 이름은?',answers:['주안염전']},
+    desc:'🧂 인천 주안(朱安) 지역에 조성된 우리나라 최대 규모의 근대식 천일염전.\n\n이 염전의 이름은?',answers:['주안염전']},
   {id:17,title:'인천 산업화의 세 기둥',icon:'⚙️',type:'match',
     desc:'세 인물(김대식·강용정·김진수)을 올바른 업적에 매칭',answers:[]},
   {id:18,title:'바다를 품은 탐험가',icon:'🗼',type:'photo',
-    desc:'4층 전망대에서 인천 앞바다 풍경과 함께 인증샷.',answers:[]},
+    desc:'📷 4층 전망대에 올라가 인천 앞바다가 펼쳐진 풍경과 함께 인증샷을 찍어 제출하세요!\n\n사진 속에 바다(또는 항구)가 선명하게 보여야 합니다.',answers:[]}
 ];
 
 // ── 활동 2 미션 데이터 ──
