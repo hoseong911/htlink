@@ -127,7 +127,7 @@ body{
 .stamp-summary-big{font-size:36px;font-weight:700;color:var(--gold2);font-family:var(--serif);line-height:1;}
 .stamp-summary-of{font-size:13px;color:var(--text3);margin-top:4px;white-space:nowrap;}
 .stamp-summary-msg{font-size:14px;color:var(--text2);line-height:1.65;}
-.stamp-big-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.stamp-big-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 .stamp-big-slot{
   aspect-ratio:1;border-radius:14px;border:1.5px dashed rgba(40,80,160,0.4);
   background:rgba(5,15,35,0.6);display:flex;flex-direction:column;
@@ -144,12 +144,6 @@ body{
 .stamp-big-slot .s-icon{font-size:18px;line-height:1;}
 .stamp-big-slot .s-title{font-size:9px;color:var(--text3);text-align:center;line-height:1.3;word-break:keep-all;margin-top:1px;}
 .stamp-big-slot.earned .s-title{color:var(--gold2);}
-.submit-missions-btn{
-  width:100%;padding:16px;background:linear-gradient(135deg,#3a8fd4,#1e60a8);
-  color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;
-  cursor:pointer;font-family:var(--sans);box-shadow:0 5px 22px rgba(30,96,168,0.4);transition:transform .12s;}
-.submit-missions-btn:active{transform:translateY(1px);}
-.submit-missions-btn:disabled{background:rgba(20,40,80,0.6);color:var(--text3);cursor:default;box-shadow:none;}
 
 /* ── 미션 해결하기 탭 ── */
 .floor-section{margin-bottom:16px;}
@@ -416,12 +410,6 @@ body{
       <div class="stamp-summary-msg" id="stamp-summary-msg">아직 시작 전이에요!<br>미션 해결 탭에서<br>바다의 기억을 찾아보세요.</div>
     </div>
     <div class="stamp-big-grid" id="stamp-big-grid"></div>
-    <button class="submit-missions-btn" id="submit-missions-btn" onclick="submitMissions()">
-      지금까지 미션 내용 제출하기
-    </button>
-    <div style="font-size:12px;color:var(--text3);text-align:center;margin-top:8px;line-height:1.6;">
-      제출 후에도 미션을 계속 풀 수 있어요.<br>선생님 안내에 따라 제출하세요.
-    </div>
   </div>
 
   <div class="tab-content" id="tab-mission">
@@ -441,7 +429,7 @@ body{
       </div>
       <textarea class="reflection-area" id="reflection-ta" placeholder="여기에 소감을 작성하세요. (100자 이상)" maxlength="600"></textarea>
       <div class="char-count"><span id="ref-count">0</span> / 600자</div>
-      <button class="reflection-submit-btn" id="reflection-submit-btn" onclick="submitReflection()">소감 제출하기</button>
+      <button class="reflection-submit-btn" id="reflection-submit-btn" onclick="submitReflection()">최종 탐험 보고서 일괄 제출하기</button>
     </div>
   </div>
 </div>
@@ -468,6 +456,7 @@ body{
     <div class="done-score" id="done-score"></div>
     <div class="done-sub" id="done-sub"></div>
     <div class="done-time" id="done-time"></div>
+    <button class="final-btn" style="margin-top:24px;" onclick="goMain()">나의 스탬프 현황 보기</button>
   </div>
 </div>
 
@@ -489,14 +478,12 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db    = getDatabase(fbApp);
 
-// ★ 수정 1: 1번 미션 짧은 소감을 파이어베이스에 저장하는 코드
 async function recordMissionToFirebase(missionId, missionTitle) {
   if (!state.sid || !state.sname) return;
   const key = `${state.sid}_${state.sname}`;
   
-  // 학생이 해당 미션에서 입력한 정답/소감 데이터 가져오기
   let answerData = state.answers[missionId] || '';
-  if (missionId === 0) answerData = state.miniReflection || ''; // 1번 미션 짧은 소감
+  if (missionId === 0) answerData = state.miniReflection || '';
   if (state.photoAnswers[missionId]) answerData = '사진 인증 완료';
 
   try {
@@ -522,12 +509,12 @@ function watchReflectionToggle() {
 function watchMissionEdits() {
   onValue(ref(db, 'missionEdit1'), snap => {
     if (!snap.exists()) return;
-    adminEdits = snap.val(); // 전체 덮어쓰기
+    adminEdits = snap.val(); 
     if(document.getElementById('screen-quiz').classList.contains('active')) {
-       renderQuiz(); // 열려있는 퀴즈가 있다면 즉시 리렌더링
+       renderQuiz(); 
     }
     if(document.getElementById('screen-main').classList.contains('active')) {
-       renderMissionList(); // 리스트 제목들도 리렌더링
+       renderMissionList(); 
     }
   });
 }
@@ -547,7 +534,7 @@ const DEFAULT_MISSIONS = [
   {id:6,floor:'2f',floorLabel:'2층 · 해양교류사실',icon:'💙',title:'푸른 빛을 실어나르다',story:{label:'💙 고려 — 세상에서 가장 아름다운 빛',text:'중국 송나라의 대문호 서긍이 고려에 사신으로 왔다가 깜짝 놀랐다.\n\n"세상에서 가장 아름다운 비색(翡色)이다."\n\n고려의 도공들이 빚어낸 도자기는 단순한 그릇이 아니었다.'},type:'text',question:'🔍 고려시대 독자적으로 발전시킨 도자기로, 신비로운 푸른빛이 특징이야.\n\n송나라 문인들까지 감탄한 "비색(翡色)"의 이 도자기 이름은?',answers:['청자','고려청자'],hints:['"푸를 청(靑)"과 "사기 자(瓷)"가 합쳐진 두 글자예요.'],explain:'청자(고려청자)! 고려만의 독자적 기술로 만든 비색 청자는 당시 세계 최고 수준의 도자기였어요.'},
   {id:7,floor:'2f',floorLabel:'2층 · 해양교류사실',icon:'🌐',title:'코리아, 세계와 만나다',story:{label:'🌍 고려 — 중동 상인들도 찾아온 나라',text:'고려의 개경 항구, 예성항(벽란도). 중국 송나라 상인은 물론이고, 아라비아에서 온 상인들도 이 항구를 드나들었다.\n\n아라비아 상인들이 "고려(Goryeo)"를 "Corea"로 발음하며 세계에 알렸고, 오늘날 우리가 "Korea"라 불리게 된 게 바로 여기서 시작됐다!'},type:'dnd',question:'전시실 벽면의 고려 교류 기록 문구를 보고 키워드를 드래그해 빈칸에 넣으세요. 채운 칸을 탭하면 취소됩니다.',slots:[{id:'slot-0',answer:'송'},{id:'slot-1',answer:'일본'},{id:'slot-2',answer:'대식국'},{id:'slot-3',answer:'교지국'},{id:'slot-4',answer:'섬라곡국'},{id:'slot-5',answer:'예성항'},{id:'slot-6',answer:'코리아'}],keywords:['송','일본','대식국','교지국','섬라곡국','예성항','코리아'],hints:['벽면의 기록 문구를 순서대로 읽으며 하나씩 채워보세요.'],explain:'정답! 고려는 송·일본·아라비아(대식국)·베트남(교지국)·태국(섬라곡국)과도 교류했어요.'},
   {id:8,floor:'2f',floorLabel:'2층 · 해양교류사실',icon:'🐢',title:'불멸의 철갑 전설',story:{label:'⚔️ 1592년 — 왜군의 함선이 바다를 뒤덮다',text:'임진년 4월, 부산 앞바다.\n\n수백 척의 왜군 함선이 조선 해협을 가득 채웠다. 조선 육군은 연달아 무너졌다. 그러나 바다에서만은 달랐다.\n\n"아직 신에게는 열두 척의 배가 있습니다."'},type:'two_step',step1:{question:'🔍 임진왜란 7년 내내 단 한 번도 패배하지 않은 조선 수군의 지휘관.\n\n그 장군의 이름은?',answers:['이순신'],hints:[]},step2:{question:'🐢 맞아! 이순신 장군의 핵심 비밀 병기.\n\n철갑으로 덮인 지붕 구조로 적의 화살과 포격을 막아낸 이 돌격선의 이름은?',answers:['거북선'],hints:[]},explain:'이순신 장군과 거북선! 명량해전에서 단 13척으로 133척의 왜군을 물리쳤어요!'},
-  {id:9,floor:'2f',floorLabel:'2층 · 해양교류사실',icon:'🏮',title:'500명의 문화 대사',story:{label:'🤝 전쟁 후 — 다시 잇는 바닷길',text:'임진왜란이 끝나고 10여 년 후.\n\n조선과 일본은 다시 국교를 맺었다. 많을 때는 500명이 넘는 이 사절단이 배를 타고 일본 에도(도쿄)까지 갔다.'},type:'text',question:'🔍 조선이 일본 막부에 파견한 공식 외교·문화 사절단.\n\n"믿음을 나눈다(信)"는 뜻을 담은 이 사절단의 이름은?',answers:['통신사','조선통신사'],hints:['通(통할 통) + 信(믿을 신) + 使(사신 사)로 이루어진 세 글자예요.'],explain:'통신사(조선통신사)! 1607년부터 1811년까지 12회 파견되었고, 2017년 유네스코 세계기록유산에도 등재됩니다!'},
+  {id:9,floor:'2f',floorLabel:'2층 · 해양교류사실',icon:'🏮',title:'500명의 문화 대사',story:{label:'🤝 전쟁 후 — 다시 잇는 바닷길',text:'임진왜란이 끝나고 10여 초 후.\n\n조선과 일본은 다시 국교를 맺었다. 많을 때는 500명이 넘는 이 사절단이 배를 타고 일본 에도(도쿄)까지 갔다.'},type:'text',question:'🔍 조선이 일본 막부에 파견한 공식 외교·문화 사절단.\n\n"믿음을 나눈다(信)"는 뜻을 담은 이 사절단의 이름은?',answers:['통신사','조선통신사'],hints:['通(통할 통) + 信(믿을 신) + 使(사신 사)로 이루어진 세 글자예요.'],explain:'통신사(조선통신사)! 1607년부터 1811년까지 12회 파견되었고, 2017년 유네스코 세계기록유산에도 등재됩니다!'},
   {id:10,floor:'2f',floorLabel:'2층 · 해양교류사실',icon:'📸',title:'근대의 파도가 밀려오다',story:{label:'🚢 1883년 — 제물포 항구가 열리다',text:'1883년 제물포(인천) 개항.\n\n서양의 배들이 조선 땅에 처음으로 닿았다. 기선, 전신, 사진기, 서양 의학 — 본 적도 없는 것들이 한꺼번에 쏟아져 들어왔다.'},type:'photo',question:'📷 개항기 섹션에서 당시 인천항 사람들의 삶을 담은 인물 패널을 찾아보세요.\n\n패널 속 인물이 잘 보이도록 함께 사진을 찍어 제출하세요!',photoLabel:'개항기 인물 패널 인증샷',explain:'임무 완수! 1883년 제물포 개항은 수백 년간 닫혀 있던 조선이 세계와 만나는 역사적 첫 순간이었답니다.'},
   {id:11,floor:'2f',floorLabel:'2층 · 해양교류사실',icon:'🗺️',title:'빼앗긴 바다의 기록',story:{label:'🇯🇵 1910~1945 — 수탈의 시대',text:'일제강점기, 바다도 빼앗겼다.\n\n일본은 조선의 어장을 체계적으로 조사하고 수산 자원을 싹쓸이했다. 그 수탈의 증거가 지도 한 장에 담겨 있다.'},type:'text',question:'🔍 일제강점기, 일본이 조선 바다의 수산 자원을 빠짐없이 조사해 만든 지도가 전시되어 있어.\n\n이 지도의 이름은?',answers:['한국연해수산물분포도','한국연해 수산물분포도'],hints:['지도 위에 이름이 적혀 있어요.'],explain:'한국연해수산물분포도! 일제가 조선 연안 수산물을 체계적으로 파악하고 수탈하기 위해 만든 지도예요.'},
   {id:12,floor:'2f-harbor',floorLabel:'2층 · 해운항만실',icon:'🚢',title:'바다 위의 거인들',story:{label:'🌊 2층 해운항만실 — 현대의 바다',text:'2층 해운항만실에 올라서는 순간, 규모가 달라진다.\n\n엄청나게 큰 컨테이너선 모형이 눈앞에 나타난다.'},type:'text',question:'🚢 2층에 전시된 대형 컨테이너선 모형 선체에 크게 적힌 영문 약자 3글자는?\n\n모형을 직접 찾아서 눈으로 확인해보자!',answers:['HMM'],hints:[],explain:'HMM(Hyundai Merchant Marine, 현대상선)! 한국을 대표하는 컨테이너 해운사예요.'},
@@ -577,14 +564,12 @@ let currentMissionId = 0;
 let dndInitialized = false;
 let dragWord=null, dragChip=null, ghost=null, matchDragItem=null;
 
-// ★ 관리자의 세부 수정을 모두 병합하는 Deep Merge 함수
 function getMission(id){
   const b = DEFAULT_MISSIONS.find(m=>m.id===id);
   if(!b) return null;
   const edit = adminEdits[id];
   if(!edit) return b;
 
-  // 원본 훼손을 막기 위한 깊은 복사
   const res = JSON.parse(JSON.stringify(b));
 
   if(edit.title !== undefined) res.title = edit.title;
@@ -608,7 +593,6 @@ function getMission(id){
     if(edit.answers && edit.answers.length) res.answers = edit.answers;
     if(edit.miniRefLabel !== undefined) res.miniReflectionLabel = edit.miniRefLabel;
   } else {
-    // text, image_text, dnd, match 공통 수정사항
     if(edit.question !== undefined) res.question = edit.question;
     if(edit.answers && edit.answers.length) res.answers = edit.answers;
   }
@@ -642,7 +626,6 @@ async function startMission(){
   watchMissionEdits();
   goMain();
 }
-// ★ 이 한 줄을 추가해 주세요! ★
 window.startMission = startMission;  
 function goMain(){
   document.getElementById('badge-name').textContent=state.sname;
@@ -653,6 +636,7 @@ function goMain(){
   renderMissionList();
   showScreen('main');
 }
+window.goMain = goMain;
 
 function showMainTab(tab){
   ['stamp','mission','reflection'].forEach(t=>{
@@ -688,7 +672,7 @@ function renderStampBigGrid(){
     const earned=state.stamps.includes(m.id);
     const slot=document.createElement('div');
     slot.className='stamp-big-slot'+(earned?' earned':'');
-    const realM = getMission(m.id); // 바뀐 이름 바로 반영
+    const realM = getMission(m.id);
     slot.innerHTML=`<div class="s-num">M${m.id+1}</div><div class="s-icon">${earned?'⚓':realM.icon}</div><div class="s-title">${realM.title}</div>`;
     slot.onclick=()=>{ currentMissionId=m.id; dndInitialized=false; renderQuiz(); showScreen('quiz'); };
     grid.appendChild(slot);
@@ -769,7 +753,6 @@ function renderQuiz(){
   card.appendChild(fb);
   wrap.appendChild(card);
 }
-window.goMain = function(){ showMainTab('stamp'); showScreen('main'); };
 
 function renderStampGridQuiz(){
   const grid=document.getElementById('stamp-grid-quiz');
@@ -818,7 +801,7 @@ function renderTextMiniReflection(m,parent){
   const updateMiniCc=()=>{ miniCc.textContent=miniTa.value.trim().length+' / '+minMin+'자 이상'; miniCc.style.color=miniTa.value.trim().length>=minMin?'var(--success)':'var(--text3)'; };
   updateMiniCc();
   miniTa.addEventListener('input',()=>{ state.miniReflection=miniTa.value; updateMiniCc(); saveLocal(); });
-  const miniBtn=document.createElement('button'); miniBtn.className='final-btn'; miniBtn.style.marginTop='14px'; miniBtn.textContent='소감 제출하고 스탬프 받기 ⚓';
+  const miniBtn=document.createElement('button'); miniBtn.className='final-btn'; miniBtn.style.marginTop='14px'; miniBtn.textContent='소감 작성하고 스탬프 받기 ⚓';
   miniBtn.onclick=()=>{
     if(miniBtn.dataset.done)return;
     const txt=miniTa.value.trim();
@@ -1013,18 +996,6 @@ function earnStamp(m){
   },600);
 }
 
-async function submitMissions(){
-  const btn=document.getElementById('submit-missions-btn');
-  if(btn){ btn.disabled=true; btn.textContent='제출 중...'; }
-  const submittedAt=new Date().toLocaleString('ko-KR');
-  state.submittedAt=submittedAt; saveState();
-  const data={ studentId:state.sid, studentName:state.sname, submittedAt, startedAt:state.startedAt||'', completedCount:state.stamps.length, completedMissions:state.stamps.map(id=>(getMission(id)||{}).title||id).join(', '), miniReflection:state.miniReflection||'' };
-  DEFAULT_MISSIONS.forEach(m=>{ data['m'+(m.id+1)+'_'+m.title.slice(0,6)]=state.answers[m.id]||''; });
-  try{ await fetch(GAS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(data)}); }catch(e){}
-  showToast('✅ 제출 완료! 계속 미션을 풀 수 있어요.',3000);
-  if(btn){ btn.disabled=false; btn.textContent='지금까지 미션 내용 제출하기'; }
-}
-
 function validateReflection(t){
   if(t.length<100)return{ok:false,msg:`소감을 더 자세히 써주세요. (현재 ${t.length}자 / 100자 이상 필요)`};
   if(/(.)\1{4,}/.test(t))return{ok:false,msg:'같은 글자가 너무 반복되었어요!'};
@@ -1032,17 +1003,33 @@ function validateReflection(t){
   return{ok:true};
 }
 
-// ★ 수정 2: 마지막 긴 소감을 파이어베이스와 GAS에 모두 보내는 코드
+// ★ 수정 2: 모든 데이터를 묶어서 한 방에 구글 시트로 전송하는 코드
 async function submitReflection(){
   const ref2=document.getElementById('reflection-ta');
   const txt=(ref2.value||'').trim();
   const check=validateReflection(txt); if(!check.ok){showToast(check.msg,3000);return;}
   const btn=document.getElementById('reflection-submit-btn'); btn.disabled=true; btn.textContent='제출 중...';
   
-  // 구글 시트(GAS)로 전송
-  try{ await fetch(GAS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'reflection',studentId:state.sid,studentName:state.sname,reflection:txt,submittedAt:new Date().toLocaleString('ko-KR')})}); }catch(e){}
+  const submittedAt=new Date().toLocaleString('ko-KR');
+
+  // 1. 모든 미션 데이터 + 1번 소감 + 마지막 소감 통합
+  const data = { 
+    type: 'final_submission',
+    studentId: state.sid, 
+    studentName: state.sname, 
+    submittedAt: submittedAt, 
+    startedAt: state.startedAt||'', 
+    completedCount: state.stamps.length, 
+    completedMissions: state.stamps.map(id=>(getMission(id)||{}).title||id).join(', '), 
+    miniReflection: state.miniReflection||'',
+    finalReflection: txt
+  };
+  DEFAULT_MISSIONS.forEach(m=>{ data['m'+(m.id+1)+'_'+m.title.slice(0,6)]=state.answers[m.id]||''; });
+
+  // 통합 데이터 구글 시트(GAS)로 전송
+  try{ await fetch(GAS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(data)}); }catch(e){}
   
-  // 파이어베이스(어드민)로 전송
+  // 2. 파이어베이스(어드민)로 전송
   const key = `${state.sid}_${state.sname}`;
   try {
     await set(ref(db, `status1/${key}/finalReflection`), {
@@ -1052,16 +1039,15 @@ async function submitReflection(){
   } catch(e) {}
 
   state.reflectionDone=true; state.reflection=txt; saveState(); btn.textContent='제출 완료';
-  showToast('📝 소감이 제출되었습니다!',3000);
+  showToast('📝 최종 탐험 보고서가 제출되었습니다!',3000);
   showScreen('done');
   document.getElementById('done-icon').textContent='🎖️';
   document.getElementById('done-title').textContent='모든 임무 완수!';
   document.getElementById('done-score').textContent=state.stamps.length+' / '+TOTAL+' 미션';
   document.getElementById('done-sub').innerHTML='바다의 기억과 탐험가의 기록이 모두 복원되었습니다.<br>수고하셨습니다!';
-  document.getElementById('done-time').textContent='완료 시각: '+new Date().toLocaleString('ko-KR');
+  document.getElementById('done-time').textContent='완료 시각: '+submittedAt;
 }
-  window.submitReflection = submitReflection;
-window.submitMissions   = submitMissions;
+window.submitReflection = submitReflection;
 
 function goAdmin(){ window.location.href='260506_admin.html'; }
 window.goAdmin = goAdmin;
@@ -1081,7 +1067,7 @@ window.addEventListener('DOMContentLoaded',()=>{
       document.getElementById('done-score').textContent=state.stamps.length+' / '+TOTAL+' 미션';
       document.getElementById('done-sub').textContent='바다의 기억이 복원되었습니다.';
       document.getElementById('done-time').textContent='';
-      return;
+      return; // 이미 완료했다면 임무 완수 화면을 띄운 채 멈춤
     }
     goMain();
   }
