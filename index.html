@@ -5,254 +5,464 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dive into HISTORY</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a0a0a;
-  --accent:#00ff64;
-  --accent2:#00dcff;
-  --accent3:#ffbe00;
-  --accent4:#a064ff;
-  --accent5:#ff64b4;
-  --card-bg:rgba(255,255,255,0.04);
-  --card-border:rgba(255,255,255,0.09);
+  /* Spotify Color System */
+  --bg-base:#121212;
+  --bg-surface:#181818;
+  --bg-mid:#1f1f1f;
+  --bg-card:#252525;
+  --bg-elevated:#2a2a2a;
+  --accent:#1ed760;
+  --accent-hover:#1fdf64;
+  --accent-border:#1db954;
+  --text-base:#ffffff;
+  --text-muted:#b3b3b3;
+  --text-near-white:#cbcbcb;
+  --text-light:#fdfdfd;
+  --border:#4d4d4d;
+  --border-light:#7c7c7c;
+  --negative:#f3727f;
+  --warning:#ffa42b;
+  --info:#539df5;
+  /* Shadows */
+  --shadow-card:rgba(0,0,0,0.3) 0px 8px 8px;
+  --shadow-dialog:rgba(0,0,0,0.5) 0px 8px 24px;
 }
-body{background:var(--bg);font-family:'Noto Sans KR',sans-serif;min-height:100vh;overflow-x:hidden}
+html,body{background:var(--bg-base);font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;color:var(--text-base);-webkit-font-smoothing:antialiased}
+body{overflow-x:hidden}
 
-.bg-glow1{position:fixed;top:-200px;left:-200px;width:500px;height:500px;background:radial-gradient(circle,rgba(0,255,100,.07) 0%,transparent 70%);pointer-events:none;z-index:0}
-.bg-glow2{position:fixed;bottom:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(0,200,255,.05) 0%,transparent 70%);pointer-events:none;z-index:0}
+/* ===== Page Layout ===== */
+.page{position:relative;z-index:1;padding:48px 24px 80px;max-width:1400px;margin:0 auto}
 
-.page{position:relative;z-index:1;padding:40px 20px 60px;max-width:1200px;margin:0 auto}
-
-.profile-area{text-align:center;margin-bottom:44px}
-.avatar-ring{display:inline-flex;align-items:center;justify-content:center;width:88px;height:88px;border-radius:50%;border:2.5px solid var(--accent);margin-bottom:14px;position:relative}
-.avatar-ring::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(0,255,100,.2)}
-.avatar-emoji{font-size:42px;line-height:1}
-.profile-name{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.5px}
+/* ===== Profile Header ===== */
+.profile-area{text-align:center;margin-bottom:56px}
+.avatar-ring{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:108px;height:108px;border-radius:50%;
+  background:var(--bg-mid);margin-bottom:18px;position:relative;
+  box-shadow:var(--shadow-card),0 0 0 3px rgba(30,215,96,.15);
+  overflow:hidden;
+  transition:transform .3s ease,box-shadow .3s ease;
+}
+.avatar-ring:hover{
+  transform:scale(1.04);
+  box-shadow:var(--shadow-dialog),0 0 0 3px rgba(30,215,96,.35);
+}
+.avatar-img{
+  width:100%;height:100%;object-fit:cover;
+  display:block;
+}
+.profile-name{font-size:24px;font-weight:700;color:var(--text-base);letter-spacing:-.5px;line-height:1.2}
 .profile-name span{color:var(--accent)}
-.profile-sub{font-size:13px;color:rgba(255,255,255,.45);margin-top:4px;letter-spacing:.5px}
+.profile-sub{font-size:13px;color:var(--text-muted);margin-top:6px;letter-spacing:.5px;font-weight:400}
 
-.cards-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+/* ===== PC: 4-Column Sections ===== */
+.sections-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 
+.section-col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.section-header{padding:0 4px 12px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:6px}
+.section-title-en{font-size:18px;font-weight:700;color:var(--text-base);letter-spacing:-.3px;line-height:1.3}
+.section-title-ko{font-size:12px;font-weight:400;color:var(--text-muted);margin-top:4px;letter-spacing:.2px}
+
+.section-cards{display:flex;flex-direction:column;gap:12px;min-height:60px}
+.section-empty{font-size:12px;color:var(--text-muted);opacity:.5;padding:20px 8px;text-align:center;font-weight:400}
+
+/* ===== Card (Rectangular) ===== */
 .link-card{
-  display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
-  background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;
-  padding:18px 20px;cursor:pointer;text-decoration:none;position:relative;overflow:hidden;
-  transition:background .2s,border-color .2s,transform .15s,box-shadow .2s;min-height:80px;gap:16px;
+  display:flex;align-items:center;gap:14px;
+  background:var(--bg-surface);border-radius:8px;
+  padding:14px 16px;cursor:pointer;text-decoration:none;
+  position:relative;overflow:hidden;
+  transition:background .2s ease,transform .15s ease,box-shadow .2s ease;
+  min-height:72px;
 }
-.link-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)}
-.link-card:hover{background:rgba(255,255,255,.07);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.link-card:hover{background:var(--bg-card);transform:translateY(-1px);box-shadow:var(--shadow-card)}
 
-.link-card .card-inner{display:flex;align-items:center;gap:16px;width:100%}
-.card-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
-.icon-green{background:rgba(0,255,100,.12);border:1px solid rgba(0,255,100,.25)}
-.icon-cyan{background:rgba(0,220,255,.12);border:1px solid rgba(0,220,255,.25)}
-.icon-amber{background:rgba(255,190,0,.12);border:1px solid rgba(255,190,0,.25)}
-.icon-purple{background:rgba(160,100,255,.12);border:1px solid rgba(160,100,255,.25)}
-.icon-pink{background:rgba(255,100,180,.12);border:1px solid rgba(255,100,180,.25)}
+.card-icon{
+  width:44px;height:44px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+  background:var(--bg-mid);
+}
+.link-card:hover .card-icon{background:var(--bg-elevated)}
 
-.card-text{flex:1;text-align:center}
-.card-title{font-size:16px;font-weight:700;color:#fff;line-height:1.4}
-.card-desc{font-size:13px;color:rgba(255,255,255,.38);margin-top:4px;line-height:1.4}
-.card-arrow-mob{font-size:18px;color:rgba(255,255,255,.2);transition:color .2s;flex-shrink:0}
-.link-card:hover .card-arrow-mob{color:var(--accent)}
-.card-arrow-pc{display:none}
+.card-text{flex:1;min-width:0}
+.card-title{
+  font-size:14px;font-weight:700;color:var(--text-base);
+  line-height:1.4;letter-spacing:-.1px;
+  word-break:keep-all;overflow-wrap:break-word;
+}
+.card-desc{
+  font-size:12px;color:var(--text-muted);margin-top:4px;
+  line-height:1.4;font-weight:400;
+  word-break:keep-all;overflow-wrap:break-word;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
 
-.link-card.locked{opacity:.45;cursor:not-allowed}
-.link-card.locked:hover{transform:none;box-shadow:none;background:var(--card-bg);border-color:var(--card-border)}
-.lock-badge{font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.35);margin-left:6px;vertical-align:middle}
+/* Locked card */
+.link-card.locked{opacity:.5;cursor:not-allowed}
+.link-card.locked:hover{background:var(--bg-surface);transform:none;box-shadow:none}
+.lock-badge{
+  display:inline-block;margin-top:6px;
+  font-size:10px;font-weight:600;
+  padding:3px 9px;border-radius:9999px;
+  background:var(--bg-mid);color:var(--text-muted);
+  letter-spacing:1px;text-transform:uppercase;
+}
 
-.footer{text-align:center;margin-top:44px}
-.footer-tag{font-size:11px;color:rgba(255,255,255,.2);letter-spacing:1px}
-.footer-tag span{color:rgba(0,255,100,.5)}
+/* ===== Mobile Accordion ===== */
+.mobile-accordion{display:none}
 
-.admin-btn{display:block;margin:28px auto 0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 20px;color:rgba(255,255,255,.25);font-size:11px;cursor:pointer;letter-spacing:1px;font-family:inherit;transition:all .2s}
-.admin-btn:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.5)}
+/* ===== Footer ===== */
+.footer{text-align:center;margin-top:64px}
+.footer-tag{font-size:11px;color:var(--text-muted);opacity:.5;letter-spacing:1.4px;text-transform:uppercase;font-weight:400}
+.footer-tag span{color:var(--accent)}
 
-.admin-panel{display:none;margin-top:20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:24px;animation:fadeIn .3s}
+/* ===== Admin Button ===== */
+.admin-btn{
+  display:block;margin:40px auto 0;
+  background:var(--bg-mid);border:none;
+  border-radius:9999px;padding:8px 20px;
+  color:var(--text-muted);font-size:11px;font-weight:600;
+  cursor:pointer;letter-spacing:1.4px;text-transform:uppercase;
+  font-family:inherit;transition:background .2s,color .2s;
+}
+.admin-btn:hover{background:var(--bg-card);color:var(--text-base)}
+
+/* ===== Admin Panel ===== */
+.admin-panel{
+  display:none;margin-top:24px;
+  background:var(--bg-surface);border-radius:8px;
+  padding:28px;animation:fadeIn .3s;
+  box-shadow:var(--shadow-card);
+}
 .admin-panel.open{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.admin-title{font-size:13px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:16px}
+
+.admin-title{
+  font-size:11px;font-weight:700;color:var(--text-muted);
+  letter-spacing:1.6px;text-transform:uppercase;margin-bottom:18px;
+}
+
+/* Password */
 .admin-pw-wrap{display:flex;gap:8px;margin-bottom:16px}
-.admin-pw-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none}
-.admin-pw-input:focus{border-color:var(--accent)}
-.admin-pw-btn{background:rgba(0,255,100,.12);border:1px solid rgba(0,255,100,.3);border-radius:8px;padding:8px 14px;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
-.admin-pw-btn:hover{background:rgba(0,255,100,.2)}
+.admin-pw-input{
+  flex:1;background:var(--bg-mid);border:none;
+  border-radius:9999px;padding:10px 18px;
+  color:var(--text-base);font-size:13px;font-family:inherit;outline:none;
+  box-shadow:rgb(18,18,18) 0px 1px 0px,rgb(124,124,124) 0px 0px 0px 1px inset;
+  transition:box-shadow .2s;
+}
+.admin-pw-input:focus{box-shadow:rgb(18,18,18) 0px 1px 0px,rgb(255,255,255) 0px 0px 0px 1px inset}
+.admin-pw-btn{
+  background:var(--accent);border:none;
+  border-radius:9999px;padding:10px 20px;
+  color:#000;font-size:11px;font-weight:700;cursor:pointer;
+  font-family:inherit;letter-spacing:1.4px;text-transform:uppercase;
+  transition:background .2s,transform .1s;
+}
+.admin-pw-btn:hover{background:var(--accent-hover);transform:scale(1.04)}
 
-/* ADMIN TABS */
-.admin-tabs{display:flex;gap:8px;margin-bottom:20px}
-.admin-tab{flex:1;padding:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s;text-align:center}
-.admin-tab.active{background:rgba(0,255,100,.1);border-color:rgba(0,255,100,.3);color:var(--accent)}
+/* Tabs */
+.admin-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.admin-tab{
+  padding:8px 16px;background:var(--bg-mid);border:none;
+  border-radius:9999px;color:var(--text-muted);
+  font-size:11px;font-weight:700;cursor:pointer;
+  font-family:inherit;letter-spacing:1.4px;text-transform:uppercase;
+  transition:background .2s,color .2s;
+}
+.admin-tab:hover{background:var(--bg-card);color:var(--text-base)}
+.admin-tab.active{background:var(--text-base);color:#000}
 
-/* 카드 목록 관리 */
+/* Admin list */
 .admin-links-list{display:flex;flex-direction:column;gap:8px}
-.admin-link-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid rgba(255,255,255,.07)}
-.admin-link-label{flex:1;font-size:12px;color:rgba(255,255,255,.6)}
-.admin-link-label small{display:block;font-size:10px;color:rgba(255,255,255,.3);margin-top:2px}
-.admin-row-btns{display:flex;gap:6px;align-items:center}
-.toggle-btn{position:relative;width:40px;height:22px;border-radius:20px;border:none;cursor:pointer;transition:background .25s;flex-shrink:0}
-.toggle-btn.on{background:var(--accent)}
-.toggle-btn.off{background:rgba(255,255,255,.15)}
-.toggle-btn::after{content:'';position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .25s}
-.toggle-btn.on::after{left:21px}
-.toggle-btn.off::after{left:3px}
-.del-btn{background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.25);border-radius:6px;padding:4px 8px;color:rgba(255,100,100,.7);font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s}
-.del-btn:hover{background:rgba(255,80,80,.2);color:#ff5050}
-.edit-btn{background:rgba(255,190,0,.1);border:1px solid rgba(255,190,0,.25);border-radius:6px;padding:4px 8px;color:rgba(255,190,0,.7);font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s}
-.edit-btn:hover{background:rgba(255,190,0,.2);color:#ffbe00}
+.admin-link-row{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;background:var(--bg-mid);
+  border-radius:6px;transition:background .2s;
+}
+.admin-link-row:hover{background:var(--bg-card)}
+.admin-link-row.dragging{opacity:.4;border:1px dashed var(--border-light)}
+.admin-link-row.drag-over{background:rgba(30,215,96,.08)}
 
-/* 카드 추가 폼 */
-.add-form{display:flex;flex-direction:column;gap:12px}
-.form-group{display:flex;flex-direction:column;gap:6px}
-.form-label{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.5px}
-.form-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;width:100%;transition:border-color .2s}
-.form-input:focus{border-color:var(--accent)}
-.form-input::placeholder{color:rgba(255,255,255,.25)}
-
-/* 이모지 팔레트 */
-.emoji-palette-wrap{position:relative}
-.emoji-display{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:10px 12px;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .2s}
-.emoji-display:hover{border-color:rgba(255,255,255,.3)}
-.emoji-display span.hint{font-size:12px;color:rgba(255,255,255,.3)}
-.emoji-picker{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;background:#1a1a1a;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:12px;z-index:100;animation:fadeIn .2s}
-.emoji-picker.open{display:block}
-.emoji-categories{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-.emoji-cat-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:4px 8px;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s}
-.emoji-cat-btn.active{background:rgba(0,255,100,.1);border-color:rgba(0,255,100,.3);color:var(--accent)}
-.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-height:180px;overflow-y:auto}
-.emoji-btn{background:transparent;border:none;font-size:22px;cursor:pointer;padding:6px;border-radius:8px;transition:background .15s;line-height:1}
-.emoji-btn:hover{background:rgba(255,255,255,.1)}
-
-/* 색상 선택 */
-.color-options{display:flex;gap:8px;flex-wrap:wrap}
-.color-opt{width:36px;height:36px;border-radius:10px;cursor:pointer;border:2px solid transparent;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:14px}
-.color-opt:hover{transform:scale(1.1)}
-.color-opt.selected{border-color:#fff;transform:scale(1.1)}
-.color-opt.c-green{background:rgba(0,255,100,.2);border-color:rgba(0,255,100,.4)}
-.color-opt.c-cyan{background:rgba(0,220,255,.2);border-color:rgba(0,220,255,.4)}
-.color-opt.c-amber{background:rgba(255,190,0,.2);border-color:rgba(255,190,0,.4)}
-.color-opt.c-purple{background:rgba(160,100,255,.2);border-color:rgba(160,100,255,.4)}
-.color-opt.c-pink{background:rgba(255,100,180,.2);border-color:rgba(255,100,180,.4)}
-.color-opt.selected.c-green{border-color:rgba(0,255,100,1)}
-.color-opt.selected.c-cyan{border-color:rgba(0,220,255,1)}
-.color-opt.selected.c-amber{border-color:rgba(255,190,0,1)}
-.color-opt.selected.c-purple{border-color:rgba(160,100,255,1)}
-.color-opt.selected.c-pink{border-color:rgba(255,100,180,1)}
-
-.submit-btn{background:rgba(0,255,100,.15);border:1px solid rgba(0,255,100,.4);border-radius:10px;padding:12px;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;margin-top:4px}
-.submit-btn:hover{background:rgba(0,255,100,.25)}
-.submit-btn:disabled{opacity:.4;cursor:not-allowed}
-
-.admin-hint{font-size:10px;color:rgba(255,255,255,.2);margin-top:12px;text-align:center}
-
-/* 알림 토스트 */
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,255,100,.15);border:1px solid rgba(0,255,100,.3);border-radius:10px;padding:10px 20px;color:var(--accent);font-size:13px;opacity:0;transition:all .3s;z-index:9999;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.error{background:rgba(255,80,80,.15);border-color:rgba(255,80,80,.3);color:#ff6464}
-
-/* 로딩 스피너 */
-.loading-wrap{text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px}
-.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:8px}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* 드래그 순서 */
-.admin-link-row.dragging{opacity:.5;border-style:dashed}
-.admin-link-row.drag-over{border-color:var(--accent);background:rgba(0,255,100,.05)}
-.drag-handle{color:rgba(255,255,255,.2);cursor:grab;padding:0 4px;font-size:14px}
+.drag-handle{color:var(--text-muted);cursor:grab;padding:0 4px;font-size:14px;opacity:.5;flex-shrink:0}
 .drag-handle:active{cursor:grabbing}
 
-@media(min-width:768px){
-  .cards-grid{grid-template-columns:repeat(4,1fr);gap:16px;}
-  .link-card{flex-direction:column;align-items:flex-start;justify-content:space-between;aspect-ratio:1/1;min-height:unset;padding:22px;}
-  .link-card .card-inner{flex-direction:column;align-items:flex-start;gap:14px;flex:1;width:100%}
-  .card-icon{width:56px;height:56px;font-size:26px;border-radius:14px}
-  .card-text{flex:1;text-align:left}
-  .card-title{font-size:17px;line-height:1.45;font-weight:900}
-  .card-desc{font-size:13px;margin-top:6px}
-  .card-arrow-mob{display:none}
-  .card-arrow-pc{display:block;font-size:18px;color:rgba(255,255,255,.2);transition:color .2s;align-self:flex-end;margin-top:auto}
-  .link-card:hover .card-arrow-pc{color:var(--accent)}
-  .link-card:hover{border-color:rgba(0,255,100,.3)}
-  .link-card.c-cyan:hover{border-color:rgba(0,220,255,.35)}
-  .link-card.c-amber:hover{border-color:rgba(255,190,0,.35)}
-  .link-card.c-purple:hover{border-color:rgba(160,100,255,.35)}
-  .link-card.c-pink:hover{border-color:rgba(255,100,180,.35)}
-  .add-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.admin-link-label{flex:1;font-size:13px;color:var(--text-base);min-width:0;font-weight:400}
+.admin-link-label .meta{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-right:8px;font-weight:600}
+.admin-link-label small{display:block;font-size:11px;color:var(--text-muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}
+
+.admin-row-btns{display:flex;gap:6px;align-items:center;flex-shrink:0}
+
+/* Toggle */
+.toggle-btn{
+  position:relative;width:36px;height:20px;border-radius:9999px;
+  border:none;cursor:pointer;transition:background .25s;flex-shrink:0;
+}
+.toggle-btn.on{background:var(--accent)}
+.toggle-btn.off{background:var(--border)}
+.toggle-btn::after{
+  content:'';position:absolute;top:2px;width:16px;height:16px;
+  border-radius:50%;background:#fff;transition:left .25s;
+}
+.toggle-btn.on::after{left:18px}
+.toggle-btn.off::after{left:2px}
+
+.del-btn,.edit-btn{
+  background:transparent;border:1px solid var(--border-light);
+  border-radius:9999px;padding:5px 12px;font-size:10px;font-weight:700;
+  cursor:pointer;font-family:inherit;letter-spacing:1.2px;text-transform:uppercase;
+  transition:border-color .2s,color .2s;
+}
+.del-btn{color:var(--negative)}
+.del-btn:hover{border-color:var(--negative)}
+.edit-btn{color:var(--text-base)}
+.edit-btn:hover{border-color:var(--text-base)}
+
+/* Form */
+.add-form{display:flex;flex-direction:column;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:8px}
+.form-label{
+  font-size:10px;font-weight:700;color:var(--text-muted);
+  letter-spacing:1.4px;text-transform:uppercase;
+}
+.form-input,.form-select{
+  background:var(--bg-mid);border:none;
+  border-radius:6px;padding:11px 14px;
+  color:var(--text-base);font-size:13px;font-family:inherit;
+  outline:none;width:100%;
+  box-shadow:rgb(18,18,18) 0px 1px 0px,rgb(124,124,124) 0px 0px 0px 1px inset;
+  transition:box-shadow .2s;font-weight:400;
+}
+.form-input:focus,.form-select:focus{box-shadow:rgb(18,18,18) 0px 1px 0px,rgb(255,255,255) 0px 0px 0px 1px inset}
+.form-input::placeholder{color:var(--text-muted);opacity:.6}
+.form-select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%23b3b3b3' d='M6 9L1 3h10z'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+
+/* Emoji picker */
+.emoji-palette-wrap{position:relative}
+.emoji-display{
+  background:var(--bg-mid);border-radius:6px;
+  padding:10px 14px;color:var(--text-base);font-size:22px;cursor:pointer;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:rgb(18,18,18) 0px 1px 0px,rgb(124,124,124) 0px 0px 0px 1px inset;
+  transition:box-shadow .2s;
+}
+.emoji-display:hover{box-shadow:rgb(18,18,18) 0px 1px 0px,rgb(255,255,255) 0px 0px 0px 1px inset}
+.emoji-display .hint{font-size:11px;color:var(--text-muted);font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.emoji-picker{
+  display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;
+  background:var(--bg-card);border-radius:8px;padding:14px;z-index:100;
+  animation:fadeIn .2s;box-shadow:var(--shadow-dialog);
+}
+.emoji-picker.open{display:block}
+.emoji-categories{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.emoji-cat-btn{
+  background:var(--bg-mid);border:none;
+  border-radius:9999px;padding:5px 11px;
+  color:var(--text-muted);font-size:10px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+  letter-spacing:1.2px;text-transform:uppercase;
+  transition:background .2s,color .2s;
+}
+.emoji-cat-btn:hover{color:var(--text-base)}
+.emoji-cat-btn.active{background:var(--text-base);color:#000}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-height:200px;overflow-y:auto}
+.emoji-btn{
+  background:transparent;border:none;font-size:22px;cursor:pointer;
+  padding:6px;border-radius:6px;transition:background .15s;line-height:1;
+}
+.emoji-btn:hover{background:var(--bg-elevated)}
+
+/* Submit */
+.submit-btn{
+  background:var(--accent);border:none;
+  border-radius:9999px;padding:13px 32px;
+  color:#000;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+  letter-spacing:1.6px;text-transform:uppercase;
+  transition:background .2s,transform .1s;
+  align-self:flex-start;
+}
+.submit-btn:hover:not(:disabled){background:var(--accent-hover);transform:scale(1.04)}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.admin-hint{
+  font-size:10px;color:var(--text-muted);margin-top:14px;text-align:center;
+  letter-spacing:.5px;opacity:.7;font-weight:400;
+}
+
+/* Category-name editor */
+.cat-edit-row{
+  background:var(--bg-mid);border-radius:6px;
+  padding:14px;margin-bottom:10px;
+}
+.cat-edit-row .cat-key{
+  font-size:10px;font-weight:700;color:var(--accent);
+  letter-spacing:1.4px;text-transform:uppercase;margin-bottom:10px;
+}
+.cat-edit-row .cat-fields{display:flex;flex-direction:column;gap:8px}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:32px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--text-base);color:#000;
+  border-radius:9999px;padding:12px 24px;
+  font-size:12px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  opacity:0;transition:all .3s;z-index:9999;white-space:nowrap;
+  box-shadow:var(--shadow-dialog);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.error{background:var(--negative);color:#000}
+
+/* Loading */
+.loading-wrap{text-align:center;padding:40px;color:var(--text-muted);font-size:12px;font-weight:400}
+.spinner{
+  display:inline-block;width:20px;height:20px;
+  border:2px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== Mobile Responsive ===== */
+@media(max-width:880px){
+  .sections-wrap{display:none}
+  .mobile-accordion{display:flex;flex-direction:column;gap:10px}
+
+  .accordion-item{
+    background:var(--bg-surface);border-radius:8px;
+    overflow:hidden;transition:background .2s;
+  }
+  .accordion-header{
+    width:100%;display:flex;align-items:center;justify-content:space-between;
+    background:transparent;border:none;
+    padding:18px 20px;cursor:pointer;
+    color:var(--text-base);font-family:inherit;
+    text-align:left;transition:background .2s;
+  }
+  .accordion-header:hover{background:var(--bg-card)}
+  .accordion-header.active{background:var(--bg-card)}
+  .accordion-titles{flex:1;min-width:0}
+  .accordion-title-en{
+    font-size:15px;font-weight:700;color:var(--text-base);
+    letter-spacing:-.2px;line-height:1.3;
+  }
+  .accordion-title-ko{
+    font-size:11px;font-weight:400;color:var(--text-muted);
+    margin-top:3px;letter-spacing:.2px;
+  }
+  .accordion-count{
+    font-size:10px;font-weight:700;color:var(--text-muted);
+    background:var(--bg-mid);border-radius:9999px;
+    padding:4px 10px;letter-spacing:.8px;flex-shrink:0;margin-left:12px;
+  }
+  .accordion-content{
+    max-height:0;overflow:hidden;
+    transition:max-height .35s ease;
+  }
+  .accordion-content.open{max-height:3000px}
+  .accordion-cards{display:flex;flex-direction:column;gap:10px;padding:4px 12px 16px}
+  .accordion-empty{
+    padding:20px;text-align:center;
+    font-size:12px;color:var(--text-muted);opacity:.5;
+  }
+
+  .page{padding:32px 16px 60px}
+  .profile-area{margin-bottom:36px}
+  .profile-name{font-size:20px}
+}
+
+/* PC: 큰 화면에서 추가 폼은 2열 */
+@media(min-width:880px){
+  .add-form{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .form-group.full{grid-column:1/-1}
   .emoji-grid{grid-template-columns:repeat(10,1fr)}
+}
+
+/* 작은 모바일 */
+@media(max-width:480px){
+  .admin-tabs{gap:6px}
+  .admin-tab{padding:7px 12px;font-size:10px}
+  .accordion-header{padding:16px}
+  .accordion-title-en{font-size:14px}
 }
 </style>
 </head>
 <body>
-<div class="bg-glow1"></div>
-<div class="bg-glow2"></div>
 <div class="toast" id="toast"></div>
 
 <div class="page">
   <div class="profile-area">
-    <div class="avatar-ring"><span class="avatar-emoji">📚</span></div>
+    <div class="avatar-ring"><img src="main.png" alt="김호성 선생님" class="avatar-img" onerror="this.style.display='none';this.parentNode.innerHTML='<span style=&quot;font-size:54px;&quot;>📚</span>'"></div>
     <div class="profile-name"><span>김호성</span> 선생님</div>
-    <div class="profile-sub">Dive into HISTORY · @hoi_story_</div>
+    <div class="profile-sub">DIVE INTO HISTORY · @hoi_story_</div>
   </div>
 
-  <div class="cards-grid" id="cardsGrid">
-    <div class="loading-wrap">
+  <!-- PC: 4-Column Grid -->
+  <div class="sections-wrap" id="sectionsWrap">
+    <div class="loading-wrap" style="grid-column:1/-1">
       <div class="spinner"></div>
-      <div>콘텐츠 불러오는 중...</div>
+      <div>LOADING...</div>
     </div>
   </div>
 
-  <button class="admin-btn" onclick="toggleAdminPanel()">⚙ 관리자</button>
+  <!-- Mobile: Accordion -->
+  <div class="mobile-accordion" id="mobileAccordion"></div>
+
+  <button class="admin-btn" onclick="toggleAdminPanel()">⚙ ADMIN</button>
 
   <div class="admin-panel" id="adminPanel">
-    <div class="admin-title">관리자 모드</div>
+    <div class="admin-title">관리자 모드 / Admin</div>
 
-    <!-- 비밀번호 입력 -->
     <div class="admin-pw-wrap" id="pwWrap">
       <input class="admin-pw-input" type="password" id="pwInput" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')checkPw()">
       <button class="admin-pw-btn" onclick="checkPw()">확인</button>
     </div>
 
-    <!-- 인증 후 컨트롤 -->
     <div id="adminControls" style="display:none">
       <div class="admin-tabs">
         <button class="admin-tab active" onclick="switchTab('list')">📋 카드 목록</button>
-        <button class="admin-tab" onclick="switchTab('add')" id="tabAddBtn">➕ 카드 추가</button>
+        <button class="admin-tab" onclick="switchTab('add')">➕ 카드 추가</button>
+        <button class="admin-tab" onclick="switchTab('cats')">🏷️ 카테고리</button>
       </div>
 
-      <!-- 탭1: 카드 목록 -->
+      <!-- TAB: List -->
       <div id="tabList">
         <div class="admin-links-list" id="adminList"></div>
         <p class="admin-hint">☁️ 변경사항은 Firebase에 저장되어 모든 기기에 반영됩니다 · 드래그로 순서 변경 가능</p>
       </div>
 
-      <!-- 탭2: 카드 추가/수정 -->
+      <!-- TAB: Add/Edit -->
       <div id="tabAdd" style="display:none">
         <input type="hidden" id="editingDocId">
         <div class="add-form">
+          <div class="form-group full">
+            <label class="form-label">카테고리</label>
+            <select class="form-select" id="fCategory">
+              <option value="upcoming">Next Dive · 곧 만날 이야기</option>
+              <option value="past">Past Dives · 함께 걸어온 길</option>
+              <option value="quiz">Quiz Quest · 놀면서 떠올리기</option>
+              <option value="other" selected>Deeper Waters · 역사 한 스푼</option>
+            </select>
+          </div>
+
           <div class="form-group full">
             <label class="form-label">아이콘 이모지</label>
             <div class="emoji-palette-wrap">
               <div class="emoji-display" onclick="toggleEmojiPicker()">
                 <span id="selectedEmoji">🏛️</span>
-                <span class="hint">클릭해서 이모지 선택</span>
+                <span class="hint">클릭해서 선택</span>
               </div>
               <div class="emoji-picker" id="emojiPicker">
                 <div class="emoji-categories" id="emojiCats"></div>
                 <div class="emoji-grid" id="emojiGrid"></div>
               </div>
-            </div>
-          </div>
-
-          <div class="form-group full">
-            <label class="form-label">카드 색상</label>
-            <div class="color-options">
-              <div class="color-opt c-green selected" data-color="green" onclick="selectColor(this)" title="초록">✓</div>
-              <div class="color-opt c-cyan" data-color="cyan" onclick="selectColor(this)" title="하늘">　</div>
-              <div class="color-opt c-amber" data-color="amber" onclick="selectColor(this)" title="황금">　</div>
-              <div class="color-opt c-purple" data-color="purple" onclick="selectColor(this)" title="보라">　</div>
-              <div class="color-opt c-pink" data-color="pink" onclick="selectColor(this)" title="분홍">　</div>
             </div>
           </div>
 
@@ -277,6 +487,13 @@ body{background:var(--bg);font-family:'Noto Sans KR',sans-serif;min-height:100vh
         </div>
         <p class="admin-hint">추가 즉시 Firebase에 저장되어 학생들 화면에 반영됩니다</p>
       </div>
+
+      <!-- TAB: Categories -->
+      <div id="tabCats" style="display:none">
+        <div id="catsEditList"></div>
+        <button class="submit-btn" onclick="saveCategories()" style="margin-top:8px">카테고리 이름 저장</button>
+        <p class="admin-hint">카테고리 이름을 자유롭게 수정할 수 있습니다</p>
+      </div>
     </div>
   </div>
 
@@ -285,15 +502,11 @@ body{background:var(--bg);font-family:'Noto Sans KR',sans-serif;min-height:100vh
   </div>
 </div>
 
-<!-- ===================== Firebase SDK ===================== -->
+<!-- ===== Firebase ===== -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// ======================================================
-// 🔧 여기에 Firebase 설정을 입력하세요
-// Firebase 콘솔 → 프로젝트 설정 → 내 앱 → SDK 설정 및 구성
-// ======================================================
 const firebaseConfig = {
   apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
   authDomain: "ho0911seong-56638.firebaseapp.com",
@@ -303,26 +516,42 @@ const firebaseConfig = {
   messagingSenderId: "994509567071",
   appId: "1:994509567071:web:8b33bb03a3d8f3a9f557ea"
 };
-// ======================================================
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const COLLECTION = "cards";
+const SETTINGS_DOC = "settings/categories";
 
-// 전역에서 접근 가능하도록
 window._db = db;
 window._collection = collection;
 window._addDoc = addDoc;
 window._updateDoc = updateDoc;
 window._deleteDoc = deleteDoc;
+window._setDoc = setDoc;
+window._getDoc = getDoc;
 window._doc = doc;
 window._query = query;
 window._orderBy = orderBy;
 window._writeBatch = writeBatch;
 window._COLLECTION = COLLECTION;
+window._SETTINGS_DOC = SETTINGS_DOC;
 
+// 카테고리 이름 구독
+const catsDocRef = doc(db, "settings", "categories");
+window._catsDocRef = catsDocRef;
+onSnapshot(catsDocRef, (snap) => {
+  if (snap.exists()) {
+    window._categoryNames = snap.data();
+  } else {
+    window._categoryNames = window._defaultCategoryNames;
+  }
+  if (window._cards) {
+    renderCards(window._cards);
+    if (window._adminOpen) buildCategoryEditor();
+  }
+}, (err) => console.error("category subscribe error:", err));
 
-// 실시간 구독
+// 카드 구독
 const q = query(collection(db, COLLECTION), orderBy("order", "asc"));
 window._unsubscribe = onSnapshot(q, (snapshot) => {
   const cards = [];
@@ -332,12 +561,22 @@ window._unsubscribe = onSnapshot(q, (snapshot) => {
   if (window._adminOpen) buildAdminList(cards);
 }, (err) => {
   console.error(err);
-  document.getElementById('cardsGrid').innerHTML = '<div class="loading-wrap" style="color:#ff6464">Firebase 연결 오류. 설정을 확인해주세요.</div>';
+  document.getElementById('sectionsWrap').innerHTML = '<div class="loading-wrap" style="color:#f3727f;grid-column:1/-1">Firebase 연결 오류</div>';
 });
 </script>
 
 <script>
-/* ===== 이모지 데이터 ===== */
+/* ===== Constants ===== */
+const CATEGORY_ORDER = ['upcoming', 'past', 'quiz', 'other'];
+const DEFAULT_CATEGORY_NAMES = {
+  upcoming: { en: 'Next Dive', ko: '곧 만날 이야기' },
+  past:     { en: 'Past Dives', ko: '함께 걸어온 길' },
+  quiz:     { en: 'Quiz Quest', ko: '놀면서 떠올리기' },
+  other:    { en: 'Deeper Waters', ko: '역사 한 스푼' },
+};
+window._defaultCategoryNames = DEFAULT_CATEGORY_NAMES;
+window._categoryNames = DEFAULT_CATEGORY_NAMES;
+
 const EMOJI_DATA = {
   '교육·역사': ['🏛️','📚','📖','📜','🗺️','🗿','⚔️','🛡️','🏺','🪙','🔭','🔬','✏️','📝','🎓','🏫','🧭','🗓️','📅','🪶'],
   '게임·활동': ['🎮','🕹️','🎲','🎯','🏆','🥇','🎖️','🚪','🔑','🗝️','💡','🧩','🎪','🎠','🎡','🎢','🎭','🎨','🎬','🎤'],
@@ -346,51 +585,109 @@ const EMOJI_DATA = {
   '동물': ['🦅','🦁','🐯','🦊','🐺','🦋','🦚','🦜','🐉','🦄','🐘','🦒','🐬','🦈','🦅','🦉','🐧','🦀','🦑','🐙'],
 };
 
+/* ===== State ===== */
 let selectedEmoji = '🏛️';
-let selectedColor = 'green';
 let currentEmojiCat = Object.keys(EMOJI_DATA)[0];
 let adminOpen = false;
-let currentTab = 'list';
 let dragSrcIndex = null;
+let openAccordions = new Set();
 
-/* ===== 카드 렌더링 ===== */
+/* ===== Render Cards (PC + Mobile) ===== */
 function renderCards(cards) {
-  const grid = document.getElementById('cardsGrid');
-  if (!cards || cards.length === 0) {
-    grid.innerHTML = '<div class="loading-wrap">아직 등록된 카드가 없어요</div>';
-    return;
-  }
-  grid.innerHTML = '';
-  cards.forEach(card => {
-    const el = createCardEl(card);
-    grid.appendChild(el);
+  const cats = window._categoryNames || DEFAULT_CATEGORY_NAMES;
+  const grouped = { upcoming: [], past: [], quiz: [], other: [] };
+  (cards || []).forEach(c => {
+    const cat = c.category && grouped[c.category] !== undefined ? c.category : 'other';
+    grouped[cat].push(c);
   });
+
+  // PC
+  const pc = document.getElementById('sectionsWrap');
+  pc.innerHTML = '';
+  CATEGORY_ORDER.forEach(catKey => {
+    const col = document.createElement('div');
+    col.className = 'section-col';
+    const name = cats[catKey] || DEFAULT_CATEGORY_NAMES[catKey];
+    col.innerHTML = `
+      <div class="section-header">
+        <div class="section-title-en">${escapeHtml(name.en)}</div>
+        <div class="section-title-ko">${escapeHtml(name.ko)}</div>
+      </div>
+      <div class="section-cards" id="pc-${catKey}"></div>
+    `;
+    pc.appendChild(col);
+    const cardsBox = col.querySelector('.section-cards');
+    if (grouped[catKey].length === 0) {
+      cardsBox.innerHTML = '<div class="section-empty">아직 비어있어요</div>';
+    } else {
+      grouped[catKey].forEach(card => cardsBox.appendChild(createCardEl(card)));
+    }
+  });
+
+  // Mobile
+  const mob = document.getElementById('mobileAccordion');
+  mob.innerHTML = '';
+  CATEGORY_ORDER.forEach(catKey => {
+    const item = document.createElement('div');
+    item.className = 'accordion-item';
+    const name = cats[catKey] || DEFAULT_CATEGORY_NAMES[catKey];
+    const count = grouped[catKey].length;
+    const isOpen = openAccordions.has(catKey);
+    item.innerHTML = `
+      <button class="accordion-header${isOpen ? ' active' : ''}" onclick="toggleAccordion('${catKey}')">
+        <div class="accordion-titles">
+          <div class="accordion-title-en">${escapeHtml(name.en)}</div>
+          <div class="accordion-title-ko">${escapeHtml(name.ko)}</div>
+        </div>
+        <span class="accordion-count">${count}</span>
+      </button>
+      <div class="accordion-content${isOpen ? ' open' : ''}" id="acc-${catKey}">
+        <div class="accordion-cards" id="mob-${catKey}"></div>
+      </div>
+    `;
+    mob.appendChild(item);
+    const box = item.querySelector('.accordion-cards');
+    if (grouped[catKey].length === 0) {
+      box.innerHTML = '<div class="accordion-empty">아직 비어있어요</div>';
+    } else {
+      grouped[catKey].forEach(card => box.appendChild(createCardEl(card)));
+    }
+  });
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 function createCardEl(card) {
   const a = document.createElement('a');
-  a.className = `link-card c-${card.color || 'green'}${card.locked ? ' locked' : ''}`;
-  a.id = 'card-' + card.docId;
+  a.className = `link-card${card.locked ? ' locked' : ''}`;
   if (!card.locked) {
     a.href = card.url;
     a.target = '_blank';
+    a.rel = 'noopener';
   }
   a.innerHTML = `
-    <div class="card-inner">
-      <div class="card-icon icon-${card.color || 'green'}">${card.emoji || '📌'}</div>
-      <div class="card-text">
-        <div class="card-title">${card.title}${card.locked ? '<span class="lock-badge">🔒 준비중</span>' : ''}</div>
-        <div class="card-desc">${card.desc || ''}</div>
-      </div>
-      <span class="card-arrow-mob">→</span>
+    <div class="card-icon">${escapeHtml(card.emoji || '📌')}</div>
+    <div class="card-text">
+      <div class="card-title">${escapeHtml(card.title || '')}</div>
+      ${card.locked ? '<div class="lock-badge">🔒 준비 중</div>' : (card.desc ? `<div class="card-desc">${escapeHtml(card.desc)}</div>` : '')}
     </div>
-    <span class="card-arrow-pc">→</span>
   `;
   if (card.locked) a.onclick = e => e.preventDefault();
   return a;
 }
 
-/* ===== 관리자 패널 ===== */
+/* ===== Mobile Accordion Toggle ===== */
+function toggleAccordion(catKey) {
+  if (openAccordions.has(catKey)) openAccordions.delete(catKey);
+  else openAccordions.add(catKey);
+  if (window._cards) renderCards(window._cards);
+}
+window.toggleAccordion = toggleAccordion;
+
+/* ===== Admin ===== */
 function toggleAdminPanel() {
   adminOpen = !adminOpen;
   window._adminOpen = adminOpen;
@@ -410,24 +707,28 @@ function checkPw() {
     document.getElementById('pwWrap').style.display = 'none';
     document.getElementById('adminControls').style.display = 'block';
     buildAdminList(window._cards || []);
+    buildCategoryEditor();
     initEmojiPicker();
   } else {
     const inp = document.getElementById('pwInput');
-    inp.style.borderColor = '#ff4444';
     inp.value = '';
     inp.placeholder = '틀렸어요. 다시 입력';
-    setTimeout(() => { inp.style.borderColor = ''; inp.placeholder = '비밀번호 입력'; }, 1500);
+    setTimeout(() => { inp.placeholder = '비밀번호 입력'; }, 1500);
   }
 }
 window.checkPw = checkPw;
 
 function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.admin-tab').forEach((el, i) => el.classList.toggle('active', (i === 0 && tab === 'list') || (i === 1 && tab === 'add')));
+  document.querySelectorAll('.admin-tab').forEach((el, i) => {
+    el.classList.remove('active');
+  });
+  const idx = { list: 0, add: 1, cats: 2 }[tab];
+  const tabs = document.querySelectorAll('.admin-tab');
+  if (tabs[idx]) tabs[idx].classList.add('active');
   document.getElementById('tabList').style.display = tab === 'list' ? 'block' : 'none';
   document.getElementById('tabAdd').style.display = tab === 'add' ? 'block' : 'none';
+  document.getElementById('tabCats').style.display = tab === 'cats' ? 'block' : 'none';
   if (tab === 'add') {
-    // 새 카드 추가 모드로 초기화
     const editId = document.getElementById('editingDocId').value;
     if (!editId) resetAddForm();
   }
@@ -435,10 +736,11 @@ function switchTab(tab) {
 window.switchTab = switchTab;
 
 function buildAdminList(cards) {
+  const cats = window._categoryNames || DEFAULT_CATEGORY_NAMES;
   const list = document.getElementById('adminList');
   list.innerHTML = '';
   if (!cards || cards.length === 0) {
-    list.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:12px;text-align:center;padding:16px">카드가 없습니다. 카드 추가 탭에서 추가해보세요!</p>';
+    list.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px">카드가 없습니다. 카드 추가 탭에서 추가해보세요!</p>';
     return;
   }
   cards.forEach((card, idx) => {
@@ -447,11 +749,13 @@ function buildAdminList(cards) {
     row.dataset.docId = card.docId;
     row.dataset.idx = idx;
     row.draggable = true;
+    const catKey = card.category && DEFAULT_CATEGORY_NAMES[card.category] ? card.category : 'other';
+    const catName = (cats[catKey] || DEFAULT_CATEGORY_NAMES[catKey]).en;
     row.innerHTML = `
       <span class="drag-handle" title="드래그로 순서 변경">⠿</span>
       <div class="admin-link-label">
-        ${card.emoji || ''} ${card.title}
-        <small>${card.url || ''}</small>
+        <span class="meta">${escapeHtml(catName)}</span>${escapeHtml(card.emoji || '')} ${escapeHtml(card.title || '')}
+        <small>${escapeHtml(card.url || '')}</small>
       </div>
       <div class="admin-row-btns">
         <button class="edit-btn" onclick="startEdit('${card.docId}')">수정</button>
@@ -459,9 +763,8 @@ function buildAdminList(cards) {
         <button class="del-btn" onclick="deleteCard('${card.docId}')">삭제</button>
       </div>
     `;
-    // 드래그 이벤트
-    row.addEventListener('dragstart', e => { dragSrcIndex = idx; row.classList.add('dragging'); });
-    row.addEventListener('dragend', e => { row.classList.remove('dragging'); document.querySelectorAll('.admin-link-row').forEach(r => r.classList.remove('drag-over')); });
+    row.addEventListener('dragstart', () => { dragSrcIndex = idx; row.classList.add('dragging'); });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); document.querySelectorAll('.admin-link-row').forEach(r => r.classList.remove('drag-over')); });
     row.addEventListener('dragover', e => { e.preventDefault(); row.classList.add('drag-over'); });
     row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
     row.addEventListener('drop', e => { e.preventDefault(); row.classList.remove('drag-over'); reorderCards(dragSrcIndex, idx); });
@@ -469,12 +772,50 @@ function buildAdminList(cards) {
   });
 }
 
-/* ===== Firebase CRUD ===== */
+/* ===== Category Editor ===== */
+function buildCategoryEditor() {
+  const wrap = document.getElementById('catsEditList');
+  if (!wrap) return;
+  const cats = window._categoryNames || DEFAULT_CATEGORY_NAMES;
+  wrap.innerHTML = '';
+  CATEGORY_ORDER.forEach(key => {
+    const cur = cats[key] || DEFAULT_CATEGORY_NAMES[key];
+    const def = DEFAULT_CATEGORY_NAMES[key];
+    const row = document.createElement('div');
+    row.className = 'cat-edit-row';
+    row.innerHTML = `
+      <div class="cat-key">${key} · 기본값: ${escapeHtml(def.en)} / ${escapeHtml(def.ko)}</div>
+      <div class="cat-fields">
+        <input class="form-input" type="text" data-cat-key="${key}" data-cat-field="en" value="${escapeHtml(cur.en || '')}" placeholder="영문 이름">
+        <input class="form-input" type="text" data-cat-key="${key}" data-cat-field="ko" value="${escapeHtml(cur.ko || '')}" placeholder="한글 부제">
+      </div>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
+async function saveCategories() {
+  const newCats = {};
+  CATEGORY_ORDER.forEach(key => {
+    const en = document.querySelector(`[data-cat-key="${key}"][data-cat-field="en"]`).value.trim() || DEFAULT_CATEGORY_NAMES[key].en;
+    const ko = document.querySelector(`[data-cat-key="${key}"][data-cat-field="ko"]`).value.trim() || DEFAULT_CATEGORY_NAMES[key].ko;
+    newCats[key] = { en, ko };
+  });
+  try {
+    await window._setDoc(window._catsDocRef, newCats);
+    showToast('✅ 카테고리 이름을 저장했어요');
+  } catch (e) {
+    showToast('오류: ' + e.message, true);
+  }
+}
+window.saveCategories = saveCategories;
+
+/* ===== CRUD ===== */
 async function toggleLock(docId, isLocked) {
   try {
     await window._updateDoc(window._doc(window._db, window._COLLECTION, docId), { locked: !isLocked });
     showToast(!isLocked ? '🔒 카드를 잠갔어요' : '✅ 카드를 열었어요');
-  } catch(e) { showToast('오류: ' + e.message, true); }
+  } catch (e) { showToast('오류: ' + e.message, true); }
 }
 window.toggleLock = toggleLock;
 
@@ -483,7 +824,7 @@ async function deleteCard(docId) {
   try {
     await window._deleteDoc(window._doc(window._db, window._COLLECTION, docId));
     showToast('🗑️ 카드를 삭제했어요');
-  } catch(e) { showToast('오류: ' + e.message, true); }
+  } catch (e) { showToast('오류: ' + e.message, true); }
 }
 window.deleteCard = deleteCard;
 
@@ -494,13 +835,9 @@ function startEdit(docId) {
   document.getElementById('fTitle').value = card.title || '';
   document.getElementById('fDesc').value = card.desc || '';
   document.getElementById('fUrl').value = card.url || '';
+  document.getElementById('fCategory').value = card.category && DEFAULT_CATEGORY_NAMES[card.category] ? card.category : 'other';
   selectedEmoji = card.emoji || '📌';
   document.getElementById('selectedEmoji').textContent = selectedEmoji;
-  selectedColor = card.color || 'green';
-  document.querySelectorAll('.color-opt').forEach(el => {
-    el.classList.toggle('selected', el.dataset.color === selectedColor);
-    el.textContent = el.dataset.color === selectedColor ? '✓' : '　';
-  });
   document.getElementById('submitBtn').textContent = '카드 수정 저장';
   switchTab('add');
 }
@@ -510,6 +847,7 @@ async function submitCard() {
   const title = document.getElementById('fTitle').value.trim();
   const desc = document.getElementById('fDesc').value.trim();
   const url = document.getElementById('fUrl').value.trim();
+  const category = document.getElementById('fCategory').value || 'other';
   const editId = document.getElementById('editingDocId').value;
 
   if (!title || !url) { showToast('제목과 URL은 필수예요!', true); return; }
@@ -518,22 +856,25 @@ async function submitCard() {
   btn.disabled = true;
   btn.textContent = '저장 중...';
 
-  const data = { emoji: selectedEmoji, color: selectedColor, title, desc, url, locked: false };
-
   try {
     if (editId) {
-      await window._updateDoc(window._doc(window._db, window._COLLECTION, editId), { emoji: selectedEmoji, color: selectedColor, title, desc, url });
+      await window._updateDoc(window._doc(window._db, window._COLLECTION, editId), {
+        emoji: selectedEmoji, title, desc, url, category
+      });
       showToast('✅ 카드를 수정했어요');
       document.getElementById('editingDocId').value = '';
     } else {
       const cards = window._cards || [];
-      data.order = cards.length > 0 ? Math.max(...cards.map(c => c.order || 0)) + 1 : 0;
+      const data = {
+        emoji: selectedEmoji, title, desc, url, category, locked: false,
+        order: cards.length > 0 ? Math.max(...cards.map(c => c.order || 0)) + 1 : 0
+      };
       await window._addDoc(window._collection(window._db, window._COLLECTION), data);
-      showToast('✅ 카드를 추가했어요! 학생들 화면에 바로 보여요');
+      showToast('✅ 카드를 추가했어요!');
     }
     resetAddForm();
     switchTab('list');
-  } catch(e) {
+  } catch (e) {
     showToast('오류: ' + e.message, true);
   } finally {
     btn.disabled = false;
@@ -543,7 +884,7 @@ async function submitCard() {
 window.submitCard = submitCard;
 
 async function reorderCards(fromIdx, toIdx) {
-  if (fromIdx === toIdx) return;
+  if (fromIdx === toIdx || fromIdx == null) return;
   const cards = [...(window._cards || [])];
   const [moved] = cards.splice(fromIdx, 1);
   cards.splice(toIdx, 0, moved);
@@ -554,13 +895,13 @@ async function reorderCards(fromIdx, toIdx) {
     });
     await batch.commit();
     showToast('🔃 순서를 저장했어요');
-  } catch(e) { showToast('순서 저장 오류: ' + e.message, true); }
+  } catch (e) { showToast('순서 저장 오류: ' + e.message, true); }
 }
 
-/* ===== 이모지 팔레트 ===== */
+/* ===== Emoji ===== */
 function initEmojiPicker() {
   const cats = document.getElementById('emojiCats');
-  if (cats.children.length > 0) return; // 이미 초기화됨
+  if (cats.children.length > 0) return;
   Object.keys(EMOJI_DATA).forEach((cat, i) => {
     const btn = document.createElement('button');
     btn.className = 'emoji-cat-btn' + (i === 0 ? ' active' : '');
@@ -586,48 +927,32 @@ function renderEmojiGrid() {
     const btn = document.createElement('button');
     btn.className = 'emoji-btn';
     btn.textContent = em;
-    btn.onclick = () => { selectedEmoji = em; document.getElementById('selectedEmoji').textContent = em; closeEmojiPicker(); };
+    btn.onclick = () => {
+      selectedEmoji = em;
+      document.getElementById('selectedEmoji').textContent = em;
+      closeEmojiPicker();
+    };
     grid.appendChild(btn);
   });
 }
 
-function toggleEmojiPicker() {
-  document.getElementById('emojiPicker').classList.toggle('open');
-}
-function closeEmojiPicker() {
-  document.getElementById('emojiPicker').classList.remove('open');
-}
+function toggleEmojiPicker() { document.getElementById('emojiPicker').classList.toggle('open'); }
+function closeEmojiPicker() { document.getElementById('emojiPicker').classList.remove('open'); }
 window.toggleEmojiPicker = toggleEmojiPicker;
 
-/* ===== 색상 선택 ===== */
-function selectColor(el) {
-  selectedColor = el.dataset.color;
-  document.querySelectorAll('.color-opt').forEach(opt => {
-    opt.classList.remove('selected');
-    opt.textContent = '　';
-  });
-  el.classList.add('selected');
-  el.textContent = '✓';
-}
-window.selectColor = selectColor;
-
-/* ===== 폼 초기화 ===== */
+/* ===== Form Reset ===== */
 function resetAddForm() {
   document.getElementById('editingDocId').value = '';
   document.getElementById('fTitle').value = '';
   document.getElementById('fDesc').value = '';
   document.getElementById('fUrl').value = '';
+  document.getElementById('fCategory').value = 'other';
   selectedEmoji = '🏛️';
   document.getElementById('selectedEmoji').textContent = '🏛️';
-  selectedColor = 'green';
-  document.querySelectorAll('.color-opt').forEach(el => {
-    el.classList.toggle('selected', el.dataset.color === 'green');
-    el.textContent = el.dataset.color === 'green' ? '✓' : '　';
-  });
   document.getElementById('submitBtn').textContent = '카드 추가하기';
 }
 
-/* ===== 토스트 알림 ===== */
+/* ===== Toast ===== */
 function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
