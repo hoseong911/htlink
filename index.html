@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Dive into HISTORY</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -126,8 +129,11 @@ body{overflow-x:hidden}
 .footer-tag span{color:var(--accent)}
 
 /* ===== Admin Button ===== */
+.admin-row{
+  display:flex;align-items:center;justify-content:center;
+  gap:10px;margin:40px auto 0;
+}
 .admin-btn{
-  display:block;margin:40px auto 0;
   background:var(--bg-mid);border:none;
   border-radius:9999px;padding:8px 20px;
   color:var(--text-muted);font-size:11px;font-weight:600;
@@ -135,6 +141,12 @@ body{overflow-x:hidden}
   font-family:inherit;transition:background .2s,color .2s;
 }
 .admin-btn:hover{background:var(--bg-card);color:var(--text-base)}
+.version-tag{
+  font-size:10px;font-weight:700;color:var(--text-muted);
+  background:var(--bg-mid);border-radius:9999px;
+  padding:5px 10px;letter-spacing:1.2px;
+  font-family:inherit;opacity:.6;
+}
 
 /* ===== Admin Panel ===== */
 .admin-panel{
@@ -558,7 +570,10 @@ body{overflow-x:hidden}
   <!-- Mobile: Accordion -->
   <div class="mobile-accordion" id="mobileAccordion"></div>
 
-  <button class="admin-btn" onclick="toggleAdminPanel()">⚙ ADMIN</button>
+  <div class="admin-row">
+    <button class="admin-btn" onclick="toggleAdminPanel()">⚙ ADMIN</button>
+    <span class="version-tag">v1.0.0</span>
+  </div>
 
   <div class="admin-panel" id="adminPanel">
     <div class="admin-title">관리자 모드 / Admin</div>
