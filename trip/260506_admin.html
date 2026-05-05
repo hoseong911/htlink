@@ -199,6 +199,10 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .btn-drive{background:rgba(63,185,80,0.12);color:var(--success);
   border:1px solid rgba(63,185,80,0.28);}
 .btn-drive:hover{background:rgba(63,185,80,0.2);}
+/* ★ 추가: 시트 버튼 — 구글 시트 브랜드 컬러 톤 (주황빛 골드) */
+.btn-sheet{background:rgba(227,179,65,0.12);color:var(--gold);
+  border:1px solid rgba(227,179,65,0.32);}
+.btn-sheet:hover{background:rgba(227,179,65,0.2);}
 .btn-toggle-on{background:rgba(63,185,80,0.12);color:var(--success);
   border:1px solid rgba(63,185,80,0.28);}
 .btn-toggle-off{background:rgba(248,81,73,0.09);color:var(--danger);
@@ -323,6 +327,8 @@ const ADMIN_PW   = 'ghtjd12!@';
 const GAS_URL    = 'https://script.google.com/macros/s/AKfycbwyI-lc4yoCKr2yzj28UGLyALcz3OhiikNtl24qb-h1S3glhLhcP6xHj3W-uQhHHAeC1Q/exec';
 const DRIVE_URL1 = 'https://drive.google.com/drive/folders/18IhanvaL52hdphwegBs02H_I-Gg8GttZ';
 const DRIVE_URL2 = 'https://drive.google.com/drive/folders/1DNRv6Rckfu9ftk1z9BHp2SVLFxZvvZ-W';
+/* ★ 추가: 학생 제출 정리 시트 URL (활동 1·2 공통) */
+const SHEET_URL  = 'https://docs.google.com/spreadsheets/d/1-0ZQfTqrJinU_CpdaZ47hrCgxYyMB_ysHK8qSz4FKzQ/edit?usp=sharing';
 
 // ── 활동 1 미션 데이터 (원본 베이스) ──
 const OCEAN_MISSIONS = [
@@ -499,8 +505,9 @@ function buildActivity1(){
       <div id="a1-mission-edit-list"></div>
     </div>
     <div class="act-tab-body" id="atab-a1-settings">
-      <div class="s-title">구글 드라이브</div>
-      <button class="action-btn btn-drive" onclick="window.open('${DRIVE_URL1}','_blank')">📁 사진 폴더 열기</button>
+      <div class="s-title">외부 자료 열람</div>
+      <button class="action-btn btn-drive" onclick="window.open('${DRIVE_URL1}','_blank')">📁 사진 폴더 열기 (구글 드라이브)</button>
+      <button class="action-btn btn-sheet" onclick="window.open('${SHEET_URL}','_blank')">📊 학생 제출 시트 열기 (구글 스프레드시트)</button>
       <div class="s-title">소감 작성</div>
       <button class="action-btn" id="a1-reflection-btn" onclick="toggleReflection1()">🔴 소감 작성 비활성화 (탭하면 활성화)</button>
       <p style="font-size:12px;color:var(--text2);line-height:1.6;">활성화하면 학생 앱에서 소감 탭이 열립니다.</p>
@@ -842,8 +849,9 @@ async function buildActivity2(){
       <button class="action-btn btn-primary" onclick="saveMarkers()">💾 마커 위치 저장하기</button>
     </div>
     <div class="act-tab-body" id="atab-a2-settings">
-      <div class="s-title">구글 드라이브</div>
-      <button class="action-btn btn-drive" onclick="window.open('${DRIVE_URL2}','_blank')">📁 사진 폴더 열기</button>
+      <div class="s-title">외부 자료 열람</div>
+      <button class="action-btn btn-drive" onclick="window.open('${DRIVE_URL2}','_blank')">📁 사진 폴더 열기 (구글 드라이브)</button>
+      <button class="action-btn btn-sheet" onclick="window.open('${SHEET_URL}','_blank')">📊 학생 제출 시트 열기 (구글 스프레드시트)</button>
     </div>
     <div class="act-tab-body" id="atab-a2-reset">
       <div class="s-title">개별 초기화</div>
