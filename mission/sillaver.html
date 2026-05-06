@@ -45,13 +45,11 @@
         .rank-word { font-weight: 600; font-size: 16px; color: #333; }
         .rank-count { font-size: 13px; color: #a1a1a1; font-weight: 500; }
 
-        /* 카테고리 탭 */
         .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 8px; scrollbar-width: none; }
         .tabs::-webkit-scrollbar { display: none; }
         .tab-btn { padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border-gray); background: white; white-space: nowrap; font-size: 14px; cursor: pointer; }
         .tab-btn.active { background: var(--naver-green); color: white; border-color: var(--naver-green); font-weight: 700; }
         
-        /* 정렬 탭 (최신순 등) */
         .sort-tabs { display: flex; gap: 6px; justify-content: flex-end; margin-bottom: 15px; flex-wrap: wrap; }
         .sort-btn { padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; border-radius: 15px; background: white; cursor: pointer; font-weight: 600; color: #555; }
         .sort-btn.active { background: #333; color: white; border-color: #333; }
@@ -67,7 +65,6 @@
         .like-count { font-size: 13px; color: #666; font-weight: bold; }
         .pick-badge { background: var(--pick-color); color: white; font-size: 10px; font-weight: 800; padding: 3px 6px; border-radius: 10px; display: inline-block; margin-left: 5px; vertical-align: middle; }
 
-        /* 토스트 팝업 */
         #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 2000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 15px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.5s, bottom 0.5s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
     </style>
@@ -114,7 +111,6 @@
             <div class="section-title">
                 <div class="title-left">분야별 실시간 뉴스</div>
             </div>
-            <!-- 뉴스 분야 카테고리 -->
             <div class="tabs" id="tab-container">
                 <button class="tab-btn active" onclick="filterCategory('전체')">전체</button>
                 <button class="tab-btn" onclick="filterCategory('정치')">정치</button>
@@ -123,7 +119,6 @@
                 <button class="tab-btn" onclick="filterCategory('군사')">군사</button>
                 <button class="tab-btn" onclick="filterCategory('토지')">토지</button>
             </div>
-            <!-- 뉴스 정렬 탭 -->
             <div class="sort-tabs" id="news-sort-container">
                 <button class="sort-btn active" onclick="sortContent('news', 'latest', this)">최신순</button>
                 <button class="sort-btn" onclick="sortContent('news', 'likes', this)">좋아요순</button>
@@ -136,7 +131,6 @@
             <div class="section-title">
                 <div class="title-left">SILLAVER 추천 광고</div>
             </div>
-            <!-- 광고 정렬 탭 -->
             <div class="sort-tabs" id="ad-sort-container">
                 <button class="sort-btn active" onclick="sortContent('ad', 'latest', this)">최신순</button>
                 <button class="sort-btn" onclick="sortContent('ad', 'likes', this)">좋아요순</button>
@@ -148,7 +142,6 @@
         <button class="btn-submit" style="background:#888;" onclick="location.reload()">새로 작성하기</button>
     </div>
 
-    <!-- ✅ 관리자 모드 접속 및 버전 표시 영역 -->
     <div style="text-align: center; margin-top: 40px; padding-bottom: 20px; color: #999;">
         <div style="font-size: 14px; font-weight: bold;">SILLAVER v1.1.2</div>
         <button onclick="location.href='sillaver_admin.html'" style="background: none; border: none; color: #bbb; cursor: pointer; text-decoration: underline; margin-top: 8px; font-size: 13px;">관리자 모드</button>
@@ -214,7 +207,6 @@
         btn.disabled = true;
 
         try {
-            // ✅ 완벽한 중복 확인: studentId 필드를 전체 데이터베이스에서 검색
             const q = query(collection(db, "silla_v3"), where("studentId", "==", userId));
             const querySnapshot = await getDocs(q);
             
@@ -231,7 +223,6 @@
                     btn.disabled = false;
                     return;
                 }
-                // 기존 문서의 ID를 가져와서 덮어쓰기 준비
                 targetDocId = oldDoc.id; 
             }
 
@@ -242,7 +233,6 @@
                 }
             });
 
-            // ✅ 찾아낸 대상 문서 ID(targetDocId)에 덮어쓰기
             await setDoc(doc(db, "silla_v3", targetDocId), {
                 studentId: userId,
                 studentName: userName,
@@ -275,7 +265,7 @@
                 const data = docSnap.data();
                 const sId = data.studentId;
                 const ts = data.timestamp ? data.timestamp.toMillis() : Date.now();
-                const docId = docSnap.id; // 문서 ID 
+                const docId = docSnap.id; 
 
                 (data.keywords || []).forEach(word => {
                     const key = word.replace(/\s+/g, '');
@@ -300,6 +290,7 @@
 
                 if (data.ad) {
                     if (typeof data.ad === 'string') {
+                        // 이전 버전의 광고 데이터(문자열)도 안전하게 렌더링하도록 처리
                         allAdData.push({ id: sId, text: data.ad, likes: 0, pick: false, author: data.studentName, studentId: sId, time: ts, docId: docId });
                     } else {
                         allAdData.push({ ...data.ad, author: data.studentName, studentId: sId, time: ts, docId: docId });
@@ -330,7 +321,6 @@
         renderNews();
     };
 
-    // ✅ 정렬 버튼 클릭 시 오작동 하던 버그 수정 완료 (컨테이너 ID 기준 명확한 타겟팅)
     window.sortContent = function(type, criteria, btnEl) {
         if (type === 'news') {
             currentNewsSort = criteria;
@@ -348,9 +338,14 @@
     function renderNews() {
         let list = currentCategory === '전체' ? [...allNewsData] : allNewsData.filter(n => n.category === currentCategory);
         
-        if(currentNewsSort === 'likes') list.sort((a,b) => (b.likes||0) - (a.likes||0));
-        else if(currentNewsSort === 'pick') list = list.filter(n => n.pick).sort((a,b) => b.time - a.time);
-        else list.sort((a,b) => b.time - a.time);
+        // 정렬: 좋아요순이면 좋아요 비교 후 동률 시 최신순으로
+        if(currentNewsSort === 'likes') {
+            list.sort((a,b) => (b.likes||0) - (a.likes||0) || b.time - a.time);
+        } else if(currentNewsSort === 'pick') {
+            list = list.filter(n => n.pick).sort((a,b) => b.time - a.time);
+        } else {
+            list.sort((a,b) => b.time - a.time);
+        }
 
         document.getElementById('news-feed').innerHTML = list.map(n => {
             const liked = localStorage.getItem(`like_${n.id}`) ? 'liked' : '';
@@ -370,9 +365,13 @@
 
     function renderAds() {
         let list = [...allAdData];
-        if(currentAdSort === 'likes') list.sort((a,b) => (b.likes||0) - (a.likes||0));
-        else if(currentAdSort === 'pick') list = list.filter(a => a.pick).sort((a,b) => b.time - a.time);
-        else list.sort((a,b) => b.time - a.time);
+        if(currentAdSort === 'likes') {
+            list.sort((a,b) => (b.likes||0) - (a.likes||0) || b.time - a.time);
+        } else if(currentAdSort === 'pick') {
+            list = list.filter(a => a.pick).sort((a,b) => b.time - a.time);
+        } else {
+            list.sort((a,b) => b.time - a.time);
+        }
 
         document.getElementById('ad-feed').innerHTML = list.map(ad => {
             const liked = localStorage.getItem(`like_${ad.id}`) ? 'liked' : '';
@@ -390,7 +389,7 @@
         }).join('') || "등록된 광고가 없습니다.";
     }
 
-    // ✅ 좋아요 숫자 마이너스 방지 및 정확한 문서 ID(targetDocId) 기반 업데이트
+    // ✅ 에러가 나지 않도록 뉴스/광고 업데이트를 안전하게 분리
     window.toggleLike = async function(targetDocId, itemId, type, btnEl) {
         const storageKey = `like_${itemId}`;
         const isLiked = localStorage.getItem(storageKey);
@@ -410,21 +409,40 @@
             btnEl.innerHTML = `❤️ <span class="like-count">${currentLikes}</span>`;
         }
 
-        const docRef = doc(db, "silla_v3", targetDocId);
-        const snap = await getDoc(docRef);
-        if(snap.exists()){
-            let data = snap.data();
-            let increment = isLiked ? -1 : 1;
+        try {
+            const docRef = doc(db, "silla_v3", targetDocId);
+            const snap = await getDoc(docRef);
             
-            if(type === 'news') {
-                data.news = data.news.map(n => {
-                    if(n.id === itemId) n.likes = Math.max(0, (n.likes || 0) + increment);
-                    return n;
-                });
-            } else if (type === 'ad') {
-                data.ad.likes = Math.max(0, (data.ad.likes || 0) + increment);
+            if(snap.exists()){
+                let data = snap.data();
+                let increment = isLiked ? -1 : 1;
+                
+                // 기사와 광고를 완전히 독립적으로 업데이트
+                if(type === 'news' && data.news) {
+                    const updatedNews = data.news.map(n => {
+                        if(n.id === itemId) n.likes = Math.max(0, (n.likes || 0) + increment);
+                        return n;
+                    });
+                    await updateDoc(docRef, { news: updatedNews });
+                } 
+                else if (type === 'ad' && data.ad) {
+                    // 이전 데이터(문자열형태)를 객체 형태로 안전하게 변환하며 좋아요 기록
+                    if (typeof data.ad === 'string') {
+                        const newAdData = {
+                            id: itemId,
+                            text: data.ad,
+                            likes: Math.max(0, increment),
+                            pick: false
+                        };
+                        await updateDoc(docRef, { ad: newAdData });
+                    } else {
+                        data.ad.likes = Math.max(0, (data.ad.likes || 0) + increment);
+                        await updateDoc(docRef, { ad: data.ad });
+                    }
+                }
             }
-            await updateDoc(docRef, { news: data.news, ad: data.ad });
+        } catch (e) {
+            console.error("좋아요 업데이트 실패: ", e);
         }
     };
 </script>
