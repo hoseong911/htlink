@@ -16,7 +16,7 @@
         .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 15px; }
         .box { background: white; border-radius: 12px; padding: 18px; border: 1px solid var(--border-gray); margin-bottom: 15px; width: 100%; }
         
-        .section-title { font-size: 18px; font-weight: 800; color: #333; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+        .section-title { font-size: 18px; font-weight: 800; color: #333; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
         .title-left { display: flex; align-items: center; gap: 8px; }
         .title-left::before { content: ''; width: 4px; height: 18px; background: var(--naver-green); display: inline-block; border-radius: 2px; }
         .section-desc { font-size: 13px; color: #777; margin-bottom: 15px; line-height: 1.4; }
@@ -45,12 +45,15 @@
         .rank-word { font-weight: 600; font-size: 16px; color: #333; }
         .rank-count { font-size: 13px; color: #a1a1a1; font-weight: 500; }
 
+        /* 카테고리 탭 */
         .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 8px; scrollbar-width: none; }
         .tabs::-webkit-scrollbar { display: none; }
         .tab-btn { padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border-gray); background: white; white-space: nowrap; font-size: 14px; cursor: pointer; }
         .tab-btn.active { background: var(--naver-green); color: white; border-color: var(--naver-green); font-weight: 700; }
-        .sort-tabs { justify-content: flex-end; margin-bottom: 10px; }
-        .sort-btn { padding: 5px 10px; font-size: 12px; border: 1px solid #ddd; border-radius: 15px; background: white; cursor: pointer; }
+        
+        /* 정렬 탭 (최신순 등) */
+        .sort-tabs { display: flex; gap: 6px; justify-content: flex-end; margin-bottom: 15px; flex-wrap: wrap; }
+        .sort-btn { padding: 6px 12px; font-size: 12px; border: 1px solid #ddd; border-radius: 15px; background: white; cursor: pointer; font-weight: 600; color: #555; }
         .sort-btn.active { background: #333; color: white; border-color: #333; }
 
         .news-card, .ad-feed-item { border-bottom: 1px solid #f2f2f2; padding: 15px 0; position: relative; }
@@ -61,7 +64,7 @@
         .action-area { position: absolute; top: 15px; right: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .like-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #ccc; display: flex; align-items: center; gap: 4px; padding: 5px; }
         .like-btn.liked { color: #ff4757; }
-        .like-count { font-size: 12px; color: #666; font-weight: bold; }
+        .like-count { font-size: 13px; color: #666; font-weight: bold; }
         .pick-badge { background: var(--pick-color); color: white; font-size: 10px; font-weight: 800; padding: 3px 6px; border-radius: 10px; display: inline-block; margin-left: 5px; vertical-align: middle; }
 
         /* 토스트 팝업 */
@@ -111,6 +114,7 @@
             <div class="section-title">
                 <div class="title-left">분야별 실시간 뉴스</div>
             </div>
+            <!-- 뉴스 분야 카테고리 -->
             <div class="tabs" id="tab-container">
                 <button class="tab-btn active" onclick="filterCategory('전체')">전체</button>
                 <button class="tab-btn" onclick="filterCategory('정치')">정치</button>
@@ -119,10 +123,11 @@
                 <button class="tab-btn" onclick="filterCategory('군사')">군사</button>
                 <button class="tab-btn" onclick="filterCategory('토지')">토지</button>
             </div>
-            <div class="tabs sort-tabs" id="news-sort-container">
-                <button class="sort-btn active" onclick="sortContent('news', 'latest')">최신순</button>
-                <button class="sort-btn" onclick="sortContent('news', 'likes')">좋아요순</button>
-                <button class="sort-btn" onclick="sortContent('news', 'pick')">⭐픽 모아보기</button>
+            <!-- 뉴스 정렬 탭 -->
+            <div class="sort-tabs" id="news-sort-container">
+                <button class="sort-btn active" onclick="sortContent('news', 'latest', this)">최신순</button>
+                <button class="sort-btn" onclick="sortContent('news', 'likes', this)">좋아요순</button>
+                <button class="sort-btn" onclick="sortContent('news', 'pick', this)">⭐픽 모아보기</button>
             </div>
             <div id="news-feed"></div>
         </div>
@@ -131,15 +136,22 @@
             <div class="section-title">
                 <div class="title-left">SILLAVER 추천 광고</div>
             </div>
-            <div class="tabs sort-tabs">
-                <button class="sort-btn active" onclick="sortContent('ad', 'latest')">최신순</button>
-                <button class="sort-btn" onclick="sortContent('ad', 'likes')">좋아요순</button>
-                <button class="sort-btn" onclick="sortContent('ad', 'pick')">⭐픽 모아보기</button>
+            <!-- 광고 정렬 탭 -->
+            <div class="sort-tabs" id="ad-sort-container">
+                <button class="sort-btn active" onclick="sortContent('ad', 'latest', this)">최신순</button>
+                <button class="sort-btn" onclick="sortContent('ad', 'likes', this)">좋아요순</button>
+                <button class="sort-btn" onclick="sortContent('ad', 'pick', this)">⭐픽 모아보기</button>
             </div>
             <div id="ad-feed"></div>
         </div>
         
         <button class="btn-submit" style="background:#888;" onclick="location.reload()">새로 작성하기</button>
+    </div>
+
+    <!-- ✅ 관리자 모드 접속 및 버전 표시 영역 -->
+    <div style="text-align: center; margin-top: 40px; padding-bottom: 20px; color: #999;">
+        <div style="font-size: 14px; font-weight: bold;">SILLAVER v1.1.2</div>
+        <button onclick="location.href='sillaver_admin.html'" style="background: none; border: none; color: #bbb; cursor: pointer; text-decoration: underline; margin-top: 8px; font-size: 13px;">관리자 모드</button>
     </div>
 </div>
 
@@ -147,7 +159,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
@@ -167,9 +179,8 @@
     let currentNewsSort = 'latest';
     let currentAdSort = 'latest';
     let myStudentId = "";
-    let myPickState = {}; // 토스트 알림을 위한 상태 저장
+    let myPickState = {}; 
 
-    // 간단한 고유 ID 생성기
     const genId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
     const escapeHtml = str => typeof str === 'string' ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
 
@@ -202,20 +213,26 @@
         btn.innerText = "제출 확인 중...";
         btn.disabled = true;
 
-        const docRef = doc(db, "silla_v3", userId);
-        
         try {
-            // 중복 제출 확인 (학번 기준)
-            const snap = await getDoc(docRef);
-            if (snap.exists()) {
-                const oldData = snap.data();
+            // ✅ 완벽한 중복 확인: studentId 필드를 전체 데이터베이스에서 검색
+            const q = query(collection(db, "silla_v3"), where("studentId", "==", userId));
+            const querySnapshot = await getDocs(q);
+            
+            let targetDocId = userId; 
+
+            if (!querySnapshot.empty) {
+                const oldDoc = querySnapshot.docs[0];
+                const oldData = oldDoc.data();
                 const timeStr = formatTime(oldData.timestamp);
+                
                 const msg = `이미 제출한 기록이 있습니다.\n(${userId}, ${oldData.studentName}, ${timeStr} 제출)\n\n기존 내용을 덮어쓰고 다시 제출하시겠습니까?`;
                 if (!confirm(msg)) {
                     btn.innerText = "기사 발행 및 포털 접속";
                     btn.disabled = false;
                     return;
                 }
+                // 기존 문서의 ID를 가져와서 덮어쓰기 준비
+                targetDocId = oldDoc.id; 
             }
 
             const newsArr = [];
@@ -225,8 +242,8 @@
                 }
             });
 
-            // 문서 덮어쓰기 (setDoc)
-            await setDoc(docRef, {
+            // ✅ 찾아낸 대상 문서 ID(targetDocId)에 덮어쓰기
+            await setDoc(doc(db, "silla_v3", targetDocId), {
                 studentId: userId,
                 studentName: userName,
                 keywords: rawArr.slice(0, 5),
@@ -235,7 +252,7 @@
                 timestamp: serverTimestamp()
             });
 
-            myStudentId = userId; // 내 학번 기억
+            myStudentId = userId; 
             document.getElementById('input-view').style.display = 'none';
             document.getElementById('result-view').style.display = 'block';
             window.scrollTo(0, 0);
@@ -258,15 +275,14 @@
                 const data = docSnap.data();
                 const sId = data.studentId;
                 const ts = data.timestamp ? data.timestamp.toMillis() : Date.now();
+                const docId = docSnap.id; // 문서 ID 
 
-                // 검색어
                 (data.keywords || []).forEach(word => {
                     const key = word.replace(/\s+/g, '');
                     if (!trendMap[key]) trendMap[key] = { display: word, count: 0 };
                     trendMap[key].count += 1;
                 });
 
-                // 내 글 Pick 상태 확인 (토스트 알림용)
                 if (sId === myStudentId) {
                     (data.news || []).forEach(n => {
                         if (n.pick && !myPickState[n.id]) { showToast(`선생님이 내 [${n.category}] 기사를 Pick⭐ 했습니다!`); }
@@ -278,17 +294,15 @@
                     }
                 }
 
-                // 기사
                 if (data.news) {
-                    data.news.forEach(n => allNewsData.push({...n, author: data.studentName, studentId: sId, time: ts}));
+                    data.news.forEach(n => allNewsData.push({...n, author: data.studentName, studentId: sId, time: ts, docId: docId}));
                 }
 
-                // 광고 (이전 문자열 데이터 호환성 유지)
                 if (data.ad) {
                     if (typeof data.ad === 'string') {
-                        allAdData.push({ id: sId, text: data.ad, likes: 0, pick: false, author: data.studentName, studentId: sId, time: ts });
+                        allAdData.push({ id: sId, text: data.ad, likes: 0, pick: false, author: data.studentName, studentId: sId, time: ts, docId: docId });
                     } else {
-                        allAdData.push({ ...data.ad, author: data.studentName, studentId: sId, time: ts });
+                        allAdData.push({ ...data.ad, author: data.studentName, studentId: sId, time: ts, docId: docId });
                     }
                 }
             });
@@ -316,16 +330,17 @@
         renderNews();
     };
 
-    window.sortContent = function(type, criteria) {
+    // ✅ 정렬 버튼 클릭 시 오작동 하던 버그 수정 완료 (컨테이너 ID 기준 명확한 타겟팅)
+    window.sortContent = function(type, criteria, btnEl) {
         if (type === 'news') {
             currentNewsSort = criteria;
-            document.querySelectorAll('#news-sort-container .sort-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('#news-sort-container .sort-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
             renderNews();
         } else {
             currentAdSort = criteria;
-            document.querySelectorAll('.box:last-child .sort-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('#ad-sort-container .sort-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
             renderAds();
         }
     };
@@ -333,9 +348,9 @@
     function renderNews() {
         let list = currentCategory === '전체' ? [...allNewsData] : allNewsData.filter(n => n.category === currentCategory);
         
-        if(currentNewsSort === 'likes') list.sort((a,b) => b.likes - a.likes);
+        if(currentNewsSort === 'likes') list.sort((a,b) => (b.likes||0) - (a.likes||0));
         else if(currentNewsSort === 'pick') list = list.filter(n => n.pick).sort((a,b) => b.time - a.time);
-        else list.sort((a,b) => b.time - a.time); // latest
+        else list.sort((a,b) => b.time - a.time);
 
         document.getElementById('news-feed').innerHTML = list.map(n => {
             const liked = localStorage.getItem(`like_${n.id}`) ? 'liked' : '';
@@ -345,7 +360,7 @@
                 <div class="news-title">${escapeHtml(n.title)} ${pickBadge}</div>
                 <div class="news-reporter">${escapeHtml(n.studentId)} ${escapeHtml(n.author)} 기자 | ${escapeHtml(n.category)}</div>
                 <div class="action-area">
-                    <button class="like-btn ${liked}" onclick="toggleLike('${n.studentId}', '${n.id}', 'news', this)">
+                    <button class="like-btn ${liked}" onclick="toggleLike('${n.docId}', '${n.id}', 'news', this)">
                         ${liked ? '❤️' : '🤍'} <span class="like-count">${n.likes || 0}</span>
                     </button>
                 </div>
@@ -355,7 +370,7 @@
 
     function renderAds() {
         let list = [...allAdData];
-        if(currentAdSort === 'likes') list.sort((a,b) => b.likes - a.likes);
+        if(currentAdSort === 'likes') list.sort((a,b) => (b.likes||0) - (a.likes||0));
         else if(currentAdSort === 'pick') list = list.filter(a => a.pick).sort((a,b) => b.time - a.time);
         else list.sort((a,b) => b.time - a.time);
 
@@ -367,7 +382,7 @@
                 <div style="font-size: 15px; line-height:1.5;">${escapeHtml(ad.text)} ${pickBadge}</div>
                 <div style="font-size:12px; color:#999; margin-top:8px;">AD BY. ${escapeHtml(ad.studentId)} ${escapeHtml(ad.author)}</div>
                 <div class="action-area" style="top:50%; transform:translateY(-50%);">
-                    <button class="like-btn ${liked}" onclick="toggleLike('${ad.studentId}', '${ad.id}', 'ad', this)">
+                    <button class="like-btn ${liked}" onclick="toggleLike('${ad.docId}', '${ad.id}', 'ad', this)">
                         ${liked ? '❤️' : '🤍'} <span class="like-count">${ad.likes || 0}</span>
                     </button>
                 </div>
@@ -375,27 +390,27 @@
         }).join('') || "등록된 광고가 없습니다.";
     }
 
-    // 좋아요 기능 (로컬스토리지로 1회 제한 방지)
-    window.toggleLike = async function(targetStudentId, itemId, type, btnEl) {
+    // ✅ 좋아요 숫자 마이너스 방지 및 정확한 문서 ID(targetDocId) 기반 업데이트
+    window.toggleLike = async function(targetDocId, itemId, type, btnEl) {
         const storageKey = `like_${itemId}`;
         const isLiked = localStorage.getItem(storageKey);
         
-        // UI 즉각 반영 (낙관적 업데이트)
         const countSpan = btnEl.querySelector('.like-count');
-        let currentLikes = parseInt(countSpan.innerText);
+        let currentLikes = parseInt(countSpan.innerText) || 0;
         
         if(isLiked) {
             localStorage.removeItem(storageKey);
             btnEl.classList.remove('liked');
-            btnEl.innerHTML = `🤍 <span class="like-count">${currentLikes - 1}</span>`;
+            currentLikes = Math.max(0, currentLikes - 1);
+            btnEl.innerHTML = `🤍 <span class="like-count">${currentLikes}</span>`;
         } else {
             localStorage.setItem(storageKey, 'true');
             btnEl.classList.add('liked');
-            btnEl.innerHTML = `❤️ <span class="like-count">${currentLikes + 1}</span>`;
+            currentLikes += 1;
+            btnEl.innerHTML = `❤️ <span class="like-count">${currentLikes}</span>`;
         }
 
-        // Firestore 업데이트
-        const docRef = doc(db, "silla_v3", targetStudentId);
+        const docRef = doc(db, "silla_v3", targetDocId);
         const snap = await getDoc(docRef);
         if(snap.exists()){
             let data = snap.data();
@@ -403,11 +418,11 @@
             
             if(type === 'news') {
                 data.news = data.news.map(n => {
-                    if(n.id === itemId) n.likes = (n.likes || 0) + increment;
+                    if(n.id === itemId) n.likes = Math.max(0, (n.likes || 0) + increment);
                     return n;
                 });
             } else if (type === 'ad') {
-                data.ad.likes = (data.ad.likes || 0) + increment;
+                data.ad.likes = Math.max(0, (data.ad.likes || 0) + increment);
             }
             await updateDoc(docRef, { news: data.news, ad: data.ad });
         }
