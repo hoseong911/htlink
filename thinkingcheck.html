@@ -3,94 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 인천동양중학교 3학년 역사 수업 : 생각 Check</title>
+    <title>2026 인천동양중학교 역사 수업 : 생각 Check</title>
     
-    <!-- Firebase SDK (Compat 버전: 로컬 파일에서도 쉽게 실행 가능) -->
+    <!-- Firebase SDK (Compat 버전) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* 🎨 폰트 및 배경 */
+        /* 🎨 폰트 및 배경 (hoistory 스타일 파스텔톤 글래스모피즘) */
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body { 
             font-family: 'Pretendard', sans-serif; 
-            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
-            color: #333; margin: 0; padding: 20px; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); /* 깔끔하고 부드러운 배경 */
+            color: #333; margin: 0; padding: 10px; 
             min-height: 100vh;
+            display: flex; flex-direction: column;
         }
         
         /* 💠 글래스모피즘 컨테이너 */
         .glass-container { 
-            max-width: 900px; margin: 0 auto; 
-            background: rgba(255, 255, 255, 0.6); 
+            width: 100%; max-width: 900px; margin: 0 auto; 
+            background: rgba(255, 255, 255, 0.7); 
             backdrop-filter: blur(15px); 
             -webkit-backdrop-filter: blur(15px);
-            padding: 30px; border-radius: 20px; 
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 20px; border-radius: 20px; 
+            border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1); 
+            box-sizing: border-box;
         }
 
-        h1, h2, h3 { color: #2c3e50; text-align: center; margin-top: 0; }
+        h1 { color: #2c3e50; text-align: center; margin-top: 0; font-size: 1.5em; word-break: keep-all; }
+        h2, h3 { color: #2c3e50; }
         
         /* 📝 폼 및 입력 요소 */
         .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: #34495e; }
-        input[type="text"], textarea { 
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #34495e; font-size: 0.9em; }
+        input[type="text"], textarea, select { 
             width: 100%; padding: 15px; 
-            border: 1px solid rgba(255, 255, 255, 0.5); 
+            border: 1px solid rgba(255, 255, 255, 0.6); 
             border-radius: 12px; box-sizing: border-box; font-size: 16px; 
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             font-family: 'Pretendard', sans-serif;
             transition: all 0.3s;
         }
-        input[type="text"]:focus, textarea:focus { outline: none; border-color: #a6c1ee; box-shadow: 0 0 8px rgba(166, 193, 238, 0.5); }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #74b9ff; box-shadow: 0 0 8px rgba(116, 185, 255, 0.4); }
         
         /* 🔘 버튼 스타일 */
         button { 
             background-color: #74b9ff; color: white; border: none; 
-            padding: 15px 24px; border-radius: 12px; cursor: pointer; 
-            font-size: 16px; font-weight: bold; width: 100%; transition: 0.3s; 
-            box-shadow: 0 4px 6px rgba(116, 185, 255, 0.3);
+            padding: 12px 20px; border-radius: 12px; cursor: pointer; 
+            font-size: 15px; font-weight: bold; width: 100%; transition: 0.3s; 
+            box-shadow: 0 4px 6px rgba(116, 185, 255, 0.2);
+            word-break: keep-all;
         }
         button:hover { background-color: #0984e3; transform: translateY(-2px); }
         .btn-green { background-color: #55efc4; color: #2d3436; }
         .btn-green:hover { background-color: #00b894; color: white; }
+        .btn-logout { background-color: #ff7675; color: white; width: auto; padding: 8px 15px; font-size: 13px; }
+        .btn-logout:hover { background-color: #d63031; }
+
+        /* 네비게이션 탭 (학생 & 관리자) */
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .nav-tabs button { background-color: rgba(255,255,255,0.6); color: #4a5568; box-shadow: none; flex: 1; min-width: 120px; padding: 10px; }
+        .nav-tabs button.active { background-color: #74b9ff; color: white; box-shadow: 0 2px 4px rgba(116, 185, 255, 0.4); }
 
         /* 유틸리티 및 경고 */
         .hidden { display: none !important; }
-        .char-count { font-size: 14px; color: #555; text-align: right; margin-top: 5px; font-weight: bold; }
-        .warning { color: #d63031; font-size: 14px; font-weight: bold; margin-top: 10px; text-align: center; padding: 10px; background: rgba(253, 114, 114, 0.2); border-radius: 8px; }
+        .char-count { font-size: 13px; color: #555; text-align: right; margin-top: 5px; font-weight: bold; }
+        .warning { color: #d63031; font-size: 14px; font-weight: bold; margin-top: 10px; text-align: center; padding: 10px; background: rgba(253, 114, 114, 0.1); border-radius: 8px; }
         
-        /* 📊 관리자 대시보드 및 테이블 */
-        .status-summary { background: rgba(255, 255, 255, 0.8); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; }
-        .class-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
-        .tab-btn { background-color: rgba(255,255,255,0.5); color: #4a5568; padding: 10px 20px; border-radius: 20px; width: auto; box-shadow: none; }
-        .tab-btn.active { background-color: #74b9ff; color: white; }
-        
+        /* 📋 관리자 대시보드 및 테이블 */
+        .status-summary { background: rgba(255, 255, 255, 0.9); padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; }
         .table-container { overflow-x: auto; background: rgba(255, 255, 255, 0.9); border-radius: 12px; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th, td { border-bottom: 1px solid #e2e8f0; padding: 15px; text-align: left; vertical-align: top; }
-        th { background-color: #f8f9fa; text-align: center; font-weight: bold; color: #2d3436; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; font-size: 14px; }
+        th, td { border-bottom: 1px solid #e2e8f0; padding: 12px; text-align: left; vertical-align: top; }
+        th { background-color: #f1f4f8; text-align: center; color: #2d3436; }
         
-        .edit-btn { background-color: #dfe6e9; color: #2d3436; padding: 4px 8px; font-size: 12px; width: auto; border-radius: 6px; box-shadow: none; margin-top: 5px; }
-        .pick-btn { background-color: #ffeaa7; color: #2d3436; padding: 8px 12px; font-size: 14px; width: auto; border-radius: 8px; box-shadow: none; }
-        .pick-btn.picked { background-color: #fdcb6e; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
+        .edit-btn { background-color: #dfe6e9; color: #2d3436; padding: 6px 10px; font-size: 12px; width: auto; border-radius: 6px; box-shadow: none; margin-top: 5px; }
+        .pick-btn { background-color: #ffeaa7; color: #2d3436; padding: 6px 10px; font-size: 12px; width: auto; border-radius: 8px; box-shadow: none; }
+        .pick-btn.picked { background-color: #fdcb6e; font-weight: bold; }
 
-        .mode-toggle { position: fixed; bottom: 20px; right: 20px; width: auto; background: #2d3436; border-radius: 30px; z-index: 999; }
-        
-        @keyframes fadeInRow { from { opacity: 0; transform: translateY(-10px); background-color: #e8f4fd; } to { opacity: 1; transform: translateY(0); background-color: transparent; } }
-        .new-row { animation: fadeInRow 0.8s ease-out forwards; }
+        /* 📌 패들렛 스타일 아카이브 (학생 뷰) */
+        .padlet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; margin-top: 20px; }
+        .padlet-card { 
+            background: rgba(255,255,255,0.9); padding: 20px; border-radius: 15px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            border-top: 5px solid #a2c2e8; 
+            line-height: 1.6; word-break: break-all;
+        }
+        .padlet-card.picked-card { border-top: 5px solid #fdcb6e; background: #fffdf5; }
+
+        /* 🔐 관리자 진입 버튼 (최하단) */
+        .admin-footer { text-align: center; padding: 20px; margin-top: auto; }
+        .admin-footer button { background: none; color: #a0aec0; box-shadow: none; width: auto; font-size: 12px; padding: 5px; }
+        .admin-footer button:hover { background: none; color: #718096; transform: none; text-decoration: underline; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
     </style>
 </head>
 <body>
 
-<button class="mode-toggle" onclick="toggleMode()">🔄 학생 / 교사 모드 전환</button>
-
-<!-- ==================== 👨‍🎓 학생 화면 ==================== -->
-<div id="student-view">
-    <div class="glass-container">
-        <h1>📝 2026 인천동양중 생각 Check</h1>
+<div class="glass-container">
+    <h1 id="main-title">2026 인천동양중학교 역사 수업 : 생각 Check</h1>
+    
+    <!-- ==================== 👨‍🎓 학생 화면 ==================== -->
+    <div id="student-view">
         
+        <!-- 1. 로그인 화면 -->
         <div id="login-section">
             <div class="form-group">
                 <label>학번 (5자리)</label>
@@ -107,84 +127,147 @@
             <button onclick="login()">접속하기</button>
         </div>
 
-        <div id="lecture-list-section" class="hidden">
-            <h2>📚 오늘의 강의 선택</h2>
-            <div id="student-lecture-list">
-                <p style="text-align:center; color:#666;">데이터를 불러오는 중입니다...</p>
+        <!-- 로그인 후 보이는 헤더(탭) -->
+        <div id="student-nav" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <span id="welcome-msg" style="font-weight: bold; color: #2c3e50;"></span>
+                <button class="btn-logout" onclick="logout()">로그아웃</button>
+            </div>
+            <div class="nav-tabs">
+                <button id="tab-btn-today" class="active" onclick="switchStudentTab('today')">오늘의 강의</button>
+                <button id="tab-btn-archive" onclick="switchStudentTab('archive')">생각 체크 아카이브</button>
             </div>
         </div>
 
-        <div id="writing-section" class="hidden">
-            <h2 id="lecture-title-display"></h2>
-            <div class="form-group">
-                <label>💡 오늘의 질문</label>
-                <p id="lecture-question-display" style="font-size: 1.1em; line-height: 1.5; font-weight: bold;"></p>
-                <p id="lecture-reference-display" style="font-size: 14px; color: #555; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px;" class="hidden"></p>
-                
-                <textarea id="answer-text" rows="8" placeholder="자신의 생각을 자유롭게 적어주세요. (AI 복붙 방지 작동 중!)"></textarea>
-                <div class="char-count">글자 수 (공백 제외): <span id="count-display">0</span>자</div>
-                <div id="cheat-warning" class="warning hidden">⚠️ 다른 화면으로 이동한 기록이 있습니다. 본인의 생각으로 직접 작성해주세요!</div>
+        <!-- 2. 오늘의 강의 탭 (강의 선택 & 글쓰기) -->
+        <div id="student-today-section" class="hidden">
+            <div id="lecture-list-area">
+                <h3 style="text-align: center;">📚 오늘의 강의 선택</h3>
+                <div id="student-lecture-list"></div>
             </div>
-            <button onclick="submitAnswer()">제출하기</button>
+
+            <div id="writing-area" class="hidden fade-in">
+                <button onclick="cancelWriting()" style="background:#dfe6e9; color:#2d3436; width:auto; padding:8px 12px; margin-bottom:15px; font-size:13px;">🔙 목록으로</button>
+                <h2 id="lecture-title-display"></h2>
+                <div class="form-group">
+                    <label style="font-size: 1.1em; color: #e17055;">💡 오늘의 질문</label>
+                    <p id="lecture-question-display" style="font-size: 1.1em; line-height: 1.5; font-weight: bold;"></p>
+                    <p id="lecture-reference-display" style="font-size: 1.2em; color: #2c3e50; font-weight: bold; background: rgba(255,255,255,0.6); padding: 15px; border-radius: 12px;" class="hidden"></p>
+                    
+                    <textarea id="answer-text" rows="8" placeholder="본인의 생각을 이유와 함께 작성해 봅시다."></textarea>
+                    <div class="char-count">글자 수 (공백 제외): <span id="count-display">0</span>자</div>
+                    <div id="cheat-warning" class="warning hidden">⚠️ 다른 화면으로 이동한 기록이 있습니다. 직접 작성해주세요!</div>
+                </div>
+                <button onclick="submitAnswer()">제출하기</button>
+            </div>
         </div>
+
+        <!-- 3. 생각 체크 아카이브 탭 -->
+        <div id="student-archive-section" class="hidden">
+            <h3 style="text-align: center;">📖 생각 체크 아카이브</h3>
+            <div id="student-archive-lecture-list"></div>
+            <div id="padlet-area" class="hidden fade-in">
+                <button onclick="closePadlet()" style="background:#dfe6e9; color:#2d3436; width:auto; padding:8px 12px; margin-bottom:15px; font-size:13px;">🔙 아카이브 목록으로</button>
+                <h2 id="padlet-title" style="text-align: center;"></h2>
+                <div id="padlet-grid" class="padlet-grid">
+                    <!-- 포스트잇 카드들이 여기에 생성됩니다 -->
+                </div>
+            </div>
+        </div>
+
     </div>
-</div>
 
-<!-- ==================== 👨‍🏫 교사(관리자) 화면 ==================== -->
-<div id="admin-view" class="hidden">
-    <div class="glass-container" style="max-width: 1000px;">
-        <h1>👨‍🏫 선생님 대시보드</h1>
+    <!-- ==================== 👨‍🏫 교사(관리자) 화면 ==================== -->
+    <div id="admin-view" class="hidden">
         
-        <div style="background: rgba(255,255,255,0.7); padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #eee;">
-            <h3>➕ 새 강의 열기</h3>
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <input type="text" id="new-lecture-title" placeholder="강의명 (예: 12강 일제강점기 민족의 저항)" style="flex: 1;">
-            </div>
-            <div style="margin-bottom: 10px;">
-                <input type="text" id="new-lecture-question" placeholder="오늘의 생각 질문 입력">
-            </div>
-            <div style="margin-bottom: 10px;">
-                <input type="text" id="new-lecture-reference" placeholder="참고용 글 (선택사항, 학생 화면에 표시됨)">
-            </div>
-            <button class="btn-green" onclick="addLecture()">학생들에게 강의 공개하기</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0;">👨‍🏫 관리자 모드</h2>
+            <button class="btn-logout" onclick="exitAdmin()">닫기</button>
         </div>
 
-        <div class="status-summary">
-            <h2 style="margin: 0;">제출 완료: <span id="total-submitted-count" style="color: #e74c3c; font-size: 1.5em;">0</span> 명</h2>
+        <div class="nav-tabs">
+            <button id="admin-tab-lectures" class="active" onclick="switchAdminTab('lectures')">강의 목록</button>
+            <button id="admin-tab-answers" onclick="switchAdminTab('answers')">생각 체크 답변 보기</button>
+            <button id="admin-tab-archive" onclick="switchAdminTab('archive')">아카이브 제작</button>
         </div>
 
-        <div class="class-tabs">
-            <button class="tab-btn active" onclick="filterClass('all')">전체보기</button>
-            <button class="tab-btn" onclick="filterClass('1')">1반</button>
-            <button class="tab-btn" onclick="filterClass('2')">2반</button>
-            <button class="tab-btn" onclick="filterClass('3')">3반</button>
-            <button class="tab-btn" onclick="filterClass('4')">4반</button>
-            <button class="tab-btn" onclick="filterClass('5')">5반</button>
-            <button class="tab-btn" onclick="filterClass('6')">6반</button>
-            <button class="tab-btn" onclick="filterClass('picked')" style="background-color: #ffeaa7;">⭐ 픽 모아보기</button>
+        <!-- 1. 강의 목록 탭 (추가 및 수정) -->
+        <div id="admin-lectures-section" class="fade-in">
+            <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <h3>➕ 새 강의 열기</h3>
+                <input type="text" id="new-lecture-title" placeholder="강의명 (예: 1강 선사시대)" style="margin-bottom: 10px;">
+                <input type="text" id="new-lecture-question" placeholder="오늘의 생각 질문 입력" style="margin-bottom: 10px;">
+                <input type="text" id="new-lecture-reference" placeholder="참고 글 (선택사항)" style="margin-bottom: 10px;">
+                <button class="btn-green" onclick="addLecture()">강의 생성</button>
+            </div>
+            <h3>📌 개설된 강의 목록</h3>
+            <div id="admin-lecture-list-container"></div>
         </div>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 15%;">학번/이름</th>
-                        <th style="width: 55%;">답변 내용</th>
-                        <th style="width: 15%;">분석</th>
-                        <th style="width: 15%;">관리</th>
-                    </tr>
-                </thead>
-                <tbody id="realtime-table-body">
-                    <!-- 실시간 데이터 렌더링 영역 -->
-                </tbody>
-            </table>
+        <!-- 2. 생각 체크 답변 보기 탭 -->
+        <div id="admin-answers-section" class="hidden fade-in">
+            <select id="admin-lecture-select" onchange="renderAnswersTable()" style="margin-bottom: 15px;">
+                <option value="">강의를 선택하세요</option>
+            </select>
+            
+            <div class="nav-tabs" style="margin-bottom: 10px;">
+                <button class="class-filter active" onclick="setAnswerFilter('all', this)">전체보기</button>
+                <button class="class-filter" onclick="setAnswerFilter('1', this)">1반</button>
+                <button class="class-filter" onclick="setAnswerFilter('2', this)">2반</button>
+                <button class="class-filter" onclick="setAnswerFilter('3', this)">3반</button>
+                <button class="class-filter" onclick="setAnswerFilter('4', this)">4반</button>
+                <button class="class-filter" onclick="setAnswerFilter('5', this)">5반</button>
+                <button class="class-filter" onclick="setAnswerFilter('6', this)">6반</button>
+                <button class="class-filter" onclick="setAnswerFilter('picked', this)" style="background:#ffeaa7;">⭐ 픽</button>
+            </div>
+
+            <div class="status-summary">
+                <strong style="color: #2c3e50;">해당 필터 제출 완료: <span id="filter-submit-count" style="color:#e74c3c; font-size: 1.2em;">0</span> 명</strong>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">학생 정보</th>
+                            <th style="width: 50%;">답변 내용</th>
+                            <th style="width: 25%;">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="answers-table-body"></tbody>
+                </table>
+            </div>
         </div>
+
+        <!-- 3. 아카이브 제작 탭 -->
+        <div id="admin-archive-section" class="hidden fade-in">
+            <h3>📂 아카이브 제작 관리</h3>
+            <p style="font-size: 14px; color: #555;">아카이브를 제작하면 학생 화면의 '생각 체크 아카이브' 탭에 패들렛 형태로 공개됩니다.</p>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>강의명</th>
+                            <th>상태</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="archive-manage-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<!-- ==================== ⚙️ 스크립트 (Firebase 연동) ==================== -->
+<!-- 최하단 관리자 진입 버튼 -->
+<div class="admin-footer" id="admin-footer-btn">
+    <button onclick="promptAdmin()">관리자 모드</button>
+</div>
+
+<!-- ==================== ⚙️ 스크립트 ==================== -->
 <script>
-    // 1. Firebase 초기화
+    // 1. Firebase 초기화 (선생님 설정값)
     const firebaseConfig = {
         apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
         authDomain: "ho0911seong-56638.firebaseapp.com",
@@ -194,38 +277,45 @@
         messagingSenderId: "994509567071",
         appId: "1:994509567071:web:be8ed4e8e9b0a833f557ea"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // --- 전역 상태 변수 ---
+    // 전역 변수
     let activeLectures = []; 
     let allSubmissions = []; 
     let currentUser = null; 
     let currentSelectedLecture = null; 
     let startTime = 0; 
     let cheatCount = 0; 
-    let currentClassFilter = 'all'; 
+    let currentAnswerFilter = 'all';
 
-    // 2. 실시간 데이터베이스 구독 (강의 목록)
-    db.collection("lectures").orderBy("createdAt", "asc").onSnapshot((snapshot) => {
+    // --- Firebase 실시간 수신 ---
+    db.collection("lectures").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         activeLectures = [];
         snapshot.forEach((doc) => {
             activeLectures.push({ docId: doc.id, ...doc.data() });
         });
-        renderStudentLectures();
+        if(currentUser) renderStudentLectureList();
+        if(!document.getElementById('admin-view').classList.contains('hidden')){
+            renderAdminLectureList();
+            populateAdminLectureSelect();
+            renderArchiveManageList();
+        }
+        renderStudentArchiveList();
     });
 
-    // 3. 실시간 데이터베이스 구독 (제출 현황)
     db.collection("submissions").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
         allSubmissions = [];
         snapshot.forEach((doc) => {
             allSubmissions.push({ subId: doc.id, ...doc.data() });
         });
-        renderAdminDashboard();
+        if(!document.getElementById('admin-view').classList.contains('hidden')){
+            renderAnswersTable();
+        }
     });
 
-    // --- 👨‍🎓 학생 로직 ---
+    // ==================== 👨‍🎓 학생 모드 ====================
+
     function login() {
         const id = document.getElementById('student-id').value.trim();
         const name = document.getElementById('student-name').value.trim();
@@ -236,23 +326,62 @@
         currentUser = { id, name, verify };
         
         document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('lecture-list-section').classList.remove('hidden');
-        renderStudentLectures();
+        document.getElementById('student-nav').classList.remove('hidden');
+        document.getElementById('welcome-msg').textContent = `${id} ${name} 학생, 환영합니다!`;
+        document.getElementById('admin-footer-btn').classList.add('hidden'); // 로그인 시 관리자 버튼 숨김
+        
+        switchStudentTab('today');
     }
 
-    function renderStudentLectures() {
+    function logout() {
+        currentUser = null;
+        document.getElementById('student-id').value = '';
+        document.getElementById('student-name').value = '';
+        document.getElementById('verify-phrase').value = '';
+        
+        document.getElementById('student-nav').classList.add('hidden');
+        document.getElementById('student-today-section').classList.add('hidden');
+        document.getElementById('student-archive-section').classList.add('hidden');
+        document.getElementById('login-section').classList.remove('hidden');
+        document.getElementById('admin-footer-btn').classList.remove('hidden');
+    }
+
+    function switchStudentTab(tab) {
+        document.getElementById('tab-btn-today').classList.remove('active');
+        document.getElementById('tab-btn-archive').classList.remove('active');
+        document.getElementById('student-today-section').classList.add('hidden');
+        document.getElementById('student-archive-section').classList.add('hidden');
+
+        if(tab === 'today') {
+            document.getElementById('tab-btn-today').classList.add('active');
+            document.getElementById('student-today-section').classList.remove('hidden');
+            renderStudentLectureList();
+            document.getElementById('lecture-list-area').classList.remove('hidden');
+            document.getElementById('writing-area').classList.add('hidden');
+        } else {
+            document.getElementById('tab-btn-archive').classList.add('active');
+            document.getElementById('student-archive-section').classList.remove('hidden');
+            renderStudentArchiveList();
+            document.getElementById('student-archive-lecture-list').classList.remove('hidden');
+            document.getElementById('padlet-area').classList.add('hidden');
+        }
+    }
+
+    // 학생 - 오늘의 강의 목록
+    function renderStudentLectureList() {
         const listContainer = document.getElementById('student-lecture-list');
         listContainer.innerHTML = ''; 
-
         if (activeLectures.length === 0) {
-            listContainer.innerHTML = '<p style="text-align:center; color:#666;">현재 열려있는 강의가 없습니다.<br>선생님의 안내를 기다려주세요.</p>';
+            listContainer.innerHTML = '<p style="text-align:center; color:#666;">개설된 강의가 없습니다.</p>';
             return;
         }
-
         activeLectures.forEach(lecture => {
             const btn = document.createElement('button');
             btn.textContent = lecture.title;
             btn.style.marginBottom = '15px';
+            btn.style.backgroundColor = '#fff';
+            btn.style.color = '#333';
+            btn.style.border = '1px solid #ddd';
             btn.onclick = () => openWritingSection(lecture);
             listContainer.appendChild(btn);
         });
@@ -260,15 +389,15 @@
 
     function openWritingSection(lecture) {
         currentSelectedLecture = lecture;
-        document.getElementById('lecture-list-section').classList.add('hidden');
-        document.getElementById('writing-section').classList.remove('hidden');
+        document.getElementById('lecture-list-area').classList.add('hidden');
+        document.getElementById('writing-area').classList.remove('hidden');
         
         document.getElementById('lecture-title-display').textContent = lecture.title;
         document.getElementById('lecture-question-display').textContent = lecture.question;
         
         const refElement = document.getElementById('lecture-reference-display');
         if (lecture.reference) {
-            refElement.textContent = "참고: " + lecture.reference;
+            refElement.textContent = lecture.reference; // '참고: ' 문구 제거
             refElement.classList.remove('hidden');
         } else {
             refElement.classList.add('hidden');
@@ -281,33 +410,30 @@
         startTime = Date.now(); 
     }
 
-    // 글자수 카운팅 & 복붙 방지
+    function cancelWriting() {
+        document.getElementById('writing-area').classList.add('hidden');
+        document.getElementById('lecture-list-area').classList.remove('hidden');
+    }
+
+    // 글자수 & 이탈 감지
     const textarea = document.getElementById('answer-text');
-    const countDisplay = document.getElementById('count-display');
-    
     textarea.addEventListener('input', function() {
-        const textWithoutSpaces = this.value.replace(/\s/g, ''); 
-        countDisplay.textContent = textWithoutSpaces.length;
+        document.getElementById('count-display').textContent = this.value.replace(/\s/g, '').length;
     });
-
-    textarea.addEventListener('paste', e => { e.preventDefault(); alert('붙여넣기는 차단되어 있습니다. 직접 타이핑해주세요!'); });
+    textarea.addEventListener('paste', e => { e.preventDefault(); alert('직접 타이핑해주세요!'); });
     textarea.addEventListener('contextmenu', e => e.preventDefault());
-
     document.addEventListener('visibilitychange', function() {
-        if (document.hidden && !document.getElementById('writing-section').classList.contains('hidden')) {
+        if (document.hidden && !document.getElementById('writing-area').classList.contains('hidden')) {
             cheatCount++;
             document.getElementById('cheat-warning').classList.remove('hidden');
         }
     });
 
-    // DB에 답변 제출
+    // 제출
     function submitAnswer() {
         const text = textarea.value.trim();
         if(!text) { alert("내용을 작성해주세요!"); return; }
 
-        const textLength = text.replace(/\s/g, '').length;
-        const duration = Math.floor((Date.now() - startTime) / 1000); 
-        
         db.collection("submissions").add({
             lectureDocId: currentSelectedLecture.docId,
             lectureTitle: currentSelectedLecture.title,
@@ -315,24 +441,105 @@
             name: currentUser.name,
             verify: currentUser.verify,
             text: text,
-            textLength: textLength,
-            duration: duration,
+            textLength: text.replace(/\s/g, '').length,
+            duration: Math.floor((Date.now() - startTime) / 1000),
             cheatCount: cheatCount,
             isPicked: false,
             createdAt: Date.now()
         }).then(() => {
-            alert("제출이 완료되었습니다! 수고하셨습니다.");
-            document.getElementById('writing-section').classList.add('hidden');
-            document.getElementById('lecture-list-section').classList.remove('hidden');
-        }).catch((error) => {
-            console.error("Error adding document: ", error);
-            alert("오류가 발생했습니다. 다시 시도해주세요.");
+            alert("제출이 완료되었습니다!");
+            cancelWriting();
         });
     }
 
-    // --- 👨‍🏫 교사(관리자) 로직 ---
+    // 학생 - 아카이브 탭
+    function renderStudentArchiveList() {
+        const listContainer = document.getElementById('student-archive-lecture-list');
+        listContainer.innerHTML = ''; 
+        const archivedLectures = activeLectures.filter(l => l.isArchived);
+        
+        if (archivedLectures.length === 0) {
+            listContainer.innerHTML = '<p style="text-align:center; color:#666;">아직 제작된 아카이브가 없습니다.</p>';
+            return;
+        }
 
-    // DB에 새 강의 추가
+        archivedLectures.forEach(lecture => {
+            const btn = document.createElement('button');
+            btn.textContent = `[아카이브] ${lecture.title}`;
+            btn.style.marginBottom = '15px';
+            btn.style.backgroundColor = '#f1c40f';
+            btn.style.color = '#2d3436';
+            btn.onclick = () => openPadlet(lecture);
+            listContainer.appendChild(btn);
+        });
+    }
+
+    function openPadlet(lecture) {
+        document.getElementById('student-archive-lecture-list').classList.add('hidden');
+        document.getElementById('padlet-area').classList.remove('hidden');
+        document.getElementById('padlet-title').textContent = lecture.title;
+
+        const padletGrid = document.getElementById('padlet-grid');
+        padletGrid.innerHTML = '';
+
+        // 해당 강의 답변 필터링 & 정렬 (픽 우선, 그 다음 분량순)
+        let subs = allSubmissions.filter(s => s.lectureDocId === lecture.docId);
+        subs.sort((a, b) => {
+            if (a.isPicked !== b.isPicked) return b.isPicked ? 1 : -1;
+            return b.textLength - a.textLength;
+        });
+
+        subs.forEach(sub => {
+            const div = document.createElement('div');
+            div.className = `padlet-card ${sub.isPicked ? 'picked-card' : ''}`;
+            div.innerHTML = `
+                ${sub.isPicked ? '<div style="color:#e67e22; font-size:12px; margin-bottom:5px; font-weight:bold;">⭐ 우수 답변</div>' : ''}
+                <div style="font-size: 15px;">${sub.text}</div>
+            `;
+            padletGrid.appendChild(div);
+        });
+    }
+
+    function closePadlet() {
+        document.getElementById('padlet-area').classList.add('hidden');
+        document.getElementById('student-archive-lecture-list').classList.remove('hidden');
+    }
+
+    // ==================== 👨‍🏫 관리자 모드 ====================
+
+    function promptAdmin() {
+        if(prompt("관리자 비밀번호를 입력하세요:") === "ghtjd12!@") {
+            document.getElementById('student-view').classList.add('hidden');
+            document.getElementById('admin-footer-btn').classList.add('hidden');
+            document.getElementById('admin-view').classList.remove('hidden');
+            document.body.style.background = "linear-gradient(135deg, #dfe9f3 0%, #ffffff 100%)";
+            
+            renderAdminLectureList();
+            populateAdminLectureSelect();
+            renderArchiveManageList();
+            switchAdminTab('lectures');
+        } else {
+            alert("비밀번호가 틀렸습니다.");
+        }
+    }
+
+    function exitAdmin() {
+        document.getElementById('admin-view').classList.add('hidden');
+        document.getElementById('student-view').classList.remove('hidden');
+        document.getElementById('admin-footer-btn').classList.remove('hidden');
+        document.body.style.background = "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)";
+    }
+
+    function switchAdminTab(tab) {
+        ['lectures', 'answers', 'archive'].forEach(t => {
+            document.getElementById(`admin-tab-${t}`).classList.remove('active');
+            document.getElementById(`admin-${t}-section`).classList.add('hidden');
+        });
+        document.getElementById(`admin-tab-${tab}`).classList.add('active');
+        document.getElementById(`admin-${tab}-section`).classList.remove('hidden');
+    }
+
+    // 관리자 - 강의 목록
     function addLecture() {
         const title = document.getElementById('new-lecture-title').value.trim();
         const question = document.getElementById('new-lecture-question').value.trim();
@@ -341,109 +548,144 @@
         if (!title || !question) { alert("강의명과 질문을 입력해주세요."); return; }
 
         db.collection("lectures").add({
-            title: title,
-            question: question,
-            reference: reference,
-            createdAt: Date.now()
+            title: title, question: question, reference: reference,
+            isArchived: false, createdAt: Date.now()
         }).then(() => {
-            alert(`[${title}] 강의가 생성되었습니다.`);
             document.getElementById('new-lecture-title').value = '';
             document.getElementById('new-lecture-question').value = '';
             document.getElementById('new-lecture-reference').value = '';
         });
     }
 
-    function filterClass(filterVal) {
-        currentClassFilter = filterVal;
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        renderAdminDashboard();
-    }
-
-    // DB 데이터 수정 (학번/이름)
-    function editStudentInfo(subId) {
-        const target = allSubmissions.find(s => s.subId === subId);
-        if(!target) return;
-
-        const newId = prompt("수정할 학번을 입력하세요:", target.id);
-        if(newId === null) return;
-        const newName = prompt("수정할 이름을 입력하세요:", target.name);
-        if(newName === null) return;
-
-        db.collection("submissions").doc(subId).update({
-            id: newId,
-            name: newName
+    function renderAdminLectureList() {
+        const container = document.getElementById('admin-lecture-list-container');
+        container.innerHTML = '';
+        activeLectures.forEach(lec => {
+            const div = document.createElement('div');
+            div.style.background = 'white'; div.style.padding = '15px'; div.style.borderRadius = '8px'; div.style.marginBottom = '10px';
+            div.innerHTML = `
+                <div style="font-weight:bold; margin-bottom:5px;">${lec.title}</div>
+                <div style="font-size:14px; color:#555;">질문: ${lec.question}</div>
+                <div style="margin-top:10px;">
+                    <button class="edit-btn" onclick="editLecture('${lec.docId}')">수정하기</button>
+                </div>
+            `;
+            container.appendChild(div);
         });
     }
 
-    // DB 데이터 수정 (선생님 픽)
-    function togglePick(subId) {
-        const target = allSubmissions.find(s => s.subId === subId);
-        if(target) {
-            db.collection("submissions").doc(subId).update({
-                isPicked: !target.isPicked
-            });
-        }
+    function editLecture(docId) {
+        const lec = activeLectures.find(l => l.docId === docId);
+        const newTitle = prompt("새 강의명:", lec.title); if(!newTitle) return;
+        const newQuestion = prompt("새 질문:", lec.question); if(!newQuestion) return;
+        const newRef = prompt("새 참고글:", lec.reference || "");
+        
+        db.collection("lectures").doc(docId).update({
+            title: newTitle, question: newQuestion, reference: newRef
+        });
     }
 
-    function renderAdminDashboard() {
-        const tbody = document.getElementById('realtime-table-body');
-        tbody.innerHTML = '';
-        let displayCount = 0;
+    // 관리자 - 답변 보기
+    function populateAdminLectureSelect() {
+        const select = document.getElementById('admin-lecture-select');
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">강의를 선택하세요</option>';
+        activeLectures.forEach(l => {
+            select.innerHTML += `<option value="${l.docId}">${l.title}</option>`;
+        });
+        select.value = currentVal; // 기존 선택 유지
+    }
 
+    function setAnswerFilter(filter, btn) {
+        currentAnswerFilter = filter;
+        document.querySelectorAll('.class-filter').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderAnswersTable();
+    }
+
+    function renderAnswersTable() {
+        const tbody = document.getElementById('answers-table-body');
+        const countSpan = document.getElementById('filter-submit-count');
+        tbody.innerHTML = '';
+        
+        const selectedLectureId = document.getElementById('admin-lecture-select').value;
+        if(!selectedLectureId) { countSpan.textContent = '0'; return; }
+
+        let count = 0;
         allSubmissions.forEach(data => {
+            if(data.lectureDocId !== selectedLectureId) return;
+
             const classStr = data.id.toString();
             const classNumber = classStr.length >= 3 ? classStr.charAt(2) : '';
 
-            if (currentClassFilter === 'picked') {
-                if (!data.isPicked) return;
-            } else if (currentClassFilter !== 'all' && currentClassFilter !== classNumber) {
-                return;
-            }
+            if (currentAnswerFilter === 'picked' && !data.isPicked) return;
+            if (currentAnswerFilter !== 'all' && currentAnswerFilter !== 'picked' && currentAnswerFilter !== classNumber) return;
 
-            displayCount++;
-
-            const tr = document.createElement('tr');
-            tr.className = 'new-row';
+            count++;
             const isSuspicious = data.cheatCount > 0 || data.duration < 10;
             
+            const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="text-align: center;">
-                    <strong>${data.id}</strong><br>${data.name}<br>
-                    <span style="font-size:11px; color:#888;">(확인: ${data.verify})</span><br>
-                    <button class="edit-btn" onclick="editStudentInfo('${data.subId}')">정보 수정</button>
+                <td>
+                    <strong>${data.id} ${data.name}</strong><br>
+                    <span style="font-size:11px; color:#888;">문구: ${data.verify}</span><br>
+                    <span style="font-size:12px; color:#7f8c8d;">${data.textLength}자 / ${data.duration}초</span><br>
+                    ${isSuspicious ? '<span style="color:red; font-size:11px;">⚠️의심</span>' : ''}
                 </td>
-                <td style="line-height: 1.6; word-break: break-all;">
-                    <span style="font-size:12px; color:#3498db; font-weight:bold;">[${data.lectureTitle}]</span><br>
-                    ${data.text}
-                </td>
-                <td style="text-align: center; font-size: 14px;">
-                    <strong>${data.textLength}자</strong><br>
-                    <span style="color: #7f8c8d;">${data.duration}초</span><br>
-                    ${isSuspicious ? '<span style="color: #e74c3c; font-weight: bold; font-size: 12px;">⚠️ 의심</span>' : '<span style="color: #27ae60; font-size: 12px;">✅ 정상</span>'}
-                </td>
-                <td style="text-align: center;">
+                <td style="line-height:1.5;">${data.text}</td>
+                <td>
                     <button class="pick-btn ${data.isPicked ? 'picked' : ''}" onclick="togglePick('${data.subId}')">
                         ${data.isPicked ? '⭐ 픽 취소' : '⭐ 픽 하기'}
+                    </button>
+                    <button class="edit-btn" onclick="deleteSubmission('${data.subId}')" style="background:#ff7675; color:white;">삭제</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        countSpan.textContent = count;
+    }
+
+    function togglePick(subId) {
+        const target = allSubmissions.find(s => s.subId === subId);
+        if(target) db.collection("submissions").doc(subId).update({ isPicked: !target.isPicked });
+    }
+    
+    function deleteSubmission(subId) {
+        if(confirm("이 학생의 제출 데이터를 삭제하시겠습니까?")) {
+            db.collection("submissions").doc(subId).delete();
+        }
+    }
+
+    // 관리자 - 아카이브 제작
+    function renderArchiveManageList() {
+        const tbody = document.getElementById('archive-manage-table-body');
+        tbody.innerHTML = '';
+        activeLectures.forEach(l => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${l.title}</td>
+                <td style="color: ${l.isArchived ? '#27ae60' : '#7f8c8d'}; font-weight:bold;">
+                    ${l.isArchived ? '✅ 발행됨' : '미발행'}
+                </td>
+                <td>
+                    <button onclick="toggleArchive('${l.docId}', ${l.isArchived})" style="background:${l.isArchived ? '#e74c3c' : '#74b9ff'}; padding:5px; font-size:12px;">
+                        ${l.isArchived ? '아카이브 내리기' : '아카이브 제작'}
                     </button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
-
-        document.getElementById('total-submitted-count').textContent = displayCount;
     }
 
-    // --- 🔄 테스트 편의를 위한 모드 전환 기능 ---
-    let isStudentMode = true;
-    function toggleMode() {
-        isStudentMode = !isStudentMode;
-        if(isStudentMode) {
-            document.getElementById('student-view').classList.remove('hidden');
-            document.getElementById('admin-view').classList.add('hidden');
+    function toggleArchive(docId, currentStatus) {
+        if(!currentStatus) {
+            if(confirm("이 강의의 아카이브를 제작하여 학생들에게 공개하시겠습니까?")) {
+                db.collection("lectures").doc(docId).update({ isArchived: true });
+            }
         } else {
-            document.getElementById('student-view').classList.add('hidden');
-            document.getElementById('admin-view').classList.remove('hidden');
+            if(confirm("아카이브를 학생 화면에서 숨기시겠습니까?")) {
+                db.collection("lectures").doc(docId).update({ isArchived: false });
+            }
         }
     }
 </script>
