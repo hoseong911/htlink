@@ -14,6 +14,56 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         html { font-family:'Noto Serif KR',serif; background:var(--ink); }
 
+        /* ★ 내비게이션 모드 배너 */
+        #nav-mode-banner{
+            display:none;position:fixed;top:0;left:0;right:0;z-index:1000;
+            background:linear-gradient(90deg,#c4973a,#e8d9b8);
+            color:var(--ink);font-size:11px;font-weight:700;
+            padding:5px 10px;text-align:center;letter-spacing:.04em;
+            box-shadow:0 2px 6px rgba(0,0,0,0.3);
+            font-family:'DM Mono',monospace;
+        }
+        #nav-mode-banner.show{display:block;}
+        #nav-mode-banner .nm-pill{
+            display:inline-block;background:rgba(0,0,0,0.18);padding:1px 7px;border-radius:8px;font-size:10px;margin-right:5px;
+        }
+        body.nav-mode-on #hud{ top:24px; }
+        body.nav-mode-on #progress-wrap{ top:72px; }
+        body.nav-mode-on #page{ margin-top:102px; }
+
+        /* ★ 내비게이션 화살표 바 */
+        #nav-arrow-bar{
+            display:none;position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+            z-index:600;width:calc(100% - 24px);max-width:520px;
+            background:rgba(26,18,8,0.96);backdrop-filter:blur(14px);
+            border:1.5px solid var(--sepia);border-radius:10px;
+            padding:8px 10px;display:flex;align-items:center;gap:8px;
+            box-shadow:0 8px 24px rgba(0,0,0,0.6);
+        }
+        #nav-arrow-bar.show{display:flex;}
+        .nav-arrow-btn{
+            flex:0 0 auto;width:48px;height:42px;
+            background:var(--parchment);color:var(--ink);
+            border:none;border-radius:6px;font-size:18px;font-weight:700;cursor:pointer;
+            font-family:'DM Mono',monospace;
+            transition:transform .12s,opacity .15s;
+        }
+        .nav-arrow-btn:active{transform:translateY(1px);}
+        .nav-arrow-btn:disabled{opacity:.35;cursor:default;}
+        .nav-arrow-info{
+            flex:1;text-align:center;font-size:11px;color:var(--parchment);line-height:1.35;
+            font-family:'DM Mono',monospace;
+        }
+        .nav-arrow-info b{display:block;color:var(--sepia-light);font-size:13px;font-weight:700;margin-bottom:1px;font-family:'Noto Serif KR',serif;}
+
+        /* ★ 내비게이션 모드 — 입력/제출 버튼 잠금 */
+        body.nav-mode-on #text-answer,
+        body.nav-mode-on #photo-upload,
+        body.nav-mode-on .file-upload-wrapper,
+        body.nav-mode-on #submit-btn{
+            pointer-events:none !important;opacity:.5 !important;
+        }
+
         #login-screen {
             position:fixed; inset:0; z-index:3000; background:var(--parchment);
             display:flex; flex-direction:column; justify-content:center; align-items:center; padding:32px 24px;
@@ -100,6 +150,17 @@
         #mission-desc { font-size:15px; color:#5a4520; line-height:1.75; margin-bottom:6px; padding:14px 16px; background:rgba(139,105,20,0.07); border-left:3px solid var(--sepia-light); border-radius:0 6px 6px 0; }
         #mission-verify { font-family:'DM Mono',monospace; font-size:12px; color:var(--sepia); margin-bottom:18px; padding:8px 12px; background:rgba(139,105,20,0.05); border-radius:4px; }
 
+        /* ★ 내비게이션 모드 — 미리보기 카드 */
+        #nav-preview-card{
+            display:none;margin-bottom:14px;padding:14px 16px;
+            background:rgba(196,151,58,0.12);border:1.5px dashed var(--sepia-light);
+            border-radius:6px;
+        }
+        #nav-preview-card.show{display:block;}
+        .nav-prev-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--sepia);letter-spacing:.12em;margin-bottom:6px;font-weight:700;}
+        .nav-prev-text{font-size:13px;color:#5a4520;line-height:1.65;}
+        .nav-prev-text strong{color:var(--ink);font-weight:700;}
+
         #text-answer-section { display:none; margin-bottom:14px; }
         #text-answer-section textarea { width:100%; padding:12px 14px; border:1.5px solid var(--parchment-dark); border-radius:6px; font-family:'Noto Serif KR',serif; font-size:15px; color:var(--ink); background:white; outline:none; resize:none; height:80px; }
         #text-answer-section textarea::placeholder { color:#b0956a; }
@@ -136,6 +197,9 @@
     </style>
 </head>
 <body>
+
+<!-- ★ 내비게이션 모드 배너 -->
+<div id="nav-mode-banner"><span class="nm-pill">👁 PREVIEW</span>둘러보기 모드입니다 · 기록은 저장되지 않아요</div>
 
 <!-- 로그인 -->
 <div id="login-screen">
@@ -236,6 +300,11 @@
             <h2 id="mission-title">미션 제목</h2>
             <p id="mission-desc">미션 설명</p>
             <p id="mission-verify"></p>
+            <!-- ★ 내비게이션 모드 미리보기 카드 -->
+            <div id="nav-preview-card">
+                <div class="nav-prev-label">👁 둘러보기 모드 미리보기</div>
+                <div class="nav-prev-text" id="nav-prev-content"></div>
+            </div>
             <div id="already-done-badge">
                 <span class="badge-icon">✅</span>
                 <span class="badge-text">이미 완료한 미션입니다</span>
@@ -252,6 +321,16 @@
         </div>
     </div>
 
+</div>
+
+<!-- ★ 내비게이션 화살표 바 -->
+<div id="nav-arrow-bar">
+    <button class="nav-arrow-btn" id="nav-prev-btn" onclick="navStep(-1)">◀</button>
+    <div class="nav-arrow-info">
+        <b id="nav-step-title">지도</b>
+        <span id="nav-step-pos">1 / 11</span>
+    </div>
+    <button class="nav-arrow-btn" id="nav-next-btn" onclick="navStep(1)">▶</button>
 </div>
 
 <!-- 오버레이 -->
@@ -321,11 +400,21 @@
     };
     let MISSIONS = JSON.parse(JSON.stringify(DEFAULT_MISSIONS));
     const TOTAL  = Object.keys(MISSIONS).length;
+    const MISSION_KEYS = Object.keys(DEFAULT_MISSIONS);
+    // ★ 내비게이션 순회: 0=지도, 1~10=각 미션
+    const NAV_STEPS = [
+        { kind:'map', title:'지도 (전체 보기)' },
+        ...MISSION_KEYS.map(k => ({ kind:'mission', missionKey:k, title:`${DEFAULT_MISSIONS[k].name}` })),
+    ];
 
     let currentMission = '';
     let isSubmitting   = false;
     const completedSet = new Set();
     let labelTimer     = null;
+
+    // ★ 내비게이션 모드 상태
+    let navMode = false;
+    let navStepIndex = 0;
 
     function showToast(msg, dur=2500) {
         const el=document.getElementById('toast');
@@ -358,6 +447,11 @@
         document.querySelectorAll('.marker').forEach(el=>el.classList.remove('active-marker','label-show'));
         document.querySelectorAll('.m-tab').forEach(el=>el.classList.remove('active'));
         scrollToMap();
+        // ★ 내비게이션 모드: 지도 단계로 인덱스 동기화
+        if (navMode) {
+            navStepIndex = 0;
+            updateNavBarUI();
+        }
     };
 
     function renderDynamicUI() {
@@ -446,11 +540,28 @@
         document.getElementById('file-name-display').style.display='none';
 
         const isDone=completedSet.has(key);
-        document.getElementById('already-done-badge').classList.toggle('show',isDone);
-        document.getElementById('submit-btn').disabled=isDone;
+        document.getElementById('already-done-badge').classList.toggle('show', !navMode && isDone);
+        document.getElementById('submit-btn').disabled = navMode || isDone;
+
+        // ★ 내비게이션 모드: 미리보기 카드 보여주기
+        const navPrev = document.getElementById('nav-preview-card');
+        const navPrevContent = document.getElementById('nav-prev-content');
+        if (navMode) {
+            navPrev.classList.add('show');
+            const typeText = m.type === 'text+photo' ? '<strong>텍스트 답변 + 사진</strong> 제출 미션' : '<strong>사진 인증</strong> 미션';
+            navPrevContent.innerHTML = `${typeText}<br>실제 활동에서는 학생이 ${m.type === 'text+photo' ? '답변과 사진을 함께' : '사진을'} 제출해 미션을 완료합니다. 둘러보기 모드에서는 모든 입력·제출이 비활성화되어 있어요.`;
+        } else {
+            navPrev.classList.remove('show');
+        }
 
         document.getElementById('mission-panel').classList.add('open');
         setTimeout(scrollToMissionPanel, 50);
+
+        // ★ 내비게이션 모드: 화살표 인덱스 동기화
+        if (navMode) {
+            const idx = NAV_STEPS.findIndex(s => s.kind === 'mission' && s.missionKey === key);
+            if (idx >= 0) { navStepIndex = idx; updateNavBarUI(); }
+        }
     };
 
     document.getElementById('photo-upload').addEventListener('change',function(e){
@@ -460,6 +571,7 @@
     });
 
     window.submitMission = async function() {
+        if (navMode) { showToast('둘러보기 모드에서는 제출되지 않아요.'); return; }
         if(isSubmitting) return;
         const m=MISSIONS[currentMission];
         const file=document.getElementById('photo-upload').files[0];
@@ -514,6 +626,71 @@
             isSubmitting=false;
         }
     };
+
+    // ════════════════════════════════════════════════
+    // ★ 내비게이션 모드 — 진입 / 종료 / 스텝 이동
+    // ════════════════════════════════════════════════
+    async function enterNavMode() {
+        navMode = true;
+        document.body.classList.add('nav-mode-on');
+        document.getElementById('nav-mode-banner').classList.add('show');
+        document.getElementById('nav-arrow-bar').classList.add('show');
+
+        // 로그인 화면 닫기
+        loginScreen.style.display = 'none';
+        document.getElementById('hud-user').textContent = '👁 둘러보기 모드';
+
+        await loadMissionData();
+        navStepIndex = 0;
+        updateNavBarUI();
+        // 지도 화면으로
+        document.getElementById('mission-panel').classList.remove('open');
+        scrollToMap();
+    }
+
+    function exitNavMode() {
+        navMode = false;
+        document.body.classList.remove('nav-mode-on');
+        document.getElementById('nav-mode-banner').classList.remove('show');
+        document.getElementById('nav-arrow-bar').classList.remove('show');
+        // 새로고침으로 깔끔하게 초기화
+        location.reload();
+    }
+
+    function updateNavBarUI() {
+        const step = NAV_STEPS[navStepIndex];
+        if (!step) return;
+        document.getElementById('nav-step-title').textContent = step.title;
+        document.getElementById('nav-step-pos').textContent = `${navStepIndex+1} / ${NAV_STEPS.length}`;
+        document.getElementById('nav-prev-btn').disabled = navStepIndex === 0;
+        document.getElementById('nav-next-btn').disabled = navStepIndex === NAV_STEPS.length - 1;
+    }
+
+    window.navStep = function(delta) {
+        const ni = navStepIndex + delta;
+        if (ni < 0 || ni >= NAV_STEPS.length) return;
+        navStepIndex = ni;
+        const step = NAV_STEPS[navStepIndex];
+        if (step.kind === 'map') {
+            document.getElementById('mission-panel').classList.remove('open');
+            document.querySelectorAll('.marker').forEach(el=>el.classList.remove('active-marker','label-show'));
+            document.querySelectorAll('.m-tab').forEach(el=>el.classList.remove('active'));
+            scrollToMap();
+            updateNavBarUI();
+        } else if (step.kind === 'mission') {
+            openMission(step.missionKey); // openMission 안에서 navBar UI도 동기화됨
+        }
+    };
+
+    // ★ 내비게이션 모드 watcher
+    onValue(dbRef(db, 'settings/navMode2'), snap => {
+        const enabled = snap.exists() ? snap.val() : false;
+        if (enabled && !navMode) {
+            enterNavMode();
+        } else if (!enabled && navMode) {
+            exitNavMode();
+        }
+    });
 </script>
 </body>
 </html>
