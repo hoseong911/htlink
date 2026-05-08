@@ -146,12 +146,12 @@
         <div class="box">
             <div class="section-title">분야별 실시간 뉴스</div>
             <div class="tabs" id="tab-container">
-                <button class="tab-btn active" data-category="전체" onclick="filterNews('전체')">전체</button>
-                <button class="tab-btn" data-category="정치" onclick="filterNews('정치')">정치</button>
-                <button class="tab-btn" data-category="중앙제도" onclick="filterNews('중앙제도')">중앙</button>
-                <button class="tab-btn" data-category="지방행정" onclick="filterNews('지방행정')">지방</button>
-                <button class="tab-btn" data-category="군사" onclick="filterNews('군사')">군사</button>
-                <button class="tab-btn" data-category="토지" onclick="filterNews('토지')">토지</button>
+                <button class="tab-btn active" onclick="filterNews('전체', this)">전체</button>
+                <button class="tab-btn" onclick="filterNews('정치', this)">정치</button>
+                <button class="tab-btn" onclick="filterNews('중앙제도', this)">중앙</button>
+                <button class="tab-btn" onclick="filterNews('지방행정', this)">지방</button>
+                <button class="tab-btn" onclick="filterNews('군사', this)">군사</button>
+                <button class="tab-btn" onclick="filterNews('토지', this)">토지</button>
             </div>
             <div class="sort-tabs" id="news-sort-tabs">
                 <button class="sort-btn active" data-sort="latest" onclick="setNewsSort('latest')">⏰ 최신순</button>
@@ -499,11 +499,19 @@
         renderAdFeed();
     };
 
-    window.filterNews = function(category) {
+    window.filterNews = function(category, btnEl) {
         currentNewsCategory = category;
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.category === category);
-        });
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        if (btnEl) {
+            btnEl.classList.add('active');
+        } else {
+            // 프로그래밍 방식 호출 시 onclick 속성에서 매칭
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${category}'`)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
         renderNewsFeed();
     };
 
