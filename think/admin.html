@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Admin — 생각 Check</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --bg-base: #0a0a0a;
+            --bg-surface: #141414;
+            --bg-interactive: #1c1c1c;
+            --bg-card-hover: #222;
+            --brand-green: #1ed760;
+            --brand-green-hover: #1db954;
+            --brand-accent: #3d91f4;
+            --text-base: #ffffff;
+            --text-muted: #a0a0a0;
+            --text-error: #f3727f;
+            --border-gray: #333;
+            --shadow-heavy: rgba(0,0,0,0.6) 0px 12px 32px;
+            --shadow-medium: rgba(0,0,0,0.3) 0px 4px 12px;
+            --input-inset: rgb(10,10,10) 0px 1px 0px, rgb(80,80,80) 0px 0px 0px 1px inset;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', 'Helvetica Neue', sans-serif;
+            background: var(--bg-base); color: var(--text-base);
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+            padding: 24px 16px 80px;
+        }
+        .container { width: 100%; max-width: 960px; }
+
+        /* ── 헤더 ── */
+        .admin-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 4px; margin-bottom: 32px;
+        }
+        .admin-title { font-size: 18px; font-weight: 900; letter-spacing: -0.5px; }
+        .admin-title .badge {
+            display: inline-block; background: var(--brand-green); color: #000;
+            font-size: 10px; font-weight: 900; letter-spacing: 1px; padding: 3px 8px;
+            border-radius: 4px; margin-left: 10px; vertical-align: middle;
+        }
+
+        /* ── 로그인 ── */
+        .login-wrap { max-width: 400px; margin: 80px auto 0; text-align: center; }
+        .login-wrap h1 { font-size: 24px; font-weight: 900; margin-bottom: 8px; }
+        .login-wrap p { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+        .lock-icon { font-size: 48px; margin-bottom: 24px; }
+
+        /* ── 카드 ── */
+        .surface-card {
+            background: var(--bg-surface); border-radius: 12px;
+            padding: 24px; box-shadow: var(--shadow-heavy); margin-bottom: 16px;
+            border: 1px solid var(--border-gray);
+        }
+        .surface-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 16px; color: var(--text-base); }
+
+        /* ── 인풋 ── */
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 7px; text-transform: uppercase; }
+        input[type="text"], input[type="password"], select, textarea {
+            width: 100%; padding: 12px 18px;
+            background: var(--bg-interactive); color: var(--text-base);
+            border: none; border-radius: 8px;
+            box-shadow: var(--input-inset); font-size: 14px; font-family: inherit;
+        }
+        textarea { border-radius: 10px; resize: vertical; line-height: 1.6; }
+        input:focus, textarea:focus, select:focus { outline: 2px solid var(--brand-green); box-shadow: none; }
+        select { cursor: pointer; }
+
+        /* ── 버튼 ── */
+        button { font-family: inherit; cursor: pointer; transition: all 0.15s; border: none; }
+        .btn-primary {
+            background: var(--brand-green); color: #000;
+            padding: 12px 28px; border-radius: 500px;
+            font-size: 13px; font-weight: 800; letter-spacing: 0.5px;
+        }
+        .btn-primary:hover { background: var(--brand-green-hover); }
+        .btn-primary.full { width: 100%; }
+        .btn-outline {
+            background: transparent; color: var(--text-base);
+            border: 1px solid var(--border-gray);
+            padding: 10px 20px; border-radius: 500px; font-size: 13px; font-weight: 700;
+        }
+        .btn-outline:hover { border-color: var(--text-base); }
+        .btn-danger {
+            background: transparent; color: var(--text-error);
+            border: 1px solid var(--text-error);
+            padding: 8px 16px; border-radius: 500px; font-size: 12px; font-weight: 700;
+        }
+        .btn-danger:hover { background: rgba(243,114,127,0.1); }
+        .btn-accent {
+            background: var(--brand-accent); color: #fff;
+            padding: 8px 18px; border-radius: 500px; font-size: 12px; font-weight: 800;
+        }
+        .btn-sm { padding: 8px 16px; font-size: 12px; }
+
+        /* ── 탭 ── */
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+        .nav-tabs button {
+            background: var(--bg-interactive); color: var(--text-muted);
+            padding: 10px 20px; border-radius: 500px; font-size: 13px; font-weight: 700;
+        }
+        .nav-tabs button.active { background: var(--text-base); color: #000; }
+        .nav-tabs button:hover:not(.active) { color: var(--text-base); }
+
+        /* ── 필터 탭 ── */
+        .filter-tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+        .filter-tabs button {
+            background: var(--bg-interactive); color: var(--text-muted);
+            padding: 8px 16px; border-radius: 500px; font-size: 12px; font-weight: 700;
+        }
+        .filter-tabs button.active { background: var(--text-base); color: #000; }
+        .filter-tabs button:hover:not(.active) { color: var(--text-base); }
+        .filter-pick { color: var(--brand-green) !important; }
+
+        /* ── 강의 카드 ── */
+        .lecture-card {
+            background: var(--bg-surface); border-radius: 10px;
+            padding: 20px; margin-bottom: 12px; border: 1px solid var(--border-gray);
+        }
+        .lecture-card .lec-title { font-size: 16px; font-weight: 800; color: var(--brand-green); margin-bottom: 6px; }
+        .lecture-card .lec-q { font-size: 14px; color: var(--text-base); margin-bottom: 4px; }
+        .lecture-card .lec-ref { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+        .inline-edit { background: var(--bg-interactive); padding: 16px; border-radius: 8px; margin-top: 14px; border: 1px solid var(--border-gray); }
+
+        /* ── 테이블 ── */
+        .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-gray); }
+        table { width: 100%; border-collapse: collapse; min-width: 560px; font-size: 14px; }
+        th, td { border-bottom: 1px solid var(--border-gray); padding: 14px 16px; text-align: left; vertical-align: top; }
+        th { color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; background: var(--bg-interactive); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        /* ── 답변 셀 ── */
+        .answer-cell { line-height: 1.65; color: var(--text-base); }
+        .student-info strong { font-size: 15px; }
+        .student-meta { font-size: 12px; color: var(--text-muted); margin-top: 5px; line-height: 1.5; }
+        .warning-tag { color: var(--text-error); font-size: 11px; font-weight: 800; margin-top: 6px; }
+
+        /* ── PICK 버튼 ── */
+        .pick-btn {
+            background: transparent; border: 1px solid var(--border-gray);
+            color: var(--text-muted); padding: 7px 14px; border-radius: 500px;
+            font-size: 12px; font-weight: 700; display: block; width: 100%; margin-bottom: 8px; text-align: center;
+        }
+        .pick-btn.picked { background: var(--brand-green); color: #000; border-color: var(--brand-green); }
+        .del-btn {
+            background: transparent; border: 1px solid #444;
+            color: var(--text-muted); padding: 7px 14px; border-radius: 500px;
+            font-size: 12px; font-weight: 700; display: block; width: 100%; text-align: center;
+        }
+        .del-btn:hover { border-color: var(--text-error); color: var(--text-error); }
+
+        /* ── 아카이브 테이블 ── */
+        .archive-status { font-size: 12px; font-weight: 800; }
+        .archive-status.on { color: var(--brand-green); }
+        .archive-status.off { color: var(--text-muted); }
+
+        /* ── 통계 칩 ── */
+        .stat-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+        .stat-chip {
+            background: var(--bg-interactive); border-radius: 8px;
+            padding: 10px 18px; font-size: 13px;
+        }
+        .stat-chip .num { font-size: 20px; font-weight: 900; color: var(--brand-green); display: block; }
+
+        /* ── 모달 ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; backdrop-filter: blur(10px);
+        }
+        .modal-box {
+            background: var(--bg-surface); padding: 36px 32px; border-radius: 16px;
+            width: 90%; max-width: 420px; box-shadow: var(--shadow-heavy);
+            text-align: center; border: 1px solid var(--border-gray);
+        }
+        .modal-box h3 { font-size: 18px; font-weight: 800; color: var(--brand-green); margin-bottom: 14px; }
+        .modal-box p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+
+        /* ── 유틸 ── */
+        .hidden { display: none !important; }
+        .empty-msg { text-align: center; color: var(--text-muted); padding: 48px 0; font-size: 14px; }
+        .divider { height: 1px; background: var(--border-gray); margin: 20px 0; }
+        .row { display: flex; gap: 10px; align-items: flex-start; }
+        .row input { margin-bottom: 0; }
+
+        @media (max-width: 600px) {
+            .nav-tabs { flex-wrap: wrap; }
+            .stat-chips { gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- ══════════════════ 로그인 ══════════════════ -->
+    <div id="screen-login">
+        <div class="login-wrap">
+            <div class="lock-icon">🔐</div>
+            <h1>관리자 전용</h1>
+            <p>선생님만 접근할 수 있습니다</p>
+            <div class="surface-card" style="text-align:left;">
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="admin-pw" placeholder="비밀번호를 입력하세요">
+                </div>
+                <div id="pw-error" class="hidden" style="color:var(--text-error); font-size:13px; margin-bottom:12px; font-weight:700;">비밀번호가 틀렸습니다.</div>
+                <button class="btn-primary full" onclick="tryLogin()">접속하기</button>
+            </div>
+            <div style="margin-top:20px; text-align:center;">
+                <a href="check.html" style="color:var(--text-muted); font-size:13px; text-decoration:none;">← 학생 화면으로</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════ 관리자 패널 ══════════════════ -->
+    <div id="screen-admin" class="hidden">
+
+        <div class="admin-header">
+            <div class="admin-title">생각 Check <span class="badge">ADMIN</span></div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <a href="check.html" style="color:var(--text-muted); font-size:13px; text-decoration:none;">학생 화면</a>
+                <a href="archive.html" target="_blank" style="color:var(--text-muted); font-size:13px; text-decoration:none;">전시 페이지 ↗</a>
+                <button class="btn-outline btn-sm" onclick="exitAdmin()">로그아웃</button>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button id="tab-btn-lectures" class="active" onclick="switchTab('lectures')">📚 강의 관리</button>
+            <button id="tab-btn-answers" onclick="switchTab('answers')">📋 답변 관리</button>
+            <button id="tab-btn-archive" onclick="switchTab('archive')">🖼️ 아카이브</button>
+        </div>
+
+        <!-- ── 1. 강의 관리 ── -->
+        <div id="tab-lectures">
+            <div class="surface-card">
+                <h3>새 강의 열기</h3>
+                <div class="form-group">
+                    <label>강의명</label>
+                    <input type="text" id="new-title" placeholder="예: 1강 선사시대">
+                </div>
+                <div class="form-group">
+                    <label>오늘의 질문</label>
+                    <input type="text" id="new-question" placeholder="생각 질문을 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label>참고 문구 (선택)</label>
+                    <input type="text" id="new-reference" placeholder="참고 글이나 자료 출처">
+                </div>
+                <button class="btn-primary full" onclick="addLecture()">강의 생성</button>
+            </div>
+
+            <h3 style="padding:0 4px; margin-bottom:14px;">개설된 강의</h3>
+            <div id="lecture-list-admin"></div>
+        </div>
+
+        <!-- ── 2. 답변 관리 ── -->
+        <div id="tab-answers" class="hidden">
+            <div class="surface-card" style="margin-bottom:20px;">
+                <div class="row" style="flex-wrap:wrap; gap:10px; align-items:center;">
+                    <select id="answer-lecture-select" onchange="renderAnswers()" style="flex:1; min-width:200px; margin-bottom:0;">
+                        <option value="">강의를 선택하세요</option>
+                    </select>
+                    <button class="btn-primary btn-sm" onclick="exportCSV()">CSV 다운로드</button>
+                    <button class="btn-danger btn-sm" onclick="promptDeleteAll()">전체 삭제</button>
+                </div>
+            </div>
+
+            <div id="answer-stats" class="stat-chips hidden"></div>
+
+            <div class="filter-tabs">
+                <button class="active" onclick="setFilter('all', this)">전체</button>
+                <button onclick="setFilter('1', this)">1반</button>
+                <button onclick="setFilter('2', this)">2반</button>
+                <button onclick="setFilter('3', this)">3반</button>
+                <button onclick="setFilter('4', this)">4반</button>
+                <button onclick="setFilter('5', this)">5반</button>
+                <button onclick="setFilter('6', this)">6반</button>
+                <button class="filter-pick" onclick="setFilter('picked', this)">⭐ PICK만</button>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:22%;">학생 정보</th>
+                            <th style="width:58%;">답변</th>
+                            <th style="width:20%; text-align:center;">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="answers-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── 3. 아카이브 ── -->
+        <div id="tab-archive" class="hidden">
+            <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px; padding:0 4px;">
+                공개하면 학생 아카이브 탭과 <a href="archive.html" target="_blank" style="color:var(--brand-green); text-decoration:none;">전시 페이지</a>에 나타납니다.
+            </p>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>강의명</th><th>상태</th><th>조작</th></tr></thead>
+                    <tbody id="archive-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /screen-admin -->
+</div><!-- /container -->
+
+<!-- 모달 -->
+<div id="modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <h3 id="modal-title"></h3>
+        <p id="modal-desc"></p>
+        <input type="password" id="modal-pwd" class="hidden" placeholder="비밀번호" style="margin-bottom:20px;">
+        <div class="modal-actions">
+            <button class="btn-outline btn-sm" onclick="closeModal()">취소</button>
+            <button class="btn-primary btn-sm" id="modal-confirm" style="width:auto; padding:10px 28px;">확인</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Firebase ──
+    const firebaseConfig = {
+        apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
+        authDomain: "ho0911seong-56638.firebaseapp.com",
+        databaseURL: "https://ho0911seong-56638-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "ho0911seong-56638",
+        storageBucket: "ho0911seong-56638.firebasestorage.app",
+        messagingSenderId: "994509567071",
+        appId: "1:994509567071:web:be8ed4e8e9b0a833f557ea"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const ADMIN_PW = "ghtjd12!@";
+
+    let activeLectures = [];
+    let allSubmissions = [];
+    let currentFilter = 'all';
+
+    // ── 구독 (로그인 후 시작) ──
+    let lectureUnsub = null;
+    let submissionUnsub = null;
+
+    function startListeners() {
+        lectureUnsub = db.collection("lectures").orderBy("createdAt","desc").onSnapshot(snap => {
+            activeLectures = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+            renderLectureAdmin();
+            populateLectureSelect();
+            renderArchiveAdmin();
+        });
+        submissionUnsub = db.collection("submissions").orderBy("createdAt","desc").onSnapshot(snap => {
+            allSubmissions = snap.docs.map(d => ({ subId: d.id, ...d.data() }));
+            renderAnswers();
+        });
+    }
+
+    function stopListeners() {
+        if (lectureUnsub) lectureUnsub();
+        if (submissionUnsub) submissionUnsub();
+    }
+
+    // ── 로그인 ──
+    document.getElementById('admin-pw').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+
+    function tryLogin() {
+        const pw = document.getElementById('admin-pw').value;
+        if (pw === ADMIN_PW) {
+            hide('screen-login'); show('screen-admin');
+            startListeners();
+            switchTab('lectures');
+        } else {
+            show('pw-error');
+            document.getElementById('admin-pw').value = '';
+            document.getElementById('admin-pw').focus();
+        }
+    }
+
+    function exitAdmin() {
+        stopListeners();
+        hide('screen-admin'); show('screen-login');
+        document.getElementById('admin-pw').value = '';
+        hide('pw-error');
+    }
+
+    // ── 탭 ──
+    function switchTab(tab) {
+        ['lectures','answers','archive'].forEach(t => {
+            document.getElementById(`tab-btn-${t}`).classList.toggle('active', t === tab);
+            document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+        });
+    }
+
+    // ── 강의 관리 ──
+    function addLecture() {
+        const title = document.getElementById('new-title').value.trim();
+        const question = document.getElementById('new-question').value.trim();
+        const reference = document.getElementById('new-reference').value.trim();
+        if (!title || !question) { alert("강의명과 질문을 입력해주세요."); return; }
+        db.collection("lectures").add({ title, question, reference, isArchived: false, createdAt: Date.now() })
+          .then(() => { ['new-title','new-question','new-reference'].forEach(id => document.getElementById(id).value = ''); });
+    }
+
+    function renderLectureAdmin() {
+        const el = document.getElementById('lecture-list-admin');
+        el.innerHTML = '';
+        if (!activeLectures.length) { el.innerHTML = '<p class="empty-msg">강의가 없습니다.</p>'; return; }
+        activeLectures.forEach(lec => {
+            const subCount = allSubmissions.filter(s => s.lectureDocId === lec.docId).length;
+            const div = document.createElement('div');
+            div.className = 'lecture-card';
+            div.innerHTML = `
+                <div id="view-${lec.docId}">
+                    <div class="lec-title">${lec.title}</div>
+                    <div class="lec-q">Q. ${lec.question}</div>
+                    <div class="lec-ref">참고: ${lec.reference || '없음'} · 제출 ${subCount}건</div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-outline btn-sm" onclick="toggleEdit('${lec.docId}', true)">수정</button>
+                        <button class="btn-danger btn-sm" onclick="deleteLecture('${lec.docId}', '${lec.title}')">강의 삭제</button>
+                    </div>
+                </div>
+                <div id="edit-${lec.docId}" class="inline-edit hidden">
+                    <div class="form-group">
+                        <label>강의명</label>
+                        <input type="text" id="edit-title-${lec.docId}" value="${lec.title}">
+                    </div>
+                    <div class="form-group">
+                        <label>질문</label>
+                        <input type="text" id="edit-q-${lec.docId}" value="${lec.question}">
+                    </div>
+                    <div class="form-group">
+                        <label>참고</label>
+                        <input type="text" id="edit-ref-${lec.docId}" value="${lec.reference || ''}">
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-primary btn-sm" onclick="saveLecture('${lec.docId}')">저장</button>
+                        <button class="btn-outline btn-sm" onclick="toggleEdit('${lec.docId}', false)">취소</button>
+                    </div>
+                </div>`;
+            el.appendChild(div);
+        });
+    }
+
+    function toggleEdit(docId, show) {
+        document.getElementById(`view-${docId}`).classList.toggle('hidden', show);
+        document.getElementById(`edit-${docId}`).classList.toggle('hidden', !show);
+    }
+
+    function saveLecture(docId) {
+        const title = document.getElementById(`edit-title-${docId}`).value.trim();
+        const question = document.getElementById(`edit-q-${docId}`).value.trim();
+        const reference = document.getElementById(`edit-ref-${docId}`).value.trim();
+        if (!title || !question) { alert("강의명과 질문은 필수입니다."); return; }
+        db.collection("lectures").doc(docId).update({ title, question, reference });
+    }
+
+    function deleteLecture(docId, title) {
+        openModal("강의 삭제", `<b>${title}</b>을(를) 삭제하시겠습니까?<br><span style="color:var(--text-error)">모든 답변도 함께 삭제됩니다.</span>`, false, () => {
+            const subs = allSubmissions.filter(s => s.lectureDocId === docId);
+            const batch = db.batch();
+            subs.forEach(s => batch.delete(db.collection("submissions").doc(s.subId)));
+            batch.delete(db.collection("lectures").doc(docId));
+            batch.commit().then(closeModal);
+        });
+    }
+
+    // ── 답변 관리 ──
+    function populateLectureSelect() {
+        const sel = document.getElementById('answer-lecture-select');
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">강의를 선택하세요</option>';
+        activeLectures.forEach(l => sel.innerHTML += `<option value="${l.docId}">${l.title}</option>`);
+        sel.value = cur;
+    }
+
+    function setFilter(f, btn) {
+        currentFilter = f;
+        document.querySelectorAll('.filter-tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderAnswers();
+    }
+
+    function renderAnswers() {
+        const tbody = document.getElementById('answers-tbody');
+        const statsEl = document.getElementById('answer-stats');
+        tbody.innerHTML = '';
+        const lecId = document.getElementById('answer-lecture-select').value;
+        if (!lecId) { statsEl.classList.add('hidden'); return; }
+
+        let subs = allSubmissions.filter(s => s.lectureDocId === lecId);
+        const total = subs.length;
+        const picked = subs.filter(s => s.isPicked).length;
+        const avgLen = total ? Math.round(subs.reduce((a,s) => a + (s.textLength||0), 0) / total) : 0;
+
+        statsEl.classList.remove('hidden');
+        statsEl.innerHTML = `
+            <div class="stat-chip"><span class="num">${total}</span>총 제출</div>
+            <div class="stat-chip"><span class="num">${picked}</span>PICK</div>
+            <div class="stat-chip"><span class="num">${avgLen}</span>평균 글자</div>`;
+
+        if (currentFilter === 'picked') subs = subs.filter(s => s.isPicked);
+        else if (currentFilter !== 'all') subs = subs.filter(s => (s.id?.toString().charAt(2) || '') === currentFilter);
+
+        if (!subs.length) { tbody.innerHTML = `<tr><td colspan="3" class="empty-msg">해당 조건의 답변이 없습니다.</td></tr>`; return; }
+
+        subs.forEach(data => {
+            const classNum = (data.id?.toString().charAt(2)) || '-';
+            const warnings = [];
+            if ((data.duration||0) < 10) warnings.push("작성시간 짧음");
+            if ((data.cheatCount||0) > 0) warnings.push(`이탈 ${data.cheatCount}회`);
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div class="student-info"><strong>${data.id} ${data.name}</strong></div>
+                    <div class="student-meta">${data.textLength}자 · ${data.duration}초 · ${data.verify}</div>
+                    ${warnings.length ? `<div class="warning-tag">⚠ ${warnings.join(', ')}</div>` : ''}
+                </td>
+                <td class="answer-cell">${data.text}</td>
+                <td style="text-align:center; min-width:100px;">
+                    <button class="pick-btn ${data.isPicked ? 'picked' : ''}" onclick="togglePick('${data.subId}')">
+                        ${data.isPicked ? '★ PICK 취소' : '☆ PICK'}
+                    </button>
+                    <button class="del-btn" onclick="deleteSubmission('${data.subId}')">삭제</button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function togglePick(subId) {
+        const t = allSubmissions.find(s => s.subId === subId);
+        if (t) db.collection("submissions").doc(subId).update({ isPicked: !t.isPicked });
+    }
+
+    function deleteSubmission(subId) {
+        openModal("답변 삭제", "이 학생의 답변을 삭제하시겠습니까?", false, () => {
+            db.collection("submissions").doc(subId).delete().then(closeModal);
+        });
+    }
+
+    function promptDeleteAll() {
+        const lecId = document.getElementById('answer-lecture-select').value;
+        if (!lecId) { alert("강의를 먼저 선택하세요."); return; }
+        const lec = activeLectures.find(l => l.docId === lecId);
+        openModal("전체 삭제", `<b>${lec?.title}</b>의 모든 답변을 삭제합니다.<br><span style="color:var(--text-error)">되돌릴 수 없습니다.</span>`, false, () => {
+            const subs = allSubmissions.filter(s => s.lectureDocId === lecId);
+            const batch = db.batch();
+            subs.forEach(s => batch.delete(db.collection("submissions").doc(s.subId)));
+            batch.commit().then(closeModal);
+        });
+    }
+
+    function exportCSV() {
+        const lecId = document.getElementById('answer-lecture-select').value;
+        if (!lecId) { alert("강의를 먼저 선택하세요."); return; }
+        const lec = activeLectures.find(l => l.docId === lecId);
+        let csv = "\uFEFF학번,이름,확인문구,답변,글자수,작성시간(초),이탈횟수,PICK\n";
+        allSubmissions.filter(s => s.lectureDocId === lecId).forEach(d => {
+            const text = (d.text||'').replace(/"/g,'""').replace(/\n/g,' ');
+            csv += `${d.id},${d.name},${d.verify},"${text}",${d.textLength},${d.duration},${d.cheatCount},${d.isPicked?'O':'X'}\n`;
+        });
+        const a = document.createElement('a');
+        a.href = encodeURI("data:text/csv;charset=utf-8," + csv);
+        a.download = `${lec?.title || '답변'}_목록.csv`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    // ── 아카이브 ──
+    function renderArchiveAdmin() {
+        const tbody = document.getElementById('archive-tbody');
+        tbody.innerHTML = '';
+        activeLectures.forEach(lec => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight:700;">${lec.title}</td>
+                <td><span class="archive-status ${lec.isArchived ? 'on' : 'off'}">${lec.isArchived ? '● 공개 중' : '○ 비공개'}</span></td>
+                <td>
+                    <button class="${lec.isArchived ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="toggleArchive('${lec.docId}', ${lec.isArchived})">
+                        ${lec.isArchived ? '내리기' : '공개하기'}
+                    </button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function toggleArchive(docId, current) {
+        const action = current ? '내리기' : '공개하기';
+        const desc = current
+            ? "학생 화면과 전시 페이지에서 숨깁니다."
+            : "학생 화면과 전시 페이지에 공개합니다.";
+        openModal(`아카이브 ${action}`, desc, false, () => {
+            db.collection("lectures").doc(docId).update({ isArchived: !current }).then(closeModal);
+        });
+    }
+
+    // ── 모달 ──
+    function openModal(title, desc, hasInput, onConfirm) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-desc').innerHTML = desc || '';
+        const pwd = document.getElementById('modal-pwd');
+        if (hasInput) { pwd.classList.remove('hidden'); pwd.value = ''; setTimeout(() => pwd.focus(), 50); }
+        else pwd.classList.add('hidden');
+        document.getElementById('modal-confirm').onclick = onConfirm;
+        show('modal');
+    }
+    function closeModal() { hide('modal'); }
+
+    // ── 유틸 ──
+    function show(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+</script>
+</body>
+</html>
