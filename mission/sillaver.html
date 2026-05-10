@@ -51,7 +51,6 @@
         .tab-btn { padding: 9px 18px; border-radius: 20px; border: 1px solid var(--border-gray); background: white; white-space: nowrap; font-size: 14px; cursor: pointer; }
         .tab-btn.active { background: var(--naver-green); color: white; border-color: var(--naver-green); font-weight: 700; }
 
-        /* 정렬 탭 (최신순/좋아요순/픽) */
         .sort-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
         .sort-btn { padding: 7px 14px; border-radius: 16px; border: 1px solid var(--border-gray); background: white; font-size: 13px; cursor: pointer; font-weight: 600; color: #666; }
         .sort-btn.active { background: #333; color: white; border-color: #333; }
@@ -77,10 +76,6 @@
         
         .loading-text { text-align: center; padding: 30px; color: var(--naver-green); font-weight: 700; }
 
-        input.input-error { border-color: #ff4444 !important; }
-        .error-msg { font-size: 12px; color: #ff4444; margin-top: -8px; margin-bottom: 10px; padding-left: 4px; }
-
-        /* 토스트 팝업 */
         .toast-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5000; display: flex; justify-content: center; align-items: flex-start; padding-top: 30vh; }
         .toast { background: linear-gradient(135deg, #ffb300 0%, #ff8c00 100%); color: white; padding: 24px 32px; border-radius: 18px; font-size: 18px; font-weight: 800; box-shadow: 0 10px 40px rgba(255, 140, 0, 0.4); text-align: center; max-width: 85%; transform: scale(0.5); opacity: 0; animation: toastPop 4s ease forwards; pointer-events: auto; }
         .toast .toast-emoji { font-size: 40px; display: block; margin-bottom: 8px; }
@@ -175,7 +170,8 @@
     </div>
 
     <div style="text-align: center; margin-top: 40px; padding-bottom: 20px; color: #999;">
-        <div style="font-size: 14px; font-weight: bold;">SILLAVER v1.2.0</div>
+        <div style="font-size: 14px; font-weight: bold;">SILLAVER v1.3.0</div>
+        <!-- 관리자 링크: 같은 폴더(mission/) 내 -->
         <button onclick="location.href='sillaver_admin.html'" style="background: none; border: none; color: #bbb; cursor: pointer; text-decoration: underline; margin-top: 8px; font-size: 13px;">관리자 모드</button>
     </div>
 </div>
@@ -185,7 +181,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import {
-        getFirestore, collection, addDoc, setDoc, updateDoc, deleteDoc,
+        getFirestore, collection, addDoc, setDoc, updateDoc,
         onSnapshot, query, orderBy, getDocs, getDoc, where, serverTimestamp, doc
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -201,30 +197,19 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let allDocs = [];          // 모든 제출 문서 (좋아요/픽 정보 포함)
-    let currentUserId = "";    // 현재 사용자 학번 (좋아요 식별용)
+    let allDocs = [];
+    let currentUserId = "";
     let currentUserName = "";
-    let currentDocId = "";     // 현재 사용자 본인 문서 ID
+    let currentDocId = "";
     let newsSortMode = "latest";
     let adSortMode = "latest";
     let currentNewsCategory = "전체";
-    let lastPickedSelfTimes = {}; // 본인 글이 픽되었는지 감지하기 위한 시점 추적
+    let lastPickedSelfTimes = {};
     let isFirstSnapshot = true;
 
     function escapeHtml(str) {
         if (typeof str !== 'string') return '';
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#x27;');
-    }
-
-    function formatRelativeTime(ts) {
-        if (!ts) return '';
-        const d = ts.toDate ? ts.toDate() : new Date(ts);
-        return `${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
     }
 
     window.submitSilla = async function() {
@@ -234,84 +219,73 @@
         const keywords = document.getElementById('keywords').value;
         const adContent = document.getElementById('ad-banner').value.trim();
 
-        if (!userId || !userName || !keywords || !adContent) {
-            alert("모든 항목을 빠짐없이 작성해주세요!");
-            return;
-        }
-        if (!/^\d{5}$/.test(userId)) {
-            alert("학번은 숫자 5자리로 입력해주세요!");
-            userIdInput.focus();
-            return;
-        }
+        if (!userId || !userName || !keywords || !adContent) { alert("모든 항목을 빠짐없이 작성해주세요!"); return; }
+        if (!/^\d{5}$/.test(userId)) { alert("학번은 숫자 5자리로 입력해주세요!"); userIdInput.focus(); return; }
 
         const rawArr = keywords.split(',').map(v => v.trim()).filter(v => v !== "");
-        if (rawArr.length < 3) {
-            alert("검색어를 3개 이상 입력해주세요!");
-            return;
-        }
+        if (rawArr.length < 3) { alert("검색어를 3개 이상 입력해주세요!"); return; }
 
         const btn = document.getElementById('main-btn');
-        btn.innerText = "발행 및 연결 중...";
+        btn.innerText = "확인 중...";
         btn.disabled = true;
 
-        // 중복 체크 — 학번 기준
+        // ── 학생 명단 검증 ──────────────────────────
+        try {
+            const rosterSnap = await getDoc(doc(db, "silla_students", userId));
+            if (!rosterSnap.exists()) {
+                alert("명단에 없는 학번입니다.\n학번을 다시 확인해주세요.");
+                btn.innerText = "기사 발행 및 포털 접속"; btn.disabled = false; return;
+            }
+            const rosterName = (rosterSnap.data().studentName || '').trim();
+            if (rosterName !== userName) {
+                alert(`이름이 일치하지 않습니다.\n입력한 이름: ${userName}\n등록된 이름: ${rosterName}`);
+                btn.innerText = "기사 발행 및 포털 접속"; btn.disabled = false; return;
+            }
+        } catch (e) {
+            alert("명단 확인 중 오류: " + e.message);
+            btn.innerText = "기사 발행 및 포털 접속"; btn.disabled = false; return;
+        }
+        // ────────────────────────────────────────────
+
+        btn.innerText = "발행 및 연결 중...";
+
         let existingDocId = null;
         try {
-            const existingQuery = query(collection(db, "silla_v3"), where("studentId", "==", userId));
-            const existingSnap = await getDocs(existingQuery);
+            const existingSnap = await getDocs(query(collection(db, "silla_v3"), where("studentId", "==", userId)));
             if (!existingSnap.empty) {
                 const existingDoc = existingSnap.docs[0];
                 const existingData = existingDoc.data();
                 const ts = existingData.timestamp;
                 let timeStr = '시각 미상';
                 if (ts && ts.toDate) {
-                    const d = ts.toDate();
-                    const pad = n => String(n).padStart(2, '0');
+                    const d = ts.toDate(), pad = n => String(n).padStart(2,'0');
                     timeStr = `${pad(d.getMonth()+1)}월 ${pad(d.getDate())}일 ${pad(d.getHours())}:${pad(d.getMinutes())}`;
                 }
                 const confirmed = confirm(
-                    `이미 제출한 기록이 있습니다.\n\n` +
-                    `▪ 학번: ${existingData.studentId}\n` +
-                    `▪ 이름: ${existingData.studentName}\n` +
-                    `▪ 제출 시각: ${timeStr}\n\n` +
-                    `그래도 다시 제출하시겠습니까?\n(기존 내용은 새 내용으로 덮어쓰기 됩니다.)`
+                    `이미 제출한 기록이 있습니다.\n\n▪ 학번: ${existingData.studentId}\n▪ 이름: ${existingData.studentName}\n▪ 제출 시각: ${timeStr}\n\n그래도 다시 제출하시겠습니까?\n(기존 내용은 새 내용으로 덮어쓰기 됩니다.)`
                 );
-                if (!confirmed) {
-                    btn.innerText = "기사 발행 및 포털 접속";
-                    btn.disabled = false;
-                    return;
-                }
+                if (!confirmed) { btn.innerText = "기사 발행 및 포털 접속"; btn.disabled = false; return; }
                 existingDocId = existingDoc.id;
             }
-        } catch (e) {
-            console.error("중복 확인 실패:", e);
-        }
+        } catch (e) { console.error("중복 확인 실패:", e); }
 
         const newsArr = [];
         document.querySelectorAll('.news-input').forEach(input => {
-            if (input.value.trim() !== "") {
-                newsArr.push({ category: input.dataset.cat, title: input.value.trim() });
-            }
+            if (input.value.trim() !== "") newsArr.push({ category: input.dataset.cat, title: input.value.trim() });
         });
 
         const normalizedKeywords = rawArr.slice(0, 5).map(v => v.replace(/\s+/g, ' ').trim());
 
         try {
             const payload = {
-                studentId: userId,
-                studentName: userName,
-                keywords: normalizedKeywords,
-                news: newsArr,
-                ad: adContent,
+                studentId: userId, studentName: userName,
+                keywords: normalizedKeywords, news: newsArr, ad: adContent,
                 timestamp: serverTimestamp()
             };
 
             if (existingDocId) {
-                // 덮어쓰기 - 기존 좋아요/픽 데이터는 유지하기 위해 setDoc with merge:false 대신 updateDoc 사용하지 않고
-                // 기존 좋아요/픽을 보존: 기존 문서의 likes, picks 가져오기
                 const oldDocRef = doc(db, "silla_v3", existingDocId);
-                const oldSnap = await getDoc(oldDocRef);
-                const oldData = oldSnap.data() || {};
+                const oldData = (await getDoc(oldDocRef)).data() || {};
                 payload.newsLikes = oldData.newsLikes || {};
                 payload.newsPicks = oldData.newsPicks || {};
                 payload.adLikes = oldData.adLikes || [];
@@ -320,27 +294,20 @@
                 await setDoc(oldDocRef, payload);
                 currentDocId = existingDocId;
             } else {
-                payload.newsLikes = {};   // { categoryKey: [likedStudentIds...] }
-                payload.newsPicks = {};   // { categoryKey: { picked: bool, pickedAt: timestamp } }
-                payload.adLikes = [];     // [likedStudentIds...]
-                payload.adPick = false;
-                payload.adPickedAt = null;
+                payload.newsLikes = {}; payload.newsPicks = {};
+                payload.adLikes = []; payload.adPick = false; payload.adPickedAt = null;
                 const newDocRef = await addDoc(collection(db, "silla_v3"), payload);
                 currentDocId = newDocRef.id;
             }
 
-            currentUserId = userId;
-            currentUserName = userName;
-
+            currentUserId = userId; currentUserName = userName;
             document.getElementById('input-view').style.display = 'none';
             document.getElementById('result-view').style.display = 'block';
             window.scrollTo(0, 0);
-
             startListening();
         } catch (e) {
             alert("저장 오류: " + e.message);
-            btn.innerText = "기사 발행 및 포털 접속";
-            btn.disabled = false;
+            btn.innerText = "기사 발행 및 포털 접속"; btn.disabled = false;
         }
     };
 
@@ -349,135 +316,73 @@
         onSnapshot(q, (snapshot) => {
             allDocs = [];
             let trendMap = {};
-
             snapshot.forEach(docSnap => {
                 const data = docSnap.data();
                 allDocs.push({ id: docSnap.id, ...data });
-
                 (data.keywords || []).forEach(word => {
                     const key = word.replace(/\s+/g, '');
-                    if (!trendMap[key]) {
-                        trendMap[key] = { display: word, count: 0 };
-                    }
+                    if (!trendMap[key]) trendMap[key] = { display: word, count: 0 };
                     trendMap[key].count += 1;
                 });
             });
-
-            // 본인 글이 새로 픽 되었는지 확인 → 토스트
             checkPickToast();
-
             renderTrends(trendMap);
             renderNewsFeed();
             renderAdFeed();
-
             isFirstSnapshot = false;
         });
     }
 
     function checkPickToast() {
         if (!currentUserId) return;
-
         const myDoc = allDocs.find(d => d.studentId === currentUserId);
         if (!myDoc) return;
-
-        // 뉴스 픽 체크
         const newsPicks = myDoc.newsPicks || {};
         Object.entries(newsPicks).forEach(([cat, info]) => {
             if (info && info.picked && info.pickedAt) {
                 const pickedTimeMs = info.pickedAt.toMillis ? info.pickedAt.toMillis() : new Date(info.pickedAt).getTime();
-                const trackKey = `news_${cat}`;
-                const lastSeen = lastPickedSelfTimes[trackKey] || 0;
+                const trackKey = `news_${cat}`, lastSeen = lastPickedSelfTimes[trackKey] || 0;
                 if (pickedTimeMs > lastSeen) {
                     lastPickedSelfTimes[trackKey] = pickedTimeMs;
-                    if (!isFirstSnapshot) {
-                        const newsItem = (myDoc.news || []).find(n => n.category === cat);
-                        showPickToast(`"${newsItem ? newsItem.title : cat}"`, '기사');
-                    }
+                    if (!isFirstSnapshot) { const newsItem = (myDoc.news || []).find(n => n.category === cat); showPickToast(`"${newsItem ? newsItem.title : cat}"`, '기사'); }
                 }
             }
         });
-
-        // 광고 픽 체크
         if (myDoc.adPick && myDoc.adPickedAt) {
             const pickedTimeMs = myDoc.adPickedAt.toMillis ? myDoc.adPickedAt.toMillis() : new Date(myDoc.adPickedAt).getTime();
-            const trackKey = `ad`;
-            const lastSeen = lastPickedSelfTimes[trackKey] || 0;
+            const lastSeen = lastPickedSelfTimes['ad'] || 0;
             if (pickedTimeMs > lastSeen) {
-                lastPickedSelfTimes[trackKey] = pickedTimeMs;
-                if (!isFirstSnapshot) {
-                    showPickToast('내가 만든 광고', '광고');
-                }
+                lastPickedSelfTimes['ad'] = pickedTimeMs;
+                if (!isFirstSnapshot) showPickToast('내가 만든 광고', '광고');
             }
         }
-
-        // 첫 스냅샷에서는 기준점만 잡고 토스트는 띄우지 않음
         if (isFirstSnapshot) {
             Object.entries(newsPicks).forEach(([cat, info]) => {
-                if (info && info.picked && info.pickedAt) {
-                    const t = info.pickedAt.toMillis ? info.pickedAt.toMillis() : new Date(info.pickedAt).getTime();
-                    lastPickedSelfTimes[`news_${cat}`] = t;
-                }
+                if (info && info.picked && info.pickedAt) lastPickedSelfTimes[`news_${cat}`] = info.pickedAt.toMillis ? info.pickedAt.toMillis() : new Date(info.pickedAt).getTime();
             });
-            if (myDoc.adPick && myDoc.adPickedAt) {
-                const t = myDoc.adPickedAt.toMillis ? myDoc.adPickedAt.toMillis() : new Date(myDoc.adPickedAt).getTime();
-                lastPickedSelfTimes['ad'] = t;
-            }
+            if (myDoc.adPick && myDoc.adPickedAt) lastPickedSelfTimes['ad'] = myDoc.adPickedAt.toMillis ? myDoc.adPickedAt.toMillis() : new Date(myDoc.adPickedAt).getTime();
         }
     }
 
     function showPickToast(title, kind) {
         const overlay = document.getElementById('toast-overlay');
-        overlay.innerHTML = `
-            <div class="toast">
-                <span class="toast-emoji">⭐</span>
-                선생님 PICK!
-                <span class="toast-sub">${escapeHtml(currentUserName)}님의 ${escapeHtml(kind)}이(가) 선택되었습니다<br>${escapeHtml(title)}</span>
-            </div>
-        `;
+        overlay.innerHTML = `<div class="toast"><span class="toast-emoji">⭐</span>선생님 PICK!<span class="toast-sub">${escapeHtml(currentUserName)}님의 ${escapeHtml(kind)}이(가) 선택되었습니다<br>${escapeHtml(title)}</span></div>`;
         overlay.style.display = 'flex';
         setTimeout(() => { overlay.style.display = 'none'; overlay.innerHTML = ''; }, 4000);
     }
 
     function renderTrends(map) {
-        const sorted = Object.values(map)
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 10);
-
-        let html = "";
-        sorted.forEach((item, i) => {
-            html += `<div class="rank-item">
-                <div class="rank-left">
-                    <span class="rank-num">${i + 1}</span>
-                    <span class="rank-word">${escapeHtml(item.display)}</span>
-                </div>
-                <span class="rank-count">${item.count}회 검색</span>
-            </div>`;
-        });
-        document.getElementById('trend-list').innerHTML = html || "데이터가 없습니다.";
+        document.getElementById('trend-list').innerHTML = Object.values(map).sort((a,b)=>b.count-a.count).slice(0,10).map((item,i) =>
+            `<div class="rank-item"><div class="rank-left"><span class="rank-num">${i+1}</span><span class="rank-word">${escapeHtml(item.display)}</span></div><span class="rank-count">${item.count}회 검색</span></div>`
+        ).join('') || "데이터가 없습니다.";
     }
 
-    // 뉴스 피드: 모든 기사를 평탄화 (각 기사에는 author/studentId/category/likes/picked 포함)
     function getFlattenedNews() {
         const arr = [];
         allDocs.forEach(d => {
             (d.news || []).forEach(n => {
-                const cat = n.category;
-                const likes = (d.newsLikes && d.newsLikes[cat]) || [];
-                const pickInfo = (d.newsPicks && d.newsPicks[cat]) || {};
-                const picked = !!pickInfo.picked;
-                const pickedAt = pickInfo.pickedAt || null;
-                arr.push({
-                    docId: d.id,
-                    title: n.title,
-                    category: cat,
-                    studentId: d.studentId,
-                    studentName: d.studentName,
-                    timestamp: d.timestamp,
-                    likes,
-                    likeCount: likes.length,
-                    picked,
-                    pickedAt
-                });
+                const cat = n.category, likes = (d.newsLikes && d.newsLikes[cat]) || [], pickInfo = (d.newsPicks && d.newsPicks[cat]) || {};
+                arr.push({ docId: d.id, title: n.title, category: cat, studentId: d.studentId, studentName: d.studentName, timestamp: d.timestamp, likes, likeCount: likes.length, picked: !!pickInfo.picked, pickedAt: pickInfo.pickedAt || null });
             });
         });
         return arr;
@@ -485,185 +390,95 @@
 
     window.setNewsSort = function(mode) {
         newsSortMode = mode;
-        document.querySelectorAll('#news-sort-tabs .sort-btn').forEach(b => {
-            b.classList.toggle('active', b.dataset.sort === mode);
-        });
+        document.querySelectorAll('#news-sort-tabs .sort-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === mode));
         renderNewsFeed();
     };
 
     window.setAdSort = function(mode) {
         adSortMode = mode;
-        document.querySelectorAll('#ad-sort-tabs .sort-btn').forEach(b => {
-            b.classList.toggle('active', b.dataset.sort === mode);
-        });
+        document.querySelectorAll('#ad-sort-tabs .sort-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === mode));
         renderAdFeed();
     };
 
     window.filterNews = function(category, btnEl) {
         currentNewsCategory = category;
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        if (btnEl) {
-            btnEl.classList.add('active');
-        } else {
-            // 프로그래밍 방식 호출 시 onclick 속성에서 매칭
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${category}'`)) {
-                    btn.classList.add('active');
-                }
-            });
-        }
+        if (btnEl) btnEl.classList.add('active');
         renderNewsFeed();
     };
 
     function renderNewsFeed() {
         const target = document.getElementById('news-feed');
         let items = getFlattenedNews();
-
-        // 카테고리 필터
-        if (currentNewsCategory !== '전체') {
-            items = items.filter(n => n.category === currentNewsCategory);
-        }
-
-        // 정렬
-        if (newsSortMode === 'latest') {
-            items.sort((a, b) => {
-                const ta = a.timestamp && a.timestamp.toMillis ? a.timestamp.toMillis() : 0;
-                const tb = b.timestamp && b.timestamp.toMillis ? b.timestamp.toMillis() : 0;
-                return tb - ta;
-            });
-        } else if (newsSortMode === 'likes') {
-            items.sort((a, b) => b.likeCount - a.likeCount);
-        } else if (newsSortMode === 'pick') {
-            items = items.filter(n => n.picked);
-            items.sort((a, b) => {
-                const ta = a.pickedAt && a.pickedAt.toMillis ? a.pickedAt.toMillis() : 0;
-                const tb = b.pickedAt && b.pickedAt.toMillis ? b.pickedAt.toMillis() : 0;
-                return tb - ta;
-            });
-        }
-
-        if (items.length === 0) {
-            target.innerHTML = `<p style="padding:20px; color:#999; text-align:center;">${newsSortMode === 'pick' ? '아직 픽된 기사가 없습니다.' : '작성된 기사가 없습니다.'}</p>`;
-            return;
-        }
-
-        let html = "";
-        items.forEach(n => {
+        if (currentNewsCategory !== '전체') items = items.filter(n => n.category === currentNewsCategory);
+        if (newsSortMode === 'latest') items.sort((a,b) => (b.timestamp?.toMillis?.()||0)-(a.timestamp?.toMillis?.()||0));
+        else if (newsSortMode === 'likes') items.sort((a,b) => b.likeCount-a.likeCount);
+        else if (newsSortMode === 'pick') { items = items.filter(n=>n.picked); items.sort((a,b)=>(b.pickedAt?.toMillis?.()||0)-(a.pickedAt?.toMillis?.()||0)); }
+        if (items.length === 0) { target.innerHTML = `<p style="padding:20px;color:#999;text-align:center;">${newsSortMode==='pick'?'아직 픽된 기사가 없습니다.':'작성된 기사가 없습니다.'}</p>`; return; }
+        target.innerHTML = items.map(n => {
             const categoryLabel = currentNewsCategory === '전체' ? ` | ${escapeHtml(n.category)}` : '';
             const liked = currentUserId && n.likes.includes(currentUserId);
-            const pickBadge = n.picked ? `<span class="pick-badge">⭐ PICK</span>` : '';
-            html += `<div class="news-card${n.picked ? ' picked' : ''}">
-                <div class="news-title">${escapeHtml(n.title)}${pickBadge}</div>
+            return `<div class="news-card${n.picked?' picked':''}">
+                <div class="news-title">${escapeHtml(n.title)}${n.picked?`<span class="pick-badge">⭐ PICK</span>`:''}</div>
                 <div class="news-meta">
                     <div class="news-reporter">${escapeHtml(n.studentId)} ${escapeHtml(n.studentName)} 기자${categoryLabel}</div>
-                    <button class="like-btn ${liked ? 'liked' : ''}" onclick="toggleNewsLike('${n.docId}','${escapeHtml(n.category)}')">
-                        <span class="heart">${liked ? '❤️' : '🤍'}</span> ${n.likeCount}
+                    <button class="like-btn ${liked?'liked':''}" onclick="toggleNewsLike('${n.docId}','${escapeHtml(n.category)}')">
+                        <span class="heart">${liked?'❤️':'🤍'}</span> ${n.likeCount}
                     </button>
                 </div>
             </div>`;
-        });
-        target.innerHTML = html;
+        }).join('');
     }
 
     function getFlattenedAds() {
-        return allDocs
-            .filter(d => d.ad)
-            .map(d => ({
-                docId: d.id,
-                content: d.ad,
-                studentId: d.studentId,
-                studentName: d.studentName,
-                timestamp: d.timestamp,
-                likes: d.adLikes || [],
-                likeCount: (d.adLikes || []).length,
-                picked: !!d.adPick,
-                pickedAt: d.adPickedAt || null
-            }));
+        return allDocs.filter(d=>d.ad).map(d=>({ docId:d.id, content:d.ad, studentId:d.studentId, studentName:d.studentName, timestamp:d.timestamp, likes:d.adLikes||[], likeCount:(d.adLikes||[]).length, picked:!!d.adPick, pickedAt:d.adPickedAt||null }));
     }
 
     function renderAdFeed() {
         const target = document.getElementById('ad-feed');
         let items = getFlattenedAds();
-
-        if (adSortMode === 'latest') {
-            items.sort((a, b) => {
-                const ta = a.timestamp && a.timestamp.toMillis ? a.timestamp.toMillis() : 0;
-                const tb = b.timestamp && b.timestamp.toMillis ? b.timestamp.toMillis() : 0;
-                return tb - ta;
-            });
-        } else if (adSortMode === 'likes') {
-            items.sort((a, b) => b.likeCount - a.likeCount);
-        } else if (adSortMode === 'pick') {
-            items = items.filter(a => a.picked);
-            items.sort((a, b) => {
-                const ta = a.pickedAt && a.pickedAt.toMillis ? a.pickedAt.toMillis() : 0;
-                const tb = b.pickedAt && b.pickedAt.toMillis ? b.pickedAt.toMillis() : 0;
-                return tb - ta;
-            });
-        }
-
-        if (items.length === 0) {
-            target.innerHTML = `<p style="padding:20px; color:#999; text-align:center;">${adSortMode === 'pick' ? '아직 픽된 광고가 없습니다.' : '등록된 광고가 없습니다.'}</p>`;
-            return;
-        }
-
-        let html = "";
-        items.forEach(ad => {
+        if (adSortMode === 'latest') items.sort((a,b)=>(b.timestamp?.toMillis?.()||0)-(a.timestamp?.toMillis?.()||0));
+        else if (adSortMode === 'likes') items.sort((a,b)=>b.likeCount-a.likeCount);
+        else if (adSortMode === 'pick') { items=items.filter(a=>a.picked); items.sort((a,b)=>(b.pickedAt?.toMillis?.()||0)-(a.pickedAt?.toMillis?.()||0)); }
+        if (items.length === 0) { target.innerHTML = `<p style="padding:20px;color:#999;text-align:center;">${adSortMode==='pick'?'아직 픽된 광고가 없습니다.':'등록된 광고가 없습니다.'}</p>`; return; }
+        target.innerHTML = items.map(ad => {
             const liked = currentUserId && ad.likes.includes(currentUserId);
-            const pickBadge = ad.picked ? `<span class="pick-badge">⭐ PICK</span>` : '';
-            html += `<div class="ad-feed-item${ad.picked ? ' picked' : ''}">
-                <div class="ad-feed-content">${escapeHtml(ad.content)}${pickBadge}</div>
+            return `<div class="ad-feed-item${ad.picked?' picked':''}">
+                <div class="ad-feed-content">${escapeHtml(ad.content)}${ad.picked?`<span class="pick-badge">⭐ PICK</span>`:''}</div>
                 <div class="ad-feed-bottom">
                     <span class="ad-feed-author">AD BY. ${escapeHtml(ad.studentId)} ${escapeHtml(ad.studentName)}</span>
-                    <button class="like-btn ${liked ? 'liked' : ''}" onclick="toggleAdLike('${ad.docId}')">
-                        <span class="heart">${liked ? '❤️' : '🤍'}</span> ${ad.likeCount}
+                    <button class="like-btn ${liked?'liked':''}" onclick="toggleAdLike('${ad.docId}')">
+                        <span class="heart">${liked?'❤️':'🤍'}</span> ${ad.likeCount}
                     </button>
                 </div>
             </div>`;
-        });
-        target.innerHTML = html;
+        }).join('');
     }
 
     window.toggleNewsLike = async function(docId, category) {
-        if (!currentUserId) {
-            alert("좋아요는 본인 학번으로 제출 후에 누를 수 있어요!");
-            return;
-        }
+        if (!currentUserId) { alert("좋아요는 본인 학번으로 제출 후에 누를 수 있어요!"); return; }
         try {
             const docRef = doc(db, "silla_v3", docId);
             const snap = await getDoc(docRef);
             if (!snap.exists()) return;
-            const data = snap.data();
-            const newsLikes = data.newsLikes || {};
-            const arr = newsLikes[category] || [];
+            const data = snap.data(), newsLikes = data.newsLikes || {}, arr = newsLikes[category] || [];
             const idx = arr.indexOf(currentUserId);
-            if (idx >= 0) arr.splice(idx, 1);
-            else arr.push(currentUserId);
+            if (idx >= 0) arr.splice(idx, 1); else arr.push(currentUserId);
             newsLikes[category] = arr;
             await updateDoc(docRef, { newsLikes });
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e) { console.error(e); }
     };
 
     window.toggleAdLike = async function(docId) {
-        if (!currentUserId) {
-            alert("좋아요는 본인 학번으로 제출 후에 누를 수 있어요!");
-            return;
-        }
+        if (!currentUserId) { alert("좋아요는 본인 학번으로 제출 후에 누를 수 있어요!"); return; }
         try {
             const docRef = doc(db, "silla_v3", docId);
             const snap = await getDoc(docRef);
             if (!snap.exists()) return;
-            const data = snap.data();
-            const arr = data.adLikes || [];
-            const idx = arr.indexOf(currentUserId);
-            if (idx >= 0) arr.splice(idx, 1);
-            else arr.push(currentUserId);
+            const arr = snap.data().adLikes || [], idx = arr.indexOf(currentUserId);
+            if (idx >= 0) arr.splice(idx, 1); else arr.push(currentUserId);
             await updateDoc(docRef, { adLikes: arr });
-        } catch (e) {
-            console.error(e);
-        }
+        } catch (e) { console.error(e); }
     };
 </script>
 
