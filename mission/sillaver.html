@@ -201,6 +201,10 @@
         .ad-feed-author { font-size: 13px; color: #aaa; }
         .loading-text { text-align: center; padding: 30px; color: var(--green); font-weight: 700; font-size: 16px; }
 
+        /* 더보기 버튼 */
+        .btn-more { display: block; width: 100%; padding: 13px; margin-top: 10px; background: white; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-weight: 700; color: #555; cursor: pointer; transition: 0.15s; font-family: inherit; }
+        .btn-more:active { background: #f5f5f5; }
+
         /* 토스트 */
         .toast-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5000; display: flex; justify-content: center; align-items: flex-start; padding-top: 28vh; }
         .toast { background: linear-gradient(135deg, #ffb300, #ff8c00); color: white; padding: 22px 30px; border-radius: 16px; font-size: 18px; font-weight: 800; box-shadow: 0 10px 40px rgba(255,140,0,0.4); text-align: center; max-width: 85%; transform: scale(0.5); opacity: 0; animation: toastPop 4s ease forwards; }
@@ -394,6 +398,8 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let allDocs=[], currentUserId="", currentUserName="", currentDocId="";
+let newsPage=1, adPage=1;
+const PAGE_SIZE=10;
 let newsSortMode="latest", adSortMode="latest", currentNewsCategory="전체";
 let lastPickedSelfTimes={}, isFirstSnapshot=true;
 let currentStep=1, stepStartTime=Date.now(), stepTimes={};
@@ -543,7 +549,7 @@ function startListening(){
     onSnapshot(query(collection(db,'silla_v3'),orderBy('timestamp','desc')),snap=>{
         allDocs=[]; let tm={};
         snap.forEach(d=>{const data=d.data();allDocs.push({id:d.id,...data});(data.keywords||[]).forEach(w=>{const k=w.replace(/\s+/g,'');if(!tm[k])tm[k]={display:w,count:0};tm[k].count++;});});
-        checkPickToast(); renderTrends(tm); renderNewsFeed(); renderAdFeed(); isFirstSnapshot=false;
+        checkPickToast(); renderTrends(tm); renderNewsFeed(true); renderAdFeed(true); isFirstSnapshot=false;
     });
 }
 
@@ -577,29 +583,37 @@ function renderTrends(map){ document.getElementById('trend-list').innerHTML=Obje
 
 function getFN(){ const arr=[]; allDocs.forEach(d=>(d.news||[]).forEach(n=>{const cat=n.category,likes=(d.newsLikes&&d.newsLikes[cat])||[],pick=(d.newsPicks&&d.newsPicks[cat])||{};arr.push({docId:d.id,title:n.title,category:cat,studentId:d.studentId,studentName:d.studentName,timestamp:d.timestamp,likes,likeCount:likes.length,picked:!!pick.picked,pickedAt:pick.pickedAt||null});})); return arr; }
 
-window.setNewsSort=function(mode){ newsSortMode=mode; document.querySelectorAll('#news-sort-tabs .sort-btn').forEach(b=>b.classList.toggle('active',b.dataset.sort===mode)); renderNewsFeed(); };
-window.setAdSort=function(mode){ adSortMode=mode; document.querySelectorAll('#ad-sort-tabs .sort-btn').forEach(b=>b.classList.toggle('active',b.dataset.sort===mode)); renderAdFeed(); };
-window.filterNews=function(cat,btnEl){ currentNewsCategory=cat; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); if(btnEl)btnEl.classList.add('active'); renderNewsFeed(); };
+window.setNewsSort=function(mode){ newsSortMode=mode; document.querySelectorAll('#news-sort-tabs .sort-btn').forEach(b=>b.classList.toggle('active',b.dataset.sort===mode)); renderNewsFeed(true); };
+window.setAdSort=function(mode){ adSortMode=mode; document.querySelectorAll('#ad-sort-tabs .sort-btn').forEach(b=>b.classList.toggle('active',b.dataset.sort===mode)); renderAdFeed(true); };
+window.filterNews=function(cat,btnEl){ currentNewsCategory=cat; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); if(btnEl)btnEl.classList.add('active'); renderNewsFeed(true); };
 
-function renderNewsFeed(){
+function renderNewsFeed(reset){
+    if(reset) newsPage=1;
     const t=document.getElementById('news-feed'); let items=getFN();
     if(currentNewsCategory!=='전체')items=items.filter(n=>n.category===currentNewsCategory);
     if(newsSortMode==='latest')items.sort((a,b)=>(b.timestamp?.toMillis?.()||0)-(a.timestamp?.toMillis?.()||0));
     else if(newsSortMode==='likes')items.sort((a,b)=>b.likeCount-a.likeCount);
     else if(newsSortMode==='pick'){items=items.filter(n=>n.picked);items.sort((a,b)=>(b.pickedAt?.toMillis?.()||0)-(a.pickedAt?.toMillis?.()||0));}
     if(!items.length){t.innerHTML=`<p style="padding:20px;color:#999;text-align:center;font-size:15px;">${newsSortMode==='pick'?'아직 픽된 기사가 없습니다.':'작성된 기사가 없습니다.'}</p>`;return;}
-    t.innerHTML=items.map(n=>{const cl=currentNewsCategory==='전체'?` | ${esc(n.category)}`:'',liked=currentUserId&&n.likes.includes(currentUserId);return`<div class="news-card${n.picked?' picked':''}"><div class="news-title">${esc(n.title)}${n.picked?`<span class="pick-badge">⭐ PICK</span>`:''}</div><div class="news-meta"><div class="news-reporter">${esc(n.studentId)} ${esc(n.studentName)} 기자${cl}</div><button class="like-btn ${liked?'liked':''}" onclick="toggleNewsLike('${n.docId}','${esc(n.category)}')"><span>${liked?'❤️':'🤍'}</span> ${n.likeCount}</button></div></div>`;}).join('');
+    const visible=items.slice(0,newsPage*PAGE_SIZE);
+    const cards=visible.map(n=>{const cl=currentNewsCategory==='전체'?` | ${esc(n.category)}`:'',liked=currentUserId&&n.likes.includes(currentUserId);return`<div class="news-card${n.picked?' picked':''}"><div class="news-title">${esc(n.title)}${n.picked?`<span class="pick-badge">⭐ PICK</span>`:''}</div><div class="news-meta"><div class="news-reporter">${esc(n.studentId)} ${esc(n.studentName)} 기자${cl}</div><button class="like-btn ${liked?'liked':''}" onclick="toggleNewsLike('${n.docId}','${esc(n.category)}')"><span>${liked?'❤️':'🤍'}</span> ${n.likeCount}</button></div></div>`;}).join('');
+    const moreBtn=visible.length<items.length?`<button class="btn-more" onclick="newsPage++;renderNewsFeed()">더보기 (${items.length-visible.length}개 남음)</button>`:'';
+    t.innerHTML=cards+moreBtn;
 }
 
 function getFA(){ return allDocs.filter(d=>d.ad).map(d=>({docId:d.id,content:d.ad,studentId:d.studentId,studentName:d.studentName,timestamp:d.timestamp,likes:d.adLikes||[],likeCount:(d.adLikes||[]).length,picked:!!d.adPick,pickedAt:d.adPickedAt||null})); }
 
-function renderAdFeed(){
+function renderAdFeed(reset){
+    if(reset) adPage=1;
     const t=document.getElementById('ad-feed'); let items=getFA();
     if(adSortMode==='latest')items.sort((a,b)=>(b.timestamp?.toMillis?.()||0)-(a.timestamp?.toMillis?.()||0));
     else if(adSortMode==='likes')items.sort((a,b)=>b.likeCount-a.likeCount);
     else if(adSortMode==='pick'){items=items.filter(a=>a.picked);items.sort((a,b)=>(b.pickedAt?.toMillis?.()||0)-(a.pickedAt?.toMillis?.()||0));}
     if(!items.length){t.innerHTML=`<p style="padding:20px;color:#999;text-align:center;font-size:15px;">${adSortMode==='pick'?'아직 픽된 광고가 없습니다.':'등록된 광고가 없습니다.'}</p>`;return;}
-    t.innerHTML=items.map(ad=>{const liked=currentUserId&&ad.likes.includes(currentUserId);return`<div class="ad-feed-item${ad.picked?' picked':''}"><div class="ad-feed-content">${esc(ad.content)}${ad.picked?`<span class="pick-badge">⭐ PICK</span>`:''}</div><div class="ad-feed-bottom"><span class="ad-feed-author">AD BY. ${esc(ad.studentId)} ${esc(ad.studentName)}</span><button class="like-btn ${liked?'liked':''}" onclick="toggleAdLike('${ad.docId}')"><span>${liked?'❤️':'🤍'}</span> ${ad.likeCount}</button></div></div>`;}).join('');
+    const visible=items.slice(0,adPage*PAGE_SIZE);
+    const cards=visible.map(ad=>{const liked=currentUserId&&ad.likes.includes(currentUserId);return`<div class="ad-feed-item${ad.picked?' picked':''}"><div class="ad-feed-content">${esc(ad.content)}${ad.picked?`<span class="pick-badge">⭐ PICK</span>`:''}</div><div class="ad-feed-bottom"><span class="ad-feed-author">AD BY. ${esc(ad.studentId)} ${esc(ad.studentName)}</span><button class="like-btn ${liked?'liked':''}" onclick="toggleAdLike('${ad.docId}')"><span>${liked?'❤️':'🤍'}</span> ${ad.likeCount}</button></div></div>`;}).join('');
+    const moreBtn=visible.length<items.length?`<button class="btn-more" onclick="adPage++;renderAdFeed()">더보기 (${items.length-visible.length}개 남음)</button>`:'';
+    t.innerHTML=cards+moreBtn;
 }
 
 window.toggleNewsLike=async function(docId,category){ if(!currentUserId){alert('좋아요는 제출 후에 누를 수 있어요!');return;} try{const ref=doc(db,'silla_v3',docId),snap=await getDoc(ref);if(!snap.exists())return;const data=snap.data(),nl=data.newsLikes||{},arr=nl[category]||[];const idx=arr.indexOf(currentUserId);if(idx>=0)arr.splice(idx,1);else arr.push(currentUserId);nl[category]=arr;await updateDoc(ref,{newsLikes:nl});}catch(e){console.error(e);} };
