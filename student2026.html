@@ -428,237 +428,274 @@
 <div id="toast"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import {
-    getFirestore, collection, onSnapshot,
-    doc, setDoc, deleteDoc, getDocs
-} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getDatabase, ref, set, get, remove, update, onValue, push
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
+  const firebaseConfig = {
     apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
     authDomain: "ho0911seong-56638.firebaseapp.com",
+    databaseURL: "https://ho0911seong-56638-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "ho0911seong-56638",
     storageBucket: "ho0911seong-56638.firebasestorage.app",
     messagingSenderId: "994509567071",
-    appId: "1:994509567071:web:778c95931e95e9cbf557ea"
-};
+    appId: "1:994509567071:web:de99e71c125ec2a3f557ea"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  // ✅ Firestore silla_students → Realtime DB students 로 변경
+  const studentsRef = ref(db, 'students');
 
-const PW = "ghtjd12!@";
-let students = [];
-let editingId = null;
+  const PW = "ghtjd12!@";
+  let students = [];
+  let editingId = null;
 
-// ── 로그인 ──────────────────────────────────────
-window.tryLogin = function() {
+  // ── 로그인 ──────────────────────────────────────
+  window.tryLogin = function() {
     const pw = document.getElementById('pw-input').value;
     if (pw === PW) {
-        document.getElementById('login-screen').style.display = 'none';
-        startListener();
+      document.getElementById('login-screen').style.display = 'none';
+      startListener();
     } else {
-        document.getElementById('login-error').textContent = '비밀번호가 올바르지 않습니다.';
-        document.getElementById('pw-input').value = '';
+      document.getElementById('login-error').textContent = '비밀번호가 올바르지 않습니다.';
+      document.getElementById('pw-input').value = '';
     }
-};
+  };
 
-// ── Firestore 구독 ───────────────────────────────
-function startListener() {
-    onSnapshot(collection(db, "silla_students"), snap => {
-        students = [];
-        snap.forEach(d => students.push({ studentId: d.id, studentName: d.data().studentName || '' }));
-        students.sort((a, b) => a.studentId.localeCompare(b.studentId));
-        renderStats();
-        renderClassFilter();
-        renderTable();
-        updateLastTime();
+  // ── Realtime DB 구독 ───────────────────────────────
+  function startListener() {
+    onValue(studentsRef, snap => {
+      const data = snap.val();
+      students = [];
+      if (data) {
+        // key: studentId, value: { studentId, name } 형태 지원
+        Object.entries(data).forEach(([key, val]) => {
+          const sid = val.studentId || key;
+          const sname = val.name || val.studentName || val.realName || '';
+          if (sid && sname) students.push({ studentId: sid, studentName: sname, _key: key });
+        });
+      }
+      students.sort((a, b) => a.studentId.localeCompare(b.studentId));
+      renderStats();
+      renderClassFilter();
+      renderTable();
+      updateLastTime();
     });
-}
+  }
 
-function parseClass(sid) {
+  function parseClass(sid) {
     if (!sid || sid.length < 3) return null;
     const g = sid[0], c = parseInt(sid.slice(1, 3), 10);
     return isNaN(c) ? null : `${g}학년 ${c}반`;
-}
+  }
 
-function renderStats() {
+  function renderStats() {
     document.getElementById('stat-total').textContent = students.length;
     document.getElementById('header-count').textContent = `${students.length}명`;
     const classes = new Set(students.map(s => parseClass(s.studentId)).filter(Boolean));
     document.getElementById('stat-classes').textContent = classes.size || '—';
-}
+  }
 
-function updateLastTime() {
+  function updateLastTime() {
     const now = new Date(), pad = n => String(n).padStart(2,'0');
     document.getElementById('stat-last').textContent =
-        `${pad(now.getMonth()+1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-}
+      `${pad(now.getMonth()+1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
 
-function renderClassFilter() {
+  function renderClassFilter() {
     const sel = document.getElementById('class-filter');
     const cur = sel.value;
     const classes = [...new Set(students.map(s => parseClass(s.studentId)).filter(Boolean))].sort();
     sel.innerHTML = `<option value="">전체 학반</option>` + classes.map(c => `<option value="${c}">${c}</option>`).join('');
     if (classes.includes(cur)) sel.value = cur;
-}
+  }
 
-window.renderTable = function() {
+  window.renderTable = function() {
     const q = (document.getElementById('search').value || '').trim().toLowerCase();
     const cls = document.getElementById('class-filter').value;
     const filtered = students.filter(s => {
-        if (cls && parseClass(s.studentId) !== cls) return false;
-        return !q || s.studentId.includes(q) || s.studentName.toLowerCase().includes(q);
+      if (cls && parseClass(s.studentId) !== cls) return false;
+      return !q || s.studentId.includes(q) || s.studentName.toLowerCase().includes(q);
     });
 
     const tbody = document.getElementById('table-body');
     const empty = document.getElementById('table-empty');
 
     if (filtered.length === 0) {
-        tbody.innerHTML = '';
-        empty.style.display = 'block';
-        empty.querySelector('.empty-text').textContent =
-            students.length === 0 ? '아직 등록된 학생이 없습니다' : '검색 결과가 없습니다';
-        return;
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      empty.querySelector('.empty-text').textContent =
+        students.length === 0 ? '아직 등록된 학생이 없습니다' : '검색 결과가 없습니다';
+      return;
     }
     empty.style.display = 'none';
 
     tbody.innerHTML = filtered.map((s, i) => {
-        if (editingId === s.studentId) {
-            return `<tr>
-                <td style="color:var(--silver);">${i+1}</td>
-                <td><input class="edit-input" id="edit-id-input" value="${esc(s.studentId)}" maxlength="5" inputmode="numeric" style="width:100px;"></td>
-                <td><input class="edit-input" id="edit-name-input" value="${esc(s.studentName)}" onkeydown="if(event.key==='Enter') saveEdit('${esc(s.studentId)}')"></td>
-                <td class="td-class">${parseClass(s.studentId)||'—'}</td>
-                <td><div class="td-actions">
-                    <button class="action-btn action-save" onclick="saveEdit('${esc(s.studentId)}')">저장</button>
-                    <button class="action-btn action-cancel" onclick="cancelEdit()">취소</button>
-                </div></td>
-            </tr>`;
-        }
+      if (editingId === s.studentId) {
         return `<tr>
-            <td style="color:var(--silver);font-size:12px;">${i+1}</td>
-            <td class="td-id">${esc(s.studentId)}</td>
-            <td class="td-name">${esc(s.studentName)}</td>
-            <td class="td-class">${parseClass(s.studentId)||'—'}</td>
-            <td><div class="td-actions">
-                <button class="action-btn action-edit" onclick="startEdit('${esc(s.studentId)}')">수정</button>
-                <button class="action-btn action-del" onclick="deleteStudent('${esc(s.studentId)}','${esc(s.studentName)}')">삭제</button>
-            </div></td>
+          <td style="color:var(--silver);">${i+1}</td>
+          <td><input class="edit-input" id="edit-id-input" value="${esc(s.studentId)}" maxlength="5" inputmode="numeric" style="width:100px;"></td>
+          <td><input class="edit-input" id="edit-name-input" value="${esc(s.studentName)}" onkeydown="if(event.key==='Enter') saveEdit('${esc(s.studentId)}','${esc(s._key)}')"></td>
+          <td class="td-class">${parseClass(s.studentId)||'—'}</td>
+          <td><div class="td-actions">
+            <button class="action-btn action-save" onclick="saveEdit('${esc(s.studentId)}','${esc(s._key)}')">저장</button>
+            <button class="action-btn action-cancel" onclick="cancelEdit()">취소</button>
+          </div></td>
         </tr>`;
+      }
+      return `<tr>
+        <td style="color:var(--silver);font-size:12px;">${i+1}</td>
+        <td class="td-id">${esc(s.studentId)}</td>
+        <td class="td-name">${esc(s.studentName)}</td>
+        <td class="td-class">${parseClass(s.studentId)||'—'}</td>
+        <td><div class="td-actions">
+          <button class="action-btn action-edit" onclick="startEdit('${esc(s.studentId)}')">수정</button>
+          <button class="action-btn action-del" onclick="deleteStudent('${esc(s._key)}','${esc(s.studentName)}')">삭제</button>
+        </div></td>
+      </tr>`;
     }).join('');
-};
+  };
 
-window.startEdit = function(sid) { editingId = sid; renderTable(); setTimeout(() => document.getElementById('edit-name-input')?.focus(), 50); };
-window.cancelEdit = function() { editingId = null; renderTable(); };
+  window.startEdit = function(sid) {
+    editingId = sid;
+    renderTable();
+    setTimeout(() => document.getElementById('edit-name-input')?.focus(), 50);
+  };
+  window.cancelEdit = function() { editingId = null; renderTable(); };
 
-window.saveEdit = async function(originalId) {
-    const newId = (document.getElementById('edit-id-input')?.value || '').trim();
+  window.saveEdit = async function(originalId, originalKey) {
+    const newId   = (document.getElementById('edit-id-input')?.value || '').trim();
     const newName = (document.getElementById('edit-name-input')?.value || '').trim();
     if (!newId || !newName) { toast('학번과 이름을 모두 입력하세요', 'red'); return; }
     if (!/^\d{5}$/.test(newId)) { toast('학번은 숫자 5자리여야 합니다', 'red'); return; }
-    if (newId !== originalId && students.find(s => s.studentId === newId)) { toast(`학번 ${newId}은 이미 존재합니다`, 'red'); return; }
+    if (newId !== originalId && students.find(s => s.studentId === newId)) {
+      toast(`학번 ${newId}은 이미 존재합니다`, 'red'); return;
+    }
     try {
-        if (newId !== originalId) await deleteDoc(doc(db, "silla_students", originalId));
-        await setDoc(doc(db, "silla_students", newId), { studentId: newId, studentName: newName });
-        editingId = null;
-        toast('수정 완료', 'green');
+      if (newId !== originalId) {
+        // 학번(key)이 바뀌면 기존 항목 삭제 후 새 항목 추가
+        await remove(ref(db, `students/${originalKey}`));
+        const newRef = push(studentsRef);
+        await set(newRef, { studentId: newId, name: newName });
+      } else {
+        await update(ref(db, `students/${originalKey}`), { studentId: newId, name: newName });
+      }
+      editingId = null;
+      toast('수정 완료', 'green');
     } catch(e) { toast('오류: ' + e.message, 'red'); }
-};
+  };
 
-window.addStudent = async function() {
-    const sid = document.getElementById('add-id').value.trim();
+  window.addStudent = async function() {
+    const sid   = document.getElementById('add-id').value.trim();
     const sname = document.getElementById('add-name').value.trim();
     if (!sid || !sname) { toast('학번과 이름을 입력하세요', 'red'); return; }
     if (!/^\d{5}$/.test(sid)) { toast('학번은 숫자 5자리여야 합니다', 'red'); return; }
-    if (students.find(s => s.studentId === sid)) {
-        if (!confirm(`학번 ${sid}(${students.find(s=>s.studentId===sid).studentName})이 이미 있습니다.\n이름을 "${sname}"으로 덮어쓰시겠습니까?`)) return;
+
+    const existing = students.find(s => s.studentId === sid);
+    if (existing) {
+      if (!confirm(`학번 ${sid}(${existing.studentName})이 이미 있습니다.\n이름을 "${sname}"으로 덮어쓰시겠습니까?`)) return;
+      await update(ref(db, `students/${existing._key}`), { studentId: sid, name: sname });
+    } else {
+      const newRef = push(studentsRef);
+      await set(newRef, { studentId: sid, name: sname });
     }
+    document.getElementById('add-id').value = '';
+    document.getElementById('add-name').value = '';
+    document.getElementById('add-id').focus();
+    toast('추가 완료', 'green');
+  };
+
+  window.deleteStudent = async function(key, sname) {
+    if (!confirm(`${sname} 학생을 삭제하시겠습니까?`)) return;
     try {
-        await setDoc(doc(db, "silla_students", sid), { studentId: sid, studentName: sname });
-        document.getElementById('add-id').value = '';
-        document.getElementById('add-name').value = '';
-        document.getElementById('add-id').focus();
-        toast('추가 완료', 'green');
+      await remove(ref(db, `students/${key}`));
+      toast('삭제 완료');
     } catch(e) { toast('오류: ' + e.message, 'red'); }
-};
+  };
 
-window.deleteStudent = async function(sid, sname) {
-    if (!confirm(`[${sid}] ${sname}\n이 학생을 삭제하시겠습니까?`)) return;
-    try { await deleteDoc(doc(db, "silla_students", sid)); toast('삭제 완료'); }
-    catch(e) { toast('오류: ' + e.message, 'red'); }
-};
-
-window.clearAll = async function() {
+  window.clearAll = async function() {
     if (!confirm(`⚠️ 전체 학생 명단(${students.length}명)을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
     try {
-        const snap = await getDocs(collection(db, "silla_students"));
-        await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "silla_students", d.id))));
-        toast('전체 삭제 완료');
+      await remove(studentsRef);
+      toast('전체 삭제 완료');
     } catch(e) { toast('오류: ' + e.message, 'red'); }
-};
+  };
 
-window.handleFile = function(event) {
+  window.handleFile = function(event) {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async function(e) {
-        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-        const dataRows = rows.slice(1).filter(r => r[0] !== '' && r[1] !== '');
-        if (dataRows.length === 0) { toast('유효한 데이터가 없습니다', 'red'); return; }
-        const parsed = dataRows.map(r => ({
-            studentId: String(r[0]).trim(),
-            studentName: String(r[1]).trim()
-        })).filter(s => /^\d{5}$/.test(s.studentId) && s.studentName);
-        const invalid = dataRows.length - parsed.length;
-        if (parsed.length === 0) { toast('학번이 5자리 숫자인 행이 없습니다', 'red'); return; }
-        if (!confirm(`총 ${parsed.length}명을 업로드하시겠습니까?${invalid > 0 ? `\n(형식 오류 ${invalid}행 제외)` : ''}`)) {
-            document.getElementById('file-input').value = ''; return;
-        }
-        try {
-            await Promise.all(parsed.map(s => setDoc(doc(db, "silla_students", s.studentId), { studentId: s.studentId, studentName: s.studentName })));
-            toast(`${parsed.length}명 업로드 완료`, 'green');
-        } catch(err) { toast('업로드 오류: ' + err.message, 'red'); }
-        document.getElementById('file-input').value = '';
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      const dataRows = rows.slice(1).filter(r => r[0] !== '' && r[1] !== '');
+      if (dataRows.length === 0) { toast('유효한 데이터가 없습니다', 'red'); return; }
+      const parsed = dataRows.map(r => ({
+        studentId: String(r[0]).trim(),
+        name: String(r[1]).trim()
+      })).filter(s => /^\d{5}$/.test(s.studentId) && s.name);
+      const invalid = dataRows.length - parsed.length;
+      if (parsed.length === 0) { toast('학번이 5자리 숫자인 행이 없습니다', 'red'); return; }
+      if (!confirm(`총 ${parsed.length}명을 업로드하시겠습니까?${invalid > 0 ? `\n(형식 오류 ${invalid}행 제외)` : ''}`)) {
+        document.getElementById('file-input').value = ''; return;
+      }
+      try {
+        // 기존 명단을 지우고 새로 업로드
+        await remove(studentsRef);
+        const updates = {};
+        parsed.forEach((s, i) => {
+          updates[`students/s${String(i).padStart(4,'0')}`] = { studentId: s.studentId, name: s.name };
+        });
+        const rootRef = ref(db);
+        await update(rootRef, updates);
+        toast(`${parsed.length}명 업로드 완료`, 'green');
+      } catch(err) { toast('업로드 오류: ' + err.message, 'red'); }
+      document.getElementById('file-input').value = '';
     };
     reader.readAsArrayBuffer(file);
-};
+  };
 
-window.exportExcel = function() {
+  window.exportExcel = function() {
     if (students.length === 0) { toast('내보낼 데이터가 없습니다', 'red'); return; }
-    const ws = XLSX.utils.json_to_sheet(students.map(s => ({ 학번: s.studentId, 이름: s.studentName, 학반: parseClass(s.studentId)||'' })));
+    const ws = XLSX.utils.json_to_sheet(students.map(s => ({
+      학번: s.studentId,
+      이름: s.studentName,
+      학반: parseClass(s.studentId) || ''
+    })));
     ws['!cols'] = [{ wch: 10 }, { wch: 14 }, { wch: 14 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, '학생명단');
     const now = new Date(), pad = n => String(n).padStart(2,'0');
     XLSX.writeFile(wb, `학생명단_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}.xlsx`);
-};
+  };
 
-// 드래그앤드롭
-const zone = document.getElementById('upload-zone');
-zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
-zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
-zone.addEventListener('drop', e => {
+  // 드래그앤드롭
+  const zone = document.getElementById('upload-zone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => {
     e.preventDefault(); zone.classList.remove('drag');
     const file = e.dataTransfer.files[0];
     if (file) handleFile({ target: { files: [file] } });
-});
+  });
 
-function esc(str) {
-    if (typeof str !== 'string') return '';
+  function esc(str) {
+    if (typeof str !== 'string') str = String(str || '');
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
-}
+  }
 
-let toastTimer;
-function toast(msg, type = '') {
+  let toastTimer;
+  function toast(msg, type = '') {
     const el = document.getElementById('toast');
     el.textContent = msg;
     el.className = 'show' + (type ? ` ${type}` : '');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.className = '', 2400);
-}
-window.toast = toast;
+  }
+  window.toast = toast;
 </script>
 </body>
 </html>
