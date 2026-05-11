@@ -597,51 +597,103 @@
     }
     .btn-modal-save:hover { background: #e0e0e0; }
 
+    /* ── 모바일 카드형 (게시글) ── */
+    .post-card-list { display: none; }
+    .post-card {
+      background: #111;
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+    }
+    .post-card.is-dummy { opacity: 0.6; }
+    .post-card-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .post-card-nick { font-size: 13px; font-weight: 700; color: #fff; }
+    .post-card-content {
+      font-size: 13px; color: #ccc; line-height: 1.5;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .post-card-bottom {
+      display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 4px;
+    }
+    .post-card-meta { font-size: 11px; color: var(--muted); }
+    .post-card-actions { display: flex; align-items: center; gap: 6px; }
+
+    /* ── 모바일 카드형 (학생) ── */
+    .student-card-list { display: none; }
+    .student-card {
+      background: #111;
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .student-card.no-post { border-color: #1a1a1a; opacity: 0.65; }
+    .student-card-left { flex: 1; min-width: 0; }
+    .student-card-name { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+    .student-card-sub { font-size: 11px; color: var(--muted); }
+    .student-card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+    /* 미참여 필터 버튼 */
+    .no-post-filter {
+      padding: 5px 12px;
+      border: 1.5px solid #2a2a2a;
+      border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+      color: var(--sub); background: #161616;
+      cursor: pointer; font-family: 'Pretendard', sans-serif;
+      transition: 0.12s; white-space: nowrap;
+    }
+    .no-post-filter.active { background: #f91880; border-color: #f91880; color: #fff; }
+
     /* ── 반응형: 모바일 ── */
     @media (max-width: 700px) {
       .sidebar { display: none; }
       .bottom-tab-bar { display: block; }
       .admin-body { padding-bottom: var(--bottombar-h); overflow: hidden; }
-
       .content-area {
         padding: 12px;
         height: calc(100vh - var(--topbar-h) - var(--bottombar-h));
-        overflow-y: auto;
-        overflow-x: hidden;
+        overflow-y: auto; overflow-x: hidden;
       }
-
-      /* 필터 전체 너비 */
       .filter-bar { flex-direction: column; }
       .filter-bar input,
       .filter-bar select { width: 100%; max-width: 100%; font-size: 14px; }
-
-      /* 페이지 헤더 세로 정렬 */
       .page-header { flex-direction: column; align-items: flex-start; }
       .btn-row { width: 100%; }
       .btn-row .btn { flex: 1; text-align: center; font-size: 12px; }
 
-      /* 테이블 폰트 더 작게 */
-      table { min-width: 420px; font-size: 11px; }
-      th { font-size: 9px; padding: 7px 6px; }
-      td { padding: 7px 6px; font-size: 11px; }
-      .td-content { max-width: 110px; font-size: 11px; }
+      /* 모바일: 테이블 숨기고 카드 표시 */
+      #posts-table-wrap { display: none; }
+      .post-card-list { display: block; }
+      #students-table-wrap { display: none; }
+      .student-card-list { display: block; }
 
-      /* 통계 그리드 */
       .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
       .stat-num { font-size: 22px; }
-
-      /* 도구 select 전체 너비 */
       #roleDeleteSelect { width: 100%; margin-bottom: 8px; }
-
       .card { padding: 12px; }
       .tool-section { padding: 14px; }
       .danger-zone { padding: 14px; }
     }
-
     @media (max-width: 380px) {
       .brand-logo { font-size: 1rem; }
       .stat-num { font-size: 20px; }
-      table { min-width: 360px; }
     }
   </style>
 </head>
@@ -722,7 +774,7 @@
           </div>
         </div>
 
-        <div class="card" style="padding:0; overflow:hidden;">
+        <div id="posts-table-wrap" class="card" style="padding:0; overflow:hidden;">
           <div class="table-wrap">
             <table>
               <thead>
@@ -744,6 +796,9 @@
           </div>
           <div class="table-count" id="postsCount"></div>
         </div>
+        <!-- 모바일 카드 리스트 -->
+        <div class="post-card-list" id="postCardList"></div>
+        <div class="table-count" id="postsCountMobile" style="text-align:right;font-size:11px;color:var(--muted);padding:4px 0;"></div>
       </div>
 
       <!-- ── 학생 명단 ── -->
@@ -762,9 +817,10 @@
           <select id="studentClassFilter" onchange="renderStudentsTable()">
             <option value="">전체 반</option>
           </select>
+          <button class="no-post-filter" id="noPostFilterBtn" onclick="toggleNoPostFilter()">미참여만</button>
         </div>
 
-        <div class="card" style="padding:0; overflow:hidden;">
+        <div id="students-table-wrap" class="card" style="padding:0; overflow:hidden;">
           <div class="table-wrap">
             <table>
               <thead>
@@ -784,6 +840,9 @@
           </div>
           <div class="table-count" id="studentsCount"></div>
         </div>
+        <!-- 모바일 카드 리스트 -->
+        <div class="student-card-list" id="studentCardList"></div>
+        <div class="table-count" id="studentsCountMobile" style="text-align:right;font-size:11px;color:var(--muted);padding:4px 0;"></div>
       </div>
 
       <!-- ── 통계 ── -->
@@ -957,6 +1016,7 @@
   let allPosts = [];
   let allStudents = [];
   let postsClassFilter = 'all';
+  let noPostFilterOn = false;
   let editingPostId = null;
   let editingStudentKey = null;
 
@@ -1095,6 +1155,7 @@
     );
     filtered.sort((a, b) => b.id.localeCompare(a.id));
     renderPostsTable(filtered);
+    renderPostCards(filtered);
   };
 
   function renderPostsTable(posts) {
@@ -1130,6 +1191,42 @@
       tbody.appendChild(tr);
     });
     document.getElementById('postsCount').textContent = `${posts.length}개 표시 중`;
+  }
+
+  /* 모바일 카드 렌더 (게시글) */
+  function renderPostCards(posts) {
+    const list = document.getElementById('postCardList');
+    const count = document.getElementById('postsCountMobile');
+    if (!list) return;
+    list.innerHTML = '';
+    posts.forEach(p => {
+      const isDummy = p.studentId === '00000';
+      const card = document.createElement('div');
+      card.className = 'post-card' + (isDummy ? ' is-dummy' : '');
+      const contentPreview = (p.content || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      card.innerHTML = `
+        <div class="post-card-top">
+          <span class="post-card-nick">${esc(p.nickname || '')}</span>
+          <span class="role-badge">${roleIcons[p.role] || ''} ${esc(p.role || '')}</span>
+          ${isDummy ? '<span style="font-size:10px;color:var(--muted);background:#1a1a1a;border:1px solid #2a2a2a;padding:1px 6px;border-radius:4px;">더미</span>' : ''}
+          ${p.adminPick ? '<span style="color:var(--gold);font-size:11px;">⭐ Pick</span>' : ''}
+        </div>
+        <div class="post-card-content">${contentPreview}</div>
+        <div class="post-card-bottom">
+          <span class="post-card-meta">${isDummy ? 'System' : esc(p.realName || '')} · ${isDummy ? '-' : classLabel(p.studentId)} · ❤ ${p.likes || 0}</span>
+          <div class="post-card-actions">
+            <button class="btn-pick${p.adminPick ? ' picked' : ''}"
+              onclick="togglePick('${p.id}',${!!p.adminPick},'${(p.content||'').slice(0,80).replace(/'/g,"\\'").replace(/\n/g,' ')}','${esc(p.nickname||'')}')">
+              ${p.adminPick ? '★' : '☆'}
+            </button>
+            <button class="btn-sm btn-sm-edit" onclick="openPostEditModal('${p.id}')">수정</button>
+            <button class="btn-sm btn-sm-danger" onclick="deletePost('${p.id}')">삭제</button>
+          </div>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+    if (count) count.textContent = `${posts.length}개 표시 중`;
   }
 
   window.togglePick = async (postId, isPicked, content, nickname) => {
@@ -1208,6 +1305,13 @@
       (s.studentId || '').includes(q) ||
       (s.name || '').toLowerCase().includes(q)
     );
+    // 미참여 필터
+    if (noPostFilterOn) {
+      list = list.filter(s => {
+        const myPosts = allPosts.filter(p => p.studentId === s.studentId && p.studentId !== '00000');
+        return myPosts.length === 0;
+      });
+    }
     list.sort((a, b) => (a.studentId || '').localeCompare(b.studentId || ''));
 
     list.forEach((s, i) => {
@@ -1238,6 +1342,52 @@
 
     document.getElementById('studentsCount').textContent =
       `${list.length}명 표시 중 (전체 ${allStudents.length}명)`;
+
+    // 모바일 카드 렌더
+    renderStudentCards(list);
+  };
+
+  /* 모바일 카드 렌더 (학생) */
+  function renderStudentCards(list) {
+    const cardList = document.getElementById('studentCardList');
+    const count = document.getElementById('studentsCountMobile');
+    if (!cardList) return;
+    cardList.innerHTML = '';
+    list.forEach((s, i) => {
+      const myPosts = allPosts.filter(p => p.studentId === s.studentId && p.studentId !== '00000');
+      const myLikes = myPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
+      const myPicks = myPosts.filter(p => p.adminPick).length;
+      const hasPost = myPosts.length > 0;
+
+      const card = document.createElement('div');
+      card.className = 'student-card' + (hasPost ? '' : ' no-post');
+      card.innerHTML = `
+        <div class="student-card-left">
+          <div class="student-card-name">${esc(s.name || '')}
+            <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:4px;">${esc(s.studentId || '')}</span>
+          </div>
+          <div class="student-card-sub">${classLabel(s.studentId)}
+            ${hasPost
+              ? `&nbsp;·&nbsp;<span style="color:var(--blue);">글 ${myPosts.length}개</span>`
+              : `&nbsp;·&nbsp;<span style="color:#555;">미참여</span>`}
+            ${myLikes > 0 ? `&nbsp;·&nbsp;<span style="color:#f91880;">❤ ${myLikes}</span>` : ''}
+            ${myPicks > 0 ? `&nbsp;·&nbsp;<span style="color:var(--gold);">${'⭐'.repeat(Math.min(myPicks,3))}</span>` : ''}
+          </div>
+        </div>
+        <div class="student-card-right">
+          <button class="btn-sm btn-sm-edit" onclick="openStudentEditModal('${s._key}')">수정</button>
+        </div>
+      `;
+      cardList.appendChild(card);
+    });
+    if (count) count.textContent = `${list.length}명 표시 중 (전체 ${allStudents.length}명)`;
+  }
+
+  /* 미참여 필터 토글 */
+  window.toggleNoPostFilter = () => {
+    noPostFilterOn = !noPostFilterOn;
+    document.getElementById('noPostFilterBtn').classList.toggle('active', noPostFilterOn);
+    renderStudentsTable();
   };
 
   window.openStudentEditModal = (key) => {
