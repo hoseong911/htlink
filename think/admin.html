@@ -127,6 +127,33 @@
         .lecture-card .lec-ref { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
         .inline-edit { background: var(--bg-interactive); padding: 16px; border-radius: 8px; margin-top: 14px; border: 1px solid var(--border-gray); }
 
+        /* ── 강의 공개 토글 ── */
+        .open-toggle-wrap {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: var(--bg-interactive); border-radius: 500px;
+            padding: 8px 16px; border: 1px solid var(--border-gray);
+        }
+        .open-toggle-label { font-size: 12px; font-weight: 700; }
+        .open-toggle-label.on  { color: var(--brand-green); }
+        .open-toggle-label.off { color: var(--text-muted); }
+
+        /* CSS 토글 스위치 */
+        .toggle-switch {
+            position: relative; width: 40px; height: 22px; flex-shrink: 0;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-switch .slider {
+            position: absolute; inset: 0; background: var(--border-gray);
+            border-radius: 500px; cursor: pointer; transition: background 0.2s;
+        }
+        .toggle-switch .slider::before {
+            content: ''; position: absolute;
+            width: 16px; height: 16px; left: 3px; top: 3px;
+            background: #fff; border-radius: 50%; transition: transform 0.2s;
+        }
+        .toggle-switch input:checked + .slider { background: var(--brand-green); }
+        .toggle-switch input:checked + .slider::before { transform: translateX(18px); }
+
         /* ── 테이블 ── */
         .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-gray); }
         table { width: 100%; border-collapse: collapse; min-width: 560px; font-size: 14px; }
@@ -155,10 +182,10 @@
         }
         .del-btn:hover { border-color: var(--text-error); color: var(--text-error); }
 
-        /* ── 아카이브 테이블 ── */
-        .archive-status { font-size: 12px; font-weight: 800; }
-        .archive-status.on { color: var(--brand-green); }
-        .archive-status.off { color: var(--text-muted); }
+        /* ── 아카이브 / 공개 상태 ── */
+        .status-badge { font-size: 12px; font-weight: 800; }
+        .status-badge.on  { color: var(--brand-green); }
+        .status-badge.off { color: var(--text-muted); }
 
         /* ── 통계 칩 ── */
         .stat-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -253,7 +280,8 @@
                     <label>참고 문구 (선택)</label>
                     <input type="text" id="new-reference" placeholder="참고 글이나 자료 출처">
                 </div>
-                <button class="btn-primary full" onclick="addLecture()">강의 생성</button>
+                <!-- [수정] 새 강의는 비공개(isOpen: false) 기본값으로 생성됨 -->
+                <button class="btn-primary full" onclick="addLecture()">강의 생성 (기본: 비공개)</button>
             </div>
 
             <h3 style="padding:0 4px; margin-bottom:14px;">개설된 강의</h3>
@@ -348,12 +376,12 @@
     let allSubmissions = [];
     let currentFilter = 'all';
 
-    // ── 구독 (로그인 후 시작) ──
     let lectureUnsub = null;
     let submissionUnsub = null;
 
     function startListeners() {
-        lectureUnsub = db.collection("lectures").orderBy("createdAt","desc").onSnapshot(snap => {
+        // [수정] asc 정렬 — 관리자도 오래된 강의가 위, 최신이 아래
+        lectureUnsub = db.collection("lectures").orderBy("createdAt","asc").onSnapshot(snap => {
             activeLectures = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
             renderLectureAdmin();
             populateLectureSelect();
@@ -407,8 +435,15 @@
         const question = document.getElementById('new-question').value.trim();
         const reference = document.getElementById('new-reference').value.trim();
         if (!title || !question) { alert("강의명과 질문을 입력해주세요."); return; }
-        db.collection("lectures").add({ title, question, reference, isArchived: false, createdAt: Date.now() })
-          .then(() => { ['new-title','new-question','new-reference'].forEach(id => document.getElementById(id).value = ''); });
+        // [수정] isOpen: false — 새 강의는 비공개로 생성
+        db.collection("lectures").add({
+            title, question, reference,
+            isOpen: false,
+            isArchived: false,
+            createdAt: Date.now()
+        }).then(() => {
+            ['new-title','new-question','new-reference'].forEach(id => document.getElementById(id).value = '');
+        });
     }
 
     function renderLectureAdmin() {
@@ -417,6 +452,7 @@
         if (!activeLectures.length) { el.innerHTML = '<p class="empty-msg">강의가 없습니다.</p>'; return; }
         activeLectures.forEach(lec => {
             const subCount = allSubmissions.filter(s => s.lectureDocId === lec.docId).length;
+            const isOpen = lec.isOpen === true;
             const div = document.createElement('div');
             div.className = 'lecture-card';
             div.innerHTML = `
@@ -424,6 +460,21 @@
                     <div class="lec-title">${lec.title}</div>
                     <div class="lec-q">Q. ${lec.question}</div>
                     <div class="lec-ref">참고: ${lec.reference || '없음'} · 제출 ${subCount}건</div>
+
+                    <!-- [신규] 학생 접속 공개/비공개 토글 -->
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap;">
+                        <div class="open-toggle-wrap">
+                            <span class="open-toggle-label ${isOpen ? 'on' : 'off'}">
+                                ${isOpen ? '🟢 학생 공개 중' : '⚫ 학생 비공개'}
+                            </span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" ${isOpen ? 'checked' : ''}
+                                    onchange="toggleOpen('${lec.docId}', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
                     <div style="display:flex; gap:8px;">
                         <button class="btn-outline btn-sm" onclick="toggleEdit('${lec.docId}', true)">수정</button>
                         <button class="btn-danger btn-sm" onclick="deleteLecture('${lec.docId}', '${lec.title}')">강의 삭제</button>
@@ -449,6 +500,11 @@
                 </div>`;
             el.appendChild(div);
         });
+    }
+
+    // [신규] 학생 접속 공개/비공개 즉시 토글
+    function toggleOpen(docId, value) {
+        db.collection("lectures").doc(docId).update({ isOpen: value });
     }
 
     function toggleEdit(docId, show) {
@@ -514,7 +570,6 @@
         if (!subs.length) { tbody.innerHTML = `<tr><td colspan="3" class="empty-msg">해당 조건의 답변이 없습니다.</td></tr>`; return; }
 
         subs.forEach(data => {
-            const classNum = (data.id?.toString().charAt(2)) || '-';
             const warnings = [];
             if ((data.duration||0) < 10) warnings.push("작성시간 짧음");
             if ((data.cheatCount||0) > 0) warnings.push(`이탈 ${data.cheatCount}회`);
@@ -583,7 +638,7 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="font-weight:700;">${lec.title}</td>
-                <td><span class="archive-status ${lec.isArchived ? 'on' : 'off'}">${lec.isArchived ? '● 공개 중' : '○ 비공개'}</span></td>
+                <td><span class="status-badge ${lec.isArchived ? 'on' : 'off'}">${lec.isArchived ? '● 공개 중' : '○ 비공개'}</span></td>
                 <td>
                     <button class="${lec.isArchived ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="toggleArchive('${lec.docId}', ${lec.isArchived})">
                         ${lec.isArchived ? '내리기' : '공개하기'}
