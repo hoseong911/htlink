@@ -1400,16 +1400,16 @@
     const now = new Date();
     const time = `${now.getMonth()+1}.${now.getDate()}. ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     const dummy = [
-      { role: "진골",     content: "오늘 안압지 팟 구함~ 🥂 진골끼리만요" },
-      { role: "농민",     content: "세금이 너무 많다! 이러다 다 굶어 죽겠어 😡" },
-      { role: "선종 승려", content: "마음을 비우면 모든 것이 보입니다 🧘" },
-      { role: "풍수지리사", content: "새 도읍지를 찾아야 할 때입니다. 한강 주변이 길지입니다 🧭" },
-      { role: "6두품",    content: "능력으로 인정받고 싶은데 골품제가 너무 답답해. 당나라라도 가야 하나..." },
-      { role: "호족",     content: "중앙 통제가 약해진 틈을 타 우리 지역 세력을 키울 때가 됐다." },
+      { role: "진골",      nickname: "golden_bone",    content: "오늘 안압지 팟 구함~ 🥂 진골끼리만요" },
+      { role: "농민",      nickname: "rice_is_life",   content: "세금이 너무 많다! 이러다 다 굶어 죽겠어 😡" },
+      { role: "선종 승려", nickname: "empty_mind_99",  content: "마음을 비우면 모든 것이 보입니다 🧘" },
+      { role: "풍수지리사", nickname: "vibe_checker",  content: "새 도읍지를 찾아야 할 때입니다. 한강 주변이 길지입니다 🧭" },
+      { role: "6두품",     nickname: "six_head_swag",  content: "능력으로 인정받고 싶은데 골품제가 너무 답답해. 당나라라도 가야 하나..." },
+      { role: "호족",      nickname: "local_kingpin",  content: "중앙 통제가 약해진 틈을 타 우리 지역 세력을 키울 때가 됐다." },
     ];
     dummy.forEach(d => {
       const r = push(postsRef);
-      set(r, { ...d, id: r.key, studentId: '00000', realName: 'System', nickname: '더미', time, likes: 0, likedBy: { init: true } });
+      set(r, { ...d, id: r.key, studentId: '00000', realName: 'System', time, likes: 0, likedBy: { init: true } });
     });
     alert(`더미 ${dummy.length}개 생성 완료`);
   };
