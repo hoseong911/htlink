@@ -19,36 +19,100 @@
       min-height: 100vh; overflow-x: hidden;
     }
 
-    /* ── 로그인 ── */
-    #loginOverlay {
-      position: fixed; inset: 0; background: #000; z-index: 1000;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
-    }
-    .box { width: 100%; max-width: 400px; text-align: center; }
-    h1 { font-family: 'Jua', sans-serif; font-size: 3rem; margin-bottom: 20px; }
-
+    /* ── 공통 input / select ── */
     input, select {
       width: 100%; padding: 15px;
       background: #1e1e1e; border: 1px solid #333; border-radius: 12px;
       color: #fff; margin-bottom: 8px;
       font-size: 16px; font-family: 'Pretendard';
+      outline: none; transition: border-color 0.15s;
+      -webkit-appearance: none;
     }
+    input:focus { border-color: #555; }
+    input.valid   { border-color: #2ecc71 !important; }
+    input.invalid { border-color: #f91880 !important; }
+
+    /* ── 로그인 ── */
+    #loginOverlay {
+      position: fixed; inset: 0; background: #000; z-index: 1000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .login-box { width: 100%; max-width: 400px; }
+    .login-logo {
+      font-family: 'Jua', sans-serif; font-size: 3rem;
+      text-align: center; margin-bottom: 8px;
+    }
+    .login-sub {
+      text-align: center; font-size: 12px; color: #555;
+      margin-bottom: 28px; letter-spacing: 0.04em;
+    }
+
+    /* 인풋 래퍼 (상태 아이콘) */
+    .input-wrap { position: relative; margin-bottom: 8px; }
+    .input-wrap input { margin-bottom: 0; }
+    .input-status {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      font-size: 16px; pointer-events: none;
+    }
+
+    /* 검증 메시지 */
+    .verify-msg {
+      font-size: 11px; padding: 0 4px; margin-bottom: 6px; height: 16px;
+      transition: 0.15s;
+    }
+    .verify-msg.ok  { color: #2ecc71; }
+    .verify-msg.err { color: #f91880; }
+
     .btn-main {
       width: 100%; padding: 15px; background: #fff; color: #000;
-      border: none; border-radius: 30px; font-weight: bold;
-      cursor: pointer; font-size: 16px; margin-top: 5px;
+      border: none; border-radius: 30px; font-weight: 800;
+      cursor: pointer; font-size: 15px; margin-top: 6px;
+      font-family: 'Pretendard', sans-serif;
+      transition: opacity 0.15s;
     }
-    .btn-header {
-      background: transparent; border: 1px solid #444; color: #eee;
-      padding: 5px 10px; border-radius: 8px; font-size: 11px;
-      cursor: pointer; margin-left: 4px;
+    .btn-main:disabled {
+      opacity: 0.4; cursor: not-allowed;
     }
+    .btn-main:not(:disabled):hover { opacity: 0.88; }
+    .btn-main.danger { background: #c0392b; color: #fff; }
+    .btn-main.gray   { background: #2a2a2a; color: #bbb; }
 
     /* ── 프로필 모달 ── */
     #profileModal {
-      position: fixed; inset: 0; background: #000; z-index: 1000;
-      display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+      backdrop-filter: blur(8px);
+      z-index: 1000; display: none;
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px;
     }
+    #profileModal .modal-box {
+      width: 100%; max-width: 360px;
+      background: #111; border: 1px solid #2a2a2a;
+      border-radius: 20px; padding: 28px 24px;
+    }
+    .modal-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 22px;
+    }
+    .modal-avatar {
+      width: 44px; height: 44px; background: #222;
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 22px; flex-shrink: 0;
+    }
+    .modal-user-info .modal-name {
+      font-size: 15px; font-weight: 800;
+    }
+    .modal-user-info .modal-id {
+      font-size: 11px; color: #555; margin-top: 2px;
+    }
+    .modal-section-label {
+      font-size: 10px; font-weight: 700; color: #555;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 8px; margin-top: 16px;
+    }
+    .modal-section-label:first-of-type { margin-top: 0; }
+    .modal-btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
 
     /* ── 메인 앱 ── */
     #appContainer {
@@ -57,22 +121,41 @@
       flex-direction: column;
     }
     header {
-      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px;
+      display: flex; flex-direction: column; gap: 0;
       position: sticky; top: 0;
-      background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);
       z-index: 100; border-bottom: 1px solid var(--border);
-      flex-direction: column; gap: 0;
     }
     .header-top {
       display: flex; justify-content: space-between; align-items: center;
-      width: 100%;
+      width: 100%; margin-bottom: 8px;
     }
-    .header-top h1 { font-size: 1.4rem; margin: 0; font-family: 'Jua', sans-serif; }
+    .header-logo { font-family: 'Jua', sans-serif; font-size: 1.4rem; }
+
+    /* 프로필 버튼 (개선) */
+    .profile-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: #1a1a1a; border: 1px solid #2a2a2a;
+      border-radius: 20px; padding: 5px 12px 5px 6px;
+      cursor: pointer; transition: 0.15s;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .profile-btn:hover { border-color: #555; background: #222; }
+    .profile-btn .pb-avatar {
+      width: 26px; height: 26px; background: #2a2a2a;
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 14px;
+    }
+    .profile-btn .pb-nick {
+      font-size: 12px; font-weight: 700; color: #e0e0e0;
+      max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
 
     /* 신분 탭 */
     .role-tabs {
       display: flex; overflow-x: auto; scrollbar-width: none;
-      width: 100%; border-top: 1px solid var(--border); padding-top: 2px;
+      width: 100%;
     }
     .role-tabs::-webkit-scrollbar { display: none; }
     .role-tab {
@@ -87,15 +170,16 @@
       display: flex; justify-content: flex-end;
       padding: 10px 16px; border-bottom: 1px solid var(--border); background: #000;
     }
-    .sort-box { display: flex; background: #1e1e1e; border-radius: 20px; padding: 3px; }
+    .sort-box { display: flex; background: #1a1a1a; border-radius: 20px; padding: 3px; }
     .sort-btn {
       padding: 5px 12px; border: none; border-radius: 15px;
-      font-size: 11px; font-weight: bold; color: var(--sub);
+      font-size: 11px; font-weight: 700; color: var(--sub);
       background: none; cursor: pointer; transition: 0.2s;
+      font-family: 'Pretendard', sans-serif;
     }
     .sort-btn.active { color: #000; background: #fff; }
 
-    .post-area { padding: 20px; border-bottom: 1px solid var(--border); }
+    .post-area { padding: 16px; border-bottom: 1px solid var(--border); }
     .post-input-wrapper { display: flex; gap: 12px; }
     .avatar-circle {
       width: 42px; height: 42px; background: #222; border-radius: 50%;
@@ -120,7 +204,6 @@
     .time { color: var(--sub); font-size: 11px; margin-left: auto; }
     .content-text { font-size: 15px; line-height: 1.5; margin: 6px 0; color: #efefef; white-space: pre-wrap; }
 
-    /* 픽 배지 */
     .pick-badge-dark {
       display: inline-block; background: #2a2000; color: #f5a623;
       border: 1px solid #6a5000; border-radius: 4px; padding: 1px 7px;
@@ -134,7 +217,19 @@
 
     footer { padding: 30px 20px; text-align: center; color: #333; font-size: 11px; }
 
-    /* ── 토스트 팝업 ── */
+    /* ── 로딩 스피너 ── */
+    .spinner-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      padding: 30px 0;
+    }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2px solid #2a2a2a; border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── 토스트 ── */
     #toastContainer {
       position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
       z-index: 9999; display: flex; flex-direction: column; gap: 8px;
@@ -161,21 +256,41 @@
     .toast-body { flex: 1; }
     .toast-title { font-size: 13px; font-weight: 800; color: #f5a623; margin-bottom: 2px; }
     .toast-msg   { font-size: 12px; color: #c8a060; line-height: 1.5; }
-    .toast-close { background: none; border: none; cursor: pointer; color: #555; font-size: 16px; padding: 0; line-height: 1; flex-shrink: 0; }
+    .toast-close {
+      background: none; border: none; cursor: pointer;
+      color: #555; font-size: 18px; padding: 0; line-height: 1; flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
 
-<!-- 토스트 컨테이너 -->
 <div id="toastContainer"></div>
 
 <!-- ── 로그인 ── -->
 <div id="loginOverlay">
-  <div class="box">
-    <h1>S_threads</h1>
-    <input type="text" id="joinId" placeholder="학번 (5자리)" maxlength="5" inputmode="numeric">
-    <input type="text" id="joinName" placeholder="이름 (실명)">
-    <input type="text" id="joinNick" placeholder="nickname (영문/숫자/_)" oninput="validateNick(this)">
+  <div class="login-box">
+    <div class="login-logo">S_threads</div>
+    <div class="login-sub">신라 하대 · 인천동양중학교</div>
+
+    <!-- 학번 -->
+    <div class="input-wrap">
+      <input type="text" id="joinId" placeholder="학번 (5자리)" maxlength="5"
+        inputmode="numeric" autocomplete="off"
+        oninput="onIdInput(this)">
+      <span class="input-status" id="idStatus"></span>
+    </div>
+    <div class="verify-msg" id="idMsg"></div>
+
+    <!-- 이름 -->
+    <div class="input-wrap">
+      <input type="text" id="joinName" placeholder="이름 (실명)" autocomplete="off"
+        oninput="onNameInput(this)" disabled>
+      <span class="input-status" id="nameStatus"></span>
+    </div>
+    <div class="verify-msg" id="nameMsg"></div>
+
+    <input type="text" id="joinNick" placeholder="nickname (영문/숫자/_)"
+      oninput="validateNick(this)" autocomplete="off">
     <select id="joinRole">
       <option value="진골">👑 진골 귀족</option>
       <option value="6두품">📜 6두품 지식인</option>
@@ -184,15 +299,31 @@
       <option value="선종 승려">🧘 선종 승려</option>
       <option value="풍수지리사">🧭 풍수지리사</option>
     </select>
-    <button class="btn-main" onclick="enterApp()">신라 접속하기</button>
+
+    <button class="btn-main" id="enterBtn" onclick="enterApp()" disabled>신라 접속하기</button>
+    <div id="loginSpinner" style="display:none;" class="spinner-wrap">
+      <div class="spinner"></div>
+      <div style="font-size:12px;color:#555;">학생 명단 확인 중...</div>
+    </div>
   </div>
 </div>
 
-<!-- ── 프로필 수정 ── -->
+<!-- ── 프로필 모달 ── -->
 <div id="profileModal">
-  <div class="box">
-    <h2 style="font-family:'Jua',sans-serif; margin-bottom:20px;">프로필 설정</h2>
-    <input type="text" id="editNick" placeholder="new_nickname" oninput="validateNick(this)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-avatar" id="modalAvatar">?</div>
+      <div class="modal-user-info">
+        <div class="modal-name" id="modalName">-</div>
+        <div class="modal-id" id="modalId">-</div>
+      </div>
+    </div>
+
+    <div class="modal-section-label">닉네임 변경</div>
+    <input type="text" id="editNick" placeholder="new_nickname"
+      oninput="validateNick(this)" autocomplete="off">
+
+    <div class="modal-section-label">신분 변경</div>
     <select id="editRole">
       <option value="진골">👑 진골 귀족</option>
       <option value="6두품">📜 6두품 지식인</option>
@@ -201,9 +332,12 @@
       <option value="선종 승려">🧘 선종 승려</option>
       <option value="풍수지리사">🧭 풍수지리사</option>
     </select>
-    <button class="btn-main" onclick="saveProfile()">수정 완료</button>
-    <button class="btn-main" style="background:#c0392b;" onclick="logout()">로그아웃</button>
-    <button class="btn-main" style="background:#333; color:#fff;" onclick="closeProfile()">취소</button>
+
+    <div class="modal-btn-group">
+      <button class="btn-main" onclick="saveProfile()">수정 완료</button>
+      <button class="btn-main gray" onclick="closeProfile()">취소</button>
+      <button class="btn-main danger" style="margin-top:6px;" onclick="logout()">로그아웃</button>
+    </div>
   </div>
 </div>
 
@@ -211,12 +345,12 @@
 <div id="appContainer">
   <header>
     <div class="header-top">
-      <h1>S_threads</h1>
-      <div>
-        <button class="btn-header" onclick="openProfile()">Edit</button>
-      </div>
+      <span class="header-logo">S_threads</span>
+      <button class="profile-btn" onclick="openProfile()">
+        <div class="pb-avatar" id="headerAvatar">?</div>
+        <span class="pb-nick" id="headerNick">...</span>
+      </button>
     </div>
-    <!-- 신분 탭 -->
     <div class="role-tabs">
       <button class="role-tab active" onclick="setRoleFilter('all', this)">전체</button>
       <button class="role-tab" onclick="setRoleFilter('진골', this)">👑 진골</button>
@@ -243,14 +377,15 @@
         <textarea id="postInput" placeholder="신라 하대, 당신의 생각은 무엇인가요..." maxlength="300"></textarea>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span id="charCount" style="font-size:11px; color:#555;">0 / 300</span>
-          <button class="btn-main" style="width:auto; padding:6px 16px; font-size:13px;" onclick="createPost()">게시</button>
+          <button class="btn-main" style="width:auto; padding:6px 18px; font-size:13px; margin-top:0;"
+            onclick="createPost()">게시</button>
         </div>
       </div>
     </div>
   </div>
 
   <div id="feed"></div>
-  <footer>v2.0 - Incheon Dongyang Middle School</footer>
+  <footer>v2.1 · Incheon Dongyang Middle School</footer>
 </div>
 
 <script type="module">
@@ -272,9 +407,11 @@
   const db = getDatabase(app);
   const postsRef = ref(db, 'posts');
   const toastRef = ref(db, 'silla_toast');
+  const studentsRef = ref(db, 'students');
 
   const roleIcons = {
-    "진골":"👑","6두품":"📜","호족":"🏰","농민":"🌾","선종 승려":"🧘","풍수지리사":"🧭"
+    "진골": "👑", "6두품": "📜", "호족": "🏰",
+    "농민": "🌾", "선종 승려": "🧘", "풍수지리사": "🧭"
   };
 
   let currentUser = null;
@@ -283,76 +420,238 @@
   let allPostsCache = [];
   let lastToastKey = null;
 
+  // 학생 명단 캐시: { "12345": "홍길동", ... }
+  let studentMap = {};
+  let studentMapLoaded = false;
+
+  /* ════════════════════════════
+     학생 명단 로드
+  ════════════════════════════ */
+  async function loadStudentMap() {
+    if (studentMapLoaded) return;
+    try {
+      const snap = await get(studentsRef);
+      const data = snap.val();
+      if (data) {
+        // 두 가지 필드명 모두 지원: name / realName
+        Object.values(data).forEach(s => {
+          const sid = s.studentId || s.id || '';
+          const sname = s.name || s.realName || '';
+          if (sid && sname) studentMap[sid] = sname;
+        });
+      }
+    } catch (e) {
+      console.warn('학생 명단 로드 실패:', e);
+    }
+    studentMapLoaded = true;
+  }
+
+  /* ════════════════════════════
+     로그인 검증 UI
+  ════════════════════════════ */
+  let idVerifyTimer = null;
+  let verifiedStudentName = null; // 명단에서 찾은 이름
+
   window.validateNick = (el) => {
     el.value = el.value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
   };
 
-  window.onload = () => {
+  // 학번 입력 → 명단 대조
+  window.onIdInput = async (el) => {
+    const val = el.value.replace(/\D/g, '');
+    el.value = val;
+    const idMsg = document.getElementById('idMsg');
+    const idStatus = document.getElementById('idStatus');
+    const nameInput = document.getElementById('joinName');
+    const nameMsg = document.getElementById('nameMsg');
+    const nameStatus = document.getElementById('nameStatus');
+
+    verifiedStudentName = null;
+    nameInput.disabled = true;
+    nameInput.value = '';
+    nameInput.classList.remove('valid', 'invalid');
+    nameMsg.textContent = '';
+    nameMsg.className = 'verify-msg';
+    nameStatus.textContent = '';
+    updateEnterBtn();
+
+    el.classList.remove('valid', 'invalid');
+    idStatus.textContent = '';
+
+    if (val.length < 5) {
+      idMsg.textContent = val.length > 0 ? `학번은 5자리입니다 (현재 ${val.length}자리)` : '';
+      idMsg.className = 'verify-msg err';
+      return;
+    }
+
+    // 5자리 완성 → 명단 조회
+    idMsg.textContent = '';
+    idStatus.textContent = '⏳';
+
+    clearTimeout(idVerifyTimer);
+    idVerifyTimer = setTimeout(async () => {
+      await loadStudentMap();
+
+      if (Object.keys(studentMap).length === 0) {
+        // 명단이 없으면 형식만 확인
+        el.classList.add('valid');
+        idStatus.textContent = '✅';
+        idMsg.textContent = '학번 형식 확인 완료';
+        idMsg.className = 'verify-msg ok';
+        nameInput.disabled = false;
+        nameInput.placeholder = '이름 (실명)';
+        updateEnterBtn();
+        return;
+      }
+
+      if (studentMap[val] !== undefined) {
+        // 명단에 있음 → 이름 자동 채우기
+        verifiedStudentName = studentMap[val];
+        el.classList.add('valid');
+        idStatus.textContent = '✅';
+        idMsg.textContent = `명단 확인 완료`;
+        idMsg.className = 'verify-msg ok';
+
+        nameInput.value = verifiedStudentName;
+        nameInput.disabled = false;
+        nameInput.classList.add('valid');
+        nameStatus.textContent = '✅';
+        nameMsg.textContent = `${verifiedStudentName} 학생으로 확인되었습니다`;
+        nameMsg.className = 'verify-msg ok';
+      } else {
+        // 명단에 없음
+        el.classList.add('invalid');
+        idStatus.textContent = '❌';
+        idMsg.textContent = '명단에 없는 학번입니다. 선생님께 문의하세요.';
+        idMsg.className = 'verify-msg err';
+        nameInput.disabled = true;
+      }
+      updateEnterBtn();
+    }, 400);
+  };
+
+  // 이름 입력 → 명단 대조 (명단 있을 때만 엄격하게)
+  window.onNameInput = (el) => {
+    const val = el.value.trim();
+    const nameMsg = document.getElementById('nameMsg');
+    const nameStatus = document.getElementById('nameStatus');
+
+    el.classList.remove('valid', 'invalid');
+    nameStatus.textContent = '';
+
+    if (!val) {
+      nameMsg.textContent = '';
+      nameMsg.className = 'verify-msg';
+      updateEnterBtn();
+      return;
+    }
+
+    if (verifiedStudentName) {
+      // 명단 이름과 비교
+      if (val === verifiedStudentName) {
+        el.classList.add('valid');
+        nameStatus.textContent = '✅';
+        nameMsg.textContent = '이름 일치';
+        nameMsg.className = 'verify-msg ok';
+      } else {
+        el.classList.add('invalid');
+        nameStatus.textContent = '❌';
+        nameMsg.textContent = `이름이 일치하지 않습니다`;
+        nameMsg.className = 'verify-msg err';
+      }
+    } else {
+      // 명단 없이 형식만
+      el.classList.add('valid');
+      nameStatus.textContent = '✅';
+      nameMsg.textContent = '';
+    }
+    updateEnterBtn();
+  };
+
+  function isLoginValid() {
+    const id = document.getElementById('joinId').value.trim();
+    const name = document.getElementById('joinName').value.trim();
+    const nick = document.getElementById('joinNick').value.trim();
+    if (!/^\d{5}$/.test(id)) return false;
+    if (!name) return false;
+    if (!nick) return false;
+    // 명단 있으면 이름도 일치해야 함
+    if (verifiedStudentName && name !== verifiedStudentName) return false;
+    // 명단 있는데 학번이 없으면 불가
+    if (studentMapLoaded && Object.keys(studentMap).length > 0 && !studentMap[id]) return false;
+    return true;
+  }
+
+  function updateEnterBtn() {
+    document.getElementById('enterBtn').disabled = !isLoginValid();
+  }
+
+  // 닉네임/신분 바뀌어도 버튼 상태 업데이트
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('joinNick').addEventListener('input', updateEnterBtn);
+    document.getElementById('joinRole').addEventListener('change', updateEnterBtn);
+    document.getElementById('postInput').addEventListener('input', function() {
+      document.getElementById('charCount').textContent = `${this.value.length} / 300`;
+    });
+  });
+
+  /* ════════════════════════════
+     앱 진입
+  ════════════════════════════ */
+  window.enterApp = () => {
+    const id   = document.getElementById('joinId').value.trim();
+    const name = document.getElementById('joinName').value.trim();
+    const nick = document.getElementById('joinNick').value.trim();
+    const role = document.getElementById('joinRole').value;
+
+    if (!isLoginValid()) return;
+
+    currentUser = { id, name, nick, role };
+    localStorage.setItem('s_threads_user', JSON.stringify(currentUser));
+    showApp();
+  };
+
+  window.onload = async () => {
     const saved = localStorage.getItem('s_threads_user');
-    if (saved) { currentUser = JSON.parse(saved); showApp(); }
+    if (saved) {
+      currentUser = JSON.parse(saved);
+      showApp();
+    }
   };
 
   function showApp() {
     document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('appContainer').style.display = 'flex';
+    const appEl = document.getElementById('appContainer');
+    appEl.style.display = 'flex';
     updateUI();
     listenFeed();
     listenToast();
   }
 
   function updateUI() {
-    document.getElementById('myAvatar').textContent = roleIcons[currentUser.role] || '?';
+    const icon = roleIcons[currentUser.role] || '?';
+    document.getElementById('myAvatar').textContent = icon;
+    document.getElementById('headerAvatar').textContent = icon;
+    document.getElementById('headerNick').textContent = currentUser.nick;
+    // 모달
+    document.getElementById('modalAvatar').textContent = icon;
+    document.getElementById('modalName').textContent = `${currentUser.name} (${currentUser.nick})`;
+    document.getElementById('modalId').textContent = `학번 ${currentUser.id} · ${currentUser.role}`;
     document.getElementById('editNick').value = currentUser.nick;
     document.getElementById('editRole').value = currentUser.role;
   }
 
-  document.getElementById('postInput').addEventListener('input', function() {
-    document.getElementById('charCount').textContent = `${this.value.length} / 300`;
-  });
-
-  window.enterApp = () => {
-    const id   = document.getElementById('joinId').value.trim();
-    const name = document.getElementById('joinName').value.trim();
-    const nick = document.getElementById('joinNick').value.trim();
-    const role = document.getElementById('joinRole').value;
-    if (!/^\d{5}$/.test(id)) return alert("학번은 숫자 5자리여야 합니다.");
-    if (!name) return alert("이름을 입력하세요.");
-    if (!nick) return alert("닉네임을 입력하세요.");
-    currentUser = { id, name, nick, role };
-    localStorage.setItem('s_threads_user', JSON.stringify(currentUser));
-    showApp();
-  };
-
-  window.logout = () => {
-    if (confirm("로그아웃 하시겠습니까?")) {
-      localStorage.removeItem('s_threads_user'); location.reload();
-    }
-  };
-
-  window.createPost = () => {
-    const content = document.getElementById('postInput').value.trim();
-    if (!content) return;
-    const now = new Date();
-    const time = `${now.getMonth()+1}.${now.getDate()}. ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    const r = push(postsRef);
-    set(r, {
-      id: r.key, studentId: currentUser.id, realName: currentUser.name,
-      nickname: currentUser.nick, role: currentUser.role,
-      content, time, likes: 0, likedBy: { init: true }
-    });
-    document.getElementById('postInput').value = '';
-    document.getElementById('charCount').textContent = '0 / 300';
-  };
-
+  /* ════════════════════════════
+     피드
+  ════════════════════════════ */
   function listenFeed() {
     onValue(postsRef, snap => {
       const data = snap.val();
-      allPostsCache = data ? Object.values(data).filter(p => p.id) : [];
+      allPostsCache = data ? Object.values(data).filter(p => p && p.id) : [];
       renderFeed();
     });
   }
 
-  // ── 픽 토스트 수신 ──
   function listenToast() {
     onValue(toastRef, snap => {
       const data = snap.val();
@@ -368,11 +667,12 @@
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = 'toast';
+    const preview = content.length > 40 ? content.slice(0, 40) + '…' : content;
     toast.innerHTML = `
       <div class="toast-icon">⭐</div>
       <div class="toast-body">
         <div class="toast-title">선생님이 이 글을 Pick 했어요!</div>
-        <div class="toast-msg">"${content.length > 40 ? content.slice(0,40)+'…' : content}"<br><span style="color:#f5a623; font-weight:700;">— ${nickname}</span></div>
+        <div class="toast-msg">"${preview}"<br><span style="color:#f5a623;font-weight:700;">— ${nickname}</span></div>
       </div>
       <button class="toast-close" onclick="this.closest('.toast').remove()">×</button>
     `;
@@ -400,7 +700,6 @@
   function renderFeed() {
     const feed = document.getElementById('feed');
     feed.innerHTML = '';
-
     let posts = allPostsCache.filter(p => p.studentId !== '00000');
 
     if (currentRoleFilter === 'pick') {
@@ -410,9 +709,9 @@
     }
 
     if (currentSort === 'popular') {
-      posts.sort((a,b) => (b.likes||0)-(a.likes||0) || b.id.localeCompare(a.id));
+      posts.sort((a, b) => (b.likes || 0) - (a.likes || 0) || b.id.localeCompare(a.id));
     } else {
-      posts.sort((a,b) => b.id.localeCompare(a.id));
+      posts.sort((a, b) => b.id.localeCompare(a.id));
     }
 
     if (!posts.length) {
@@ -457,7 +756,7 @@
       contentEl.textContent = post.content;
 
       const likeBtn = document.createElement('div');
-      likeBtn.style.cssText = `color:${isLiked?'#f91880':'#777'}; cursor:pointer; font-size:13px; margin-top:4px; display:inline-block;`;
+      likeBtn.style.cssText = `color:${isLiked ? '#f91880' : '#777'}; cursor:pointer; font-size:13px; margin-top:4px; display:inline-block;`;
       likeBtn.textContent = `${isLiked ? '❤️' : '♡'} ${post.likes || 0}`;
       likeBtn.onclick = () => toggleLike(post.id, !!isLiked);
 
@@ -469,23 +768,64 @@
 
   window.toggleLike = async (postId, isLiked) => {
     const snap = await get(ref(db, `posts/${postId}`));
-    const post = snap.val(); if (!post) return;
+    const post = snap.val();
+    if (!post) return;
     const updates = {};
-    updates[`posts/${postId}/likes`] = Math.max(0, isLiked ? post.likes-1 : post.likes+1);
+    updates[`posts/${postId}/likes`] = Math.max(0, isLiked ? post.likes - 1 : post.likes + 1);
     updates[`posts/${postId}/likedBy/${currentUser.id}`] = isLiked ? null : true;
     update(ref(db), updates);
   };
 
-  window.openProfile  = () => document.getElementById('profileModal').style.display = 'flex';
-  window.closeProfile = () => document.getElementById('profileModal').style.display = 'none';
-  window.saveProfile  = () => {
+  /* ════════════════════════════
+     게시글 작성
+  ════════════════════════════ */
+  window.createPost = () => {
+    const content = document.getElementById('postInput').value.trim();
+    if (!content) return;
+    const now = new Date();
+    const time = `${now.getMonth()+1}.${now.getDate()}. ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const r = push(postsRef);
+    set(r, {
+      id: r.key,
+      studentId: currentUser.id,
+      realName: currentUser.name,
+      nickname: currentUser.nick,
+      role: currentUser.role,
+      content, time, likes: 0,
+      likedBy: { init: true }
+    });
+    document.getElementById('postInput').value = '';
+    document.getElementById('charCount').textContent = '0 / 300';
+  };
+
+  /* ════════════════════════════
+     프로필
+  ════════════════════════════ */
+  window.openProfile = () => {
+    document.getElementById('modalAvatar').textContent = roleIcons[currentUser.role] || '?';
+    document.getElementById('modalName').textContent = `${currentUser.name} (${currentUser.nick})`;
+    document.getElementById('modalId').textContent = `학번 ${currentUser.id} · ${currentUser.role}`;
+    document.getElementById('editNick').value = currentUser.nick;
+    document.getElementById('editRole').value = currentUser.role;
+    document.getElementById('profileModal').style.display = 'flex';
+  };
+  window.closeProfile = () => {
+    document.getElementById('profileModal').style.display = 'none';
+  };
+  window.saveProfile = () => {
     const nick = document.getElementById('editNick').value.trim();
-    if (!nick) return alert("닉네임을 입력하세요.");
+    if (!nick) { alert("닉네임을 입력하세요."); return; }
     currentUser.nick = nick;
     currentUser.role = document.getElementById('editRole').value;
     localStorage.setItem('s_threads_user', JSON.stringify(currentUser));
     updateUI();
     closeProfile();
+  };
+  window.logout = () => {
+    if (confirm("로그아웃 하시겠습니까?")) {
+      localStorage.removeItem('s_threads_user');
+      location.reload();
+    }
   };
 </script>
 </body>
