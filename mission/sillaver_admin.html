@@ -266,7 +266,7 @@
                     <div class="sub-filter-row">
                         <span class="sub-filter-label">정렬</span>
                         <button class="sub-filter-btn active" onclick="setNewsSort('latest',this)">최신순</button>
-                        <button class="sub-filter-btn" onclick="setNewsSort('studentId',this)">학번순</button>
+                        <button class="sub-filter-btn" onclick="setNewsSort('studentId',this)">🔢 학번순</button>
                         <button class="sub-filter-btn" onclick="setNewsSort('likes',this)">좋아요순</button>
                         <button class="sub-filter-btn pick-active" onclick="setNewsSort('pick',this)">⭐ 픽 모아보기</button>
                     </div>
@@ -275,7 +275,7 @@
                     <div class="sub-filter-row">
                         <span class="sub-filter-label">정렬</span>
                         <button class="sub-filter-btn active" onclick="setAdSort('latest',this)">최신순</button>
-                        <button class="sub-filter-btn" onclick="setAdSort('studentId',this)">학번순</button>
+                        <button class="sub-filter-btn" onclick="setAdSort('studentId',this)">🔢 학번순</button>
                         <button class="sub-filter-btn" onclick="setAdSort('likes',this)">좋아요순</button>
                         <button class="sub-filter-btn pick-active" onclick="setAdSort('pick',this)">⭐ 픽 모아보기</button>
                     </div>
@@ -398,6 +398,8 @@
             <div class="class-filter-bar" id="class-filter-bar"><span style="font-size:11px;color:var(--muted);font-weight:700;margin-right:4px;">학반</span><button class="class-chip active" onclick="setClassFilter('전체',this)">전체</button></div>
             <div class="filter-bar">
                 <input type="text" class="search-input" id="stats-search" placeholder="🔎 학번 또는 이름으로 검색..." oninput="renderStatsTable()">
+                <button class="sub-filter-btn active" id="stats-sort-ts" onclick="setStatsSort('timestamp',this)">최신순</button>
+                <button class="sub-filter-btn" id="stats-sort-id" onclick="setStatsSort('studentId',this)">🔢 학번순</button>
             </div>
             <div class="table-wrap">
                 <table class="data-table">
@@ -483,6 +485,7 @@ let currentPostTab = 'keyword';
 let keywordSortMode = 'count';
 let newsCat = '전체', newsSort = 'latest', adSort = 'latest';
 let classFilter = '전체';
+let statsSort = 'timestamp';
 let integFilter = 'all';
 let editingDocId = null;
 
@@ -829,6 +832,13 @@ window.setClassFilter = function(cls, btnEl) {
     renderStatsTable();
 };
 
+window.setStatsSort = function(mode, btnEl) {
+    statsSort = mode;
+    document.querySelectorAll('[id^="stats-sort-"]').forEach(b=>b.classList.remove('active'));
+    if(btnEl) btnEl.classList.add('active');
+    renderStatsTable();
+};
+
 window.renderStatsTable = function() {
     const list = document.getElementById('data-list');
     const search = (document.getElementById('stats-search')?.value||'').trim().toLowerCase();
@@ -839,6 +849,7 @@ window.renderStatsTable = function() {
         return (d.studentId||'').toLowerCase().includes(search)||(d.studentName||'').toLowerCase().includes(search);
     });
     if (!filtered.length) { list.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);">검색 결과가 없습니다.</td></tr>`; return; }
+    if (statsSort==='studentId') filtered.sort((a,b)=>(a.studentId||'').localeCompare(b.studentId||'')); else filtered.sort((a,b)=>(b.timestamp?.toMillis?.()||0)-(a.timestamp?.toMillis?.()||0));
     filtered.forEach((d,i) => {
         const kwTags = (d.keywords||[]).map(k=>`<span class="tag tag-kw">🔍 ${esc(k)}</span>`).join('');
         const newsList = (d.news||[]).map(n=>{
