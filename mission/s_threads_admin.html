@@ -28,12 +28,21 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
+
+    /* 전역 스크롤바 숨김 */
+    * {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    *::-webkit-scrollbar { display: none; }
+
     body {
       background: var(--bg);
       color: var(--text);
       font-family: 'Pretendard', sans-serif;
       min-height: 100vh;
       -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
     }
 
     /* ── 로그인 ── */
@@ -106,7 +115,7 @@
     .top-bar {
       background: #000;
       border-bottom: 1px solid var(--border);
-      padding: 0 20px;
+      padding: 0 16px;
       height: var(--topbar-h);
       display: flex;
       align-items: center;
@@ -195,8 +204,9 @@
     .content-area {
       flex: 1;
       overflow-y: auto;
-      padding: 24px;
-      max-width: 980px;
+      overflow-x: hidden;
+      padding: 20px 16px;
+      min-width: 0; /* flex 자식이 넘치지 않도록 */
     }
 
     /* 하단 탭바 (모바일) */
@@ -241,9 +251,9 @@
 
     /* 페이지 타이틀 */
     .page-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 800;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       font-family: 'Jua', sans-serif;
       display: flex;
       align-items: center;
@@ -253,9 +263,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
     }
     .page-header .page-title { margin-bottom: 0; }
 
@@ -264,33 +274,33 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
     }
     .card-title {
       font-size: 12px;
       font-weight: 700;
       color: var(--sub);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       letter-spacing: 0.04em;
     }
 
     /* 통계 카드 */
     .stat-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 18px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
     }
     .stat-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 16px 12px;
+      padding: 14px 12px;
       text-align: center;
     }
     .stat-num {
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 800;
       font-family: 'Jua', sans-serif;
     }
@@ -299,24 +309,26 @@
     /* 필터 바 */
     .filter-bar {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       align-items: center;
     }
     .filter-bar input,
     .filter-bar select {
-      padding: 9px 12px;
+      padding: 8px 10px;
       border: 1px solid var(--border);
       border-radius: 9px;
-      font-size: 13px;
+      font-size: 12px;
       font-family: 'Pretendard', sans-serif;
       outline: none;
       background: #161616;
       color: var(--text);
       transition: border-color 0.15s;
+      max-width: 100%;
     }
-    .filter-bar input { flex: 1; min-width: 180px; }
+    .filter-bar input { flex: 1; min-width: 0; }
+    .filter-bar select { max-width: 130px; }
     .filter-bar input:focus,
     .filter-bar select:focus { border-color: #555; }
 
@@ -325,13 +337,13 @@
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .class-chip {
-      padding: 5px 12px;
+      padding: 4px 10px;
       border: 1.5px solid #2a2a2a;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 500;
       color: var(--sub);
       background: #161616;
@@ -343,26 +355,31 @@
     .class-chip:hover { border-color: #555; color: #ccc; }
     .class-chip.active { background: #fff; border-color: #fff; color: #000; font-weight: 700; }
 
-    /* 테이블 */
-    .table-wrap { overflow-x: auto; border-radius: 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    /* 테이블 래퍼 — 가로 스크롤 허용하되 스크롤바 숨김 */
+    .table-wrap {
+      overflow-x: auto;
+      overflow-y: visible;
+      border-radius: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 480px; }
     th {
       background: #0d0d0d;
-      padding: 10px 10px;
+      padding: 8px 8px;
       text-align: left;
       border-bottom: 1px solid var(--border);
       color: var(--sub);
       font-weight: 700;
-      font-size: 11px;
+      font-size: 10px;
       white-space: nowrap;
     }
-    td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    td { padding: 8px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #161616; }
     .td-content {
-      max-width: 200px;
+      max-width: 160px;
       word-break: break-all;
-      font-size: 12px;
+      font-size: 11px;
       color: #aaa;
       line-height: 1.4;
     }
@@ -373,7 +390,7 @@
       font-size: 10px;
       font-weight: 700;
       border-radius: 5px;
-      padding: 2px 7px;
+      padding: 2px 6px;
       white-space: nowrap;
       background: #1c1c1c;
       color: #aaa;
@@ -392,10 +409,10 @@
 
     /* 버튼 */
     .btn {
-      padding: 9px 16px;
+      padding: 8px 14px;
       border-radius: 8px;
       border: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       font-family: 'Pretendard', sans-serif;
@@ -412,12 +429,13 @@
     .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
     .btn-sm {
-      padding: 4px 9px;
-      font-size: 11px;
+      padding: 4px 8px;
+      font-size: 10px;
       border-radius: 5px;
       border: none;
       cursor: pointer;
       font-family: 'Pretendard', sans-serif;
+      white-space: nowrap;
     }
     .btn-sm-danger { background: #1c0000; color: var(--danger); border: 1px solid #400; }
     .btn-sm-danger:hover { background: #280000; }
@@ -452,10 +470,10 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 12px;
+      padding: 16px;
+      margin-bottom: 10px;
     }
-    .tool-section-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+    .tool-section-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
     .tool-notice {
       background: #251e00;
       border: 1px solid #5a4800;
@@ -469,13 +487,13 @@
       background: #100000;
       border: 1px solid #3a0000;
       border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 12px;
+      padding: 16px;
+      margin-bottom: 10px;
     }
 
     /* 테이블 카운트 */
     .table-count {
-      padding: 10px 14px;
+      padding: 8px 12px;
       font-size: 11px;
       color: var(--muted);
       text-align: right;
@@ -493,26 +511,27 @@
       align-items: center;
       z-index: 1000;
       backdrop-filter: blur(4px);
+      padding: 16px;
     }
     .modal-overlay.show { display: flex; }
     .modal-box {
       background: #141414;
       border: 1px solid #2a2a2a;
       border-radius: 16px;
-      padding: 28px;
-      width: 90%;
+      padding: 24px;
+      width: 100%;
       max-width: 360px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
     }
     .modal-title {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 800;
       margin-bottom: 6px;
     }
     .modal-desc {
       font-size: 12px;
       color: var(--sub);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       line-height: 1.6;
     }
     .modal-warn {
@@ -522,10 +541,10 @@
       border: 1px solid #5a4800;
       border-radius: 7px;
       padding: 10px 12px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       line-height: 1.5;
     }
-    .modal-field { margin-bottom: 12px; }
+    .modal-field { margin-bottom: 10px; }
     .modal-field label {
       display: block;
       font-size: 11px;
@@ -536,7 +555,7 @@
     }
     .modal-field input {
       width: 100%;
-      padding: 11px 14px;
+      padding: 10px 12px;
       border: 1px solid #2a2a2a;
       background: #0d0d0d;
       color: #fff;
@@ -551,10 +570,10 @@
       display: flex;
       gap: 8px;
       justify-content: flex-end;
-      margin-top: 18px;
+      margin-top: 16px;
     }
     .btn-modal-cancel {
-      padding: 10px 18px;
+      padding: 9px 16px;
       border-radius: 8px;
       border: 1px solid #2a2a2a;
       background: transparent;
@@ -566,7 +585,7 @@
     }
     .btn-modal-cancel:hover { color: #fff; }
     .btn-modal-save {
-      padding: 10px 18px;
+      padding: 9px 16px;
       border-radius: 8px;
       border: none;
       background: #fff;
@@ -582,25 +601,47 @@
     @media (max-width: 700px) {
       .sidebar { display: none; }
       .bottom-tab-bar { display: block; }
-      .admin-body { padding-bottom: var(--bottombar-h); }
+      .admin-body { padding-bottom: var(--bottombar-h); overflow: hidden; }
+
       .content-area {
-        padding: 16px;
-        max-width: 100%;
+        padding: 12px;
         height: calc(100vh - var(--topbar-h) - var(--bottombar-h));
         overflow-y: auto;
+        overflow-x: hidden;
       }
-      .stat-grid { grid-template-columns: repeat(2, 1fr); }
-      .page-title { font-size: 17px; }
+
+      /* 필터 전체 너비 */
+      .filter-bar { flex-direction: column; }
+      .filter-bar input,
+      .filter-bar select { width: 100%; max-width: 100%; font-size: 14px; }
+
+      /* 페이지 헤더 세로 정렬 */
       .page-header { flex-direction: column; align-items: flex-start; }
       .btn-row { width: 100%; }
-      .btn-row .btn { flex: 1; text-align: center; }
-      th, td { padding: 8px 6px; }
-      .td-content { max-width: 130px; }
+      .btn-row .btn { flex: 1; text-align: center; font-size: 12px; }
+
+      /* 테이블 폰트 더 작게 */
+      table { min-width: 420px; font-size: 11px; }
+      th { font-size: 9px; padding: 7px 6px; }
+      td { padding: 7px 6px; font-size: 11px; }
+      .td-content { max-width: 110px; font-size: 11px; }
+
+      /* 통계 그리드 */
+      .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+      .stat-num { font-size: 22px; }
+
+      /* 도구 select 전체 너비 */
+      #roleDeleteSelect { width: 100%; margin-bottom: 8px; }
+
+      .card { padding: 12px; }
+      .tool-section { padding: 14px; }
+      .danger-zone { padding: 14px; }
     }
 
-    @media (max-width: 480px) {
-      .stat-num { font-size: 22px; }
-      .filter-bar input { min-width: 140px; }
+    @media (max-width: 380px) {
+      .brand-logo { font-size: 1rem; }
+      .stat-num { font-size: 20px; }
+      table { min-width: 360px; }
     }
   </style>
 </head>
@@ -657,14 +698,14 @@
         <div class="page-title">📋 게시글 관리</div>
         <div class="filter-bar">
           <input type="text" id="searchInput"
-            placeholder="🔍 학번, 이름, 닉네임, 신분, 내용 검색..."
+            placeholder="🔍 학번, 이름, 닉네임, 신분, 내용..."
             oninput="applyFilters()">
           <select id="roleFilter" onchange="applyFilters()">
             <option value="">전체 신분</option>
-            <option value="진골">👑 진골 귀족</option>
-            <option value="6두품">📜 6두품 지식인</option>
-            <option value="호족">🏰 지방 호족</option>
-            <option value="농민">🌾 일반 농민</option>
+            <option value="진골">👑 진골</option>
+            <option value="6두품">📜 6두품</option>
+            <option value="호족">🏰 호족</option>
+            <option value="농민">🌾 농민</option>
             <option value="선종 승려">🧘 선종 승려</option>
             <option value="풍수지리사">🧭 풍수지리사</option>
           </select>
@@ -674,8 +715,8 @@
             <option value="nopick">픽 없는 글만</option>
           </select>
         </div>
-        <div style="margin-bottom:12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:0.08em;">반별 필터</div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:6px;letter-spacing:0.08em;">반별 필터</div>
           <div class="class-chips" id="postsClassChips">
             <button class="class-chip active" onclick="setPostsClassFilter('all',this)">전체 반</button>
           </div>
@@ -798,7 +839,7 @@
           <div class="tool-section-title">🎭 신분별 삭제</div>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
             <select id="roleDeleteSelect"
-              style="padding:9px 12px; background:#161616; border:1px solid #2a2a2a; border-radius:8px; color:#fff; font-family:'Pretendard',sans-serif; font-size:13px; outline:none;">
+              style="padding:9px 12px; background:#161616; border:1px solid #2a2a2a; border-radius:8px; color:#fff; font-family:'Pretendard',sans-serif; font-size:13px; outline:none; flex:1;">
               <option value="">신분 선택</option>
               <option value="진골">👑 진골 귀족</option>
               <option value="6두품">📜 6두품 지식인</option>
@@ -807,7 +848,7 @@
               <option value="선종 승려">🧘 선종 승려</option>
               <option value="풍수지리사">🧭 풍수지리사</option>
             </select>
-            <button class="btn btn-warn" onclick="deleteAllByRole()">해당 신분 전체 삭제</button>
+            <button class="btn btn-warn" onclick="deleteAllByRole()">해당 신분 삭제</button>
           </div>
         </div>
         <div class="danger-zone">
@@ -913,8 +954,8 @@
     "농민": "🌾", "선종 승려": "🧘", "풍수지리사": "🧭"
   };
 
-  let allPosts = [];       // Firebase posts
-  let allStudents = [];    // Firebase students (명단)
+  let allPosts = [];
+  let allStudents = [];
   let postsClassFilter = 'all';
   let editingPostId = null;
   let editingStudentKey = null;
@@ -959,7 +1000,6 @@
     startListening();
   }
 
-  // 세션 유지
   window.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem(SESSION_KEY) === '1') enterAdmin();
   });
@@ -969,21 +1009,21 @@
     document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
     document.getElementById(`panel-${name}`)?.classList.add('active');
 
-    // 사이드바
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     const navMap = { posts: '게시글', students: '학생', stats: '통계', tools: '도구' };
     [...document.querySelectorAll('.nav-item')].find(el =>
       el.textContent.trim().includes(navMap[name])
     )?.classList.add('active');
 
-    // 하단 탭
     document.querySelectorAll('.bottom-tab').forEach(el => el.classList.remove('active'));
     document.getElementById(`btab-${name}`)?.classList.add('active');
+
+    // 패널 전환 시 스크롤 상단 이동
+    document.getElementById('contentArea')?.scrollTo(0, 0);
   };
 
   /* ── Firebase 리스닝 ── */
   function startListening() {
-    // 게시글
     onValue(postsRef, snap => {
       const data = snap.val();
       allPosts = data ? Object.values(data).filter(p => p && p.id) : [];
@@ -992,11 +1032,15 @@
       renderStats();
     });
 
-    // 학생 명단 (students 노드)
+    // ✅ Realtime DB students 노드 (student2026.html과 동일)
     onValue(ref(db, 'students'), snap => {
       const data = snap.val();
       allStudents = data
-        ? Object.entries(data).map(([key, val]) => ({ _key: key, ...val }))
+        ? Object.entries(data).map(([key, val]) => ({
+            _key: key,
+            studentId: val.studentId || '',
+            name: val.name || val.studentName || val.realName || ''
+          }))
         : [];
       buildStudentClassFilter();
       renderStudentsTable();
@@ -1035,7 +1079,8 @@
     const roleF = document.getElementById('roleFilter')?.value || '';
     const pickF = document.getElementById('pickFilter')?.value || '';
 
-    let filtered = allPosts.filter(p => p.studentId !== '00000');
+    // 관리자에서는 더미 포함 전체 표시
+    let filtered = [...allPosts];
     if (postsClassFilter !== 'all')
       filtered = filtered.filter(p => (p.studentId || '').startsWith(postsClassFilter));
     if (roleF) filtered = filtered.filter(p => p.role === roleF);
@@ -1056,10 +1101,12 @@
     const tbody = document.getElementById('postsBody');
     tbody.innerHTML = '';
     posts.forEach(p => {
+      const isDummy = p.studentId === '00000';
       const tr = document.createElement('tr');
+      if (isDummy) tr.style.opacity = '0.6';
       tr.innerHTML = `
-        <td>${esc(p.studentId || '')}</td>
-        <td style="font-size:11px;color:var(--muted);white-space:nowrap;">${classLabel(p.studentId)}</td>
+        <td>${esc(p.studentId || '')}${isDummy ? ' <span style="font-size:9px;color:#555;">[더미]</span>' : ''}</td>
+        <td style="font-size:10px;color:var(--muted);white-space:nowrap;">${isDummy ? '-' : classLabel(p.studentId)}</td>
         <td>${esc(p.realName || '')}</td>
         <td style="color:var(--muted);">${esc(p.nickname || '')}</td>
         <td><span class="role-badge">${roleIcons[p.role] || ''} ${esc(p.role || '')}</span></td>
@@ -1085,7 +1132,6 @@
     document.getElementById('postsCount').textContent = `${posts.length}개 표시 중`;
   }
 
-  /* 픽 토글 */
   window.togglePick = async (postId, isPicked, content, nickname) => {
     const newPick = !isPicked;
     const updates = {};
@@ -1100,7 +1146,6 @@
     }
   };
 
-  /* 게시글 수정 모달 */
   window.openPostEditModal = (id) => {
     const p = allPosts.find(x => x.id === id);
     if (!p) return;
@@ -1115,17 +1160,16 @@
   };
   window.savePostEdit = async () => {
     if (!editingPostId) return;
-    const content = document.getElementById('editPostContent').value.trim();
+    const content  = document.getElementById('editPostContent').value.trim();
     const nickname = document.getElementById('editPostNickname').value.trim();
     if (!content) { alert('내용을 입력해주세요.'); return; }
     const updates = {};
-    updates[`posts/${editingPostId}/content`] = content;
+    updates[`posts/${editingPostId}/content`]  = content;
     updates[`posts/${editingPostId}/nickname`] = nickname;
     await update(ref(db), updates);
     closePostEditModal();
   };
 
-  /* 삭제 */
   window.deletePost = (id) => {
     if (confirm('이 게시글을 삭제하시겠습니까?'))
       remove(ref(db, `posts/${id}`));
@@ -1153,7 +1197,7 @@
   }
 
   window.renderStudentsTable = () => {
-    const q = (document.getElementById('studentSearch')?.value || '').toLowerCase();
+    const q    = (document.getElementById('studentSearch')?.value || '').toLowerCase();
     const clsF = document.getElementById('studentClassFilter')?.value || '';
     const tbody = document.getElementById('studentsBody');
     tbody.innerHTML = '';
@@ -1167,7 +1211,6 @@
     list.sort((a, b) => (a.studentId || '').localeCompare(b.studentId || ''));
 
     list.forEach((s, i) => {
-      // 해당 학생의 게시글 수 / 좋아요 / 픽 집계
       const myPosts = allPosts.filter(p => p.studentId === s.studentId && p.studentId !== '00000');
       const myLikes = myPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
       const myPicks = myPosts.filter(p => p.adminPick).length;
@@ -1175,11 +1218,9 @@
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="color:var(--muted);font-weight:600;">${i + 1}</td>
-        <td>
-          <div style="font-weight:700;">${esc(s.studentId || '')}</div>
-        </td>
-        <td style="font-size:11px;color:var(--muted);white-space:nowrap;">${classLabel(s.studentId)}</td>
-        <td>${esc(s.name || s.realName || '')}</td>
+        <td><div style="font-weight:700;font-size:12px;">${esc(s.studentId || '')}</div></td>
+        <td style="font-size:10px;color:var(--muted);white-space:nowrap;">${classLabel(s.studentId)}</td>
+        <td>${esc(s.name || '')}</td>
         <td>
           ${myPosts.length > 0
             ? `<span class="student-badge">${myPosts.length}개</span>`
@@ -1199,13 +1240,12 @@
       `${list.length}명 표시 중 (전체 ${allStudents.length}명)`;
   };
 
-  /* 학생 수정 모달 */
   window.openStudentEditModal = (key) => {
     const s = allStudents.find(x => x._key === key);
     if (!s) return;
     editingStudentKey = key;
     document.getElementById('editStudentId').value = s.studentId || '';
-    document.getElementById('editStudentName').value = s.name || s.realName || '';
+    document.getElementById('editStudentName').value = s.name || '';
     document.getElementById('studentEditModal').classList.add('show');
   };
   window.closeStudentEditModal = () => {
@@ -1214,24 +1254,22 @@
   };
   window.saveStudentEdit = async () => {
     if (!editingStudentKey) return;
-    const newId = document.getElementById('editStudentId').value.trim();
+    const newId   = document.getElementById('editStudentId').value.trim();
     const newName = document.getElementById('editStudentName').value.trim();
     if (!newId || !newName) { alert('학번과 이름을 모두 입력해주세요.'); return; }
     if (!/^\d{5}$/.test(newId)) { alert('학번은 숫자 5자리여야 합니다.'); return; }
 
-    // 중복 체크
     const original = allStudents.find(s => s._key === editingStudentKey);
     if (original?.studentId !== newId) {
       const conflict = allStudents.find(s => s._key !== editingStudentKey && s.studentId === newId);
       if (conflict) {
-        alert(`학번 ${newId}는 이미 ${conflict.name || conflict.realName} 학생이 사용 중입니다.`);
+        alert(`학번 ${newId}는 이미 ${conflict.name} 학생이 사용 중입니다.`);
         return;
       }
     }
 
     try {
       await update(ref(db, `students/${editingStudentKey}`), { studentId: newId, name: newName });
-      // 해당 학번의 게시글도 업데이트
       if (original?.studentId !== newId) {
         const postsToUpdate = allPosts.filter(p => p.studentId === original.studentId);
         const postUpdates = {};
@@ -1243,19 +1281,18 @@
     } catch (e) { alert('수정 중 오류: ' + e.message); }
   };
 
-  /* 학생 엑셀 저장 */
+  /* 엑셀 저장 */
   window.exportStudentsExcel = () => {
     if (!allStudents.length) { alert('저장할 학생 명단이 없습니다.'); return; }
     const rows = allStudents.map((s, i) => {
       const myPosts = allPosts.filter(p => p.studentId === s.studentId && p.studentId !== '00000');
-      const myLikes = myPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
       return {
         '번호': i + 1,
         '학번': s.studentId || '',
-        '이름': s.name || s.realName || '',
+        '이름': s.name || '',
         '반': classLabel(s.studentId),
         '게시글 수': myPosts.length,
-        '총 좋아요': myLikes,
+        '총 좋아요': myPosts.reduce((sum, p) => sum + (p.likes || 0), 0),
         'PICK 수': myPosts.filter(p => p.adminPick).length
       };
     });
@@ -1267,11 +1304,9 @@
     XLSX.writeFile(wb, `S_threads_학생명단_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}.xlsx`);
   };
 
-  /* 게시글 엑셀 저장 */
   window.exportPostsExcel = () => {
-    const real = allPosts.filter(p => p.studentId !== '00000');
-    if (!real.length) { alert('저장할 게시글이 없습니다.'); return; }
-    const rows = real.map((p, i) => ({
+    if (!allPosts.length) { alert('저장할 게시글이 없습니다.'); return; }
+    const rows = allPosts.map((p, i) => ({
       '번호': i + 1,
       '학번': p.studentId || '',
       '이름': p.realName || '',
@@ -1296,17 +1331,11 @@
   ══════════════════════════════════ */
   function renderStats() {
     const real = allPosts.filter(p => p.studentId !== '00000');
-    const total    = real.length;
-    const students = new Set(real.map(p => p.studentId)).size;
-    const likes    = real.reduce((s, p) => s + (p.likes || 0), 0);
-    const picks    = real.filter(p => p.adminPick).length;
+    document.getElementById('st-total').textContent    = real.length;
+    document.getElementById('st-students').textContent = new Set(real.map(p => p.studentId)).size;
+    document.getElementById('st-likes').textContent    = real.reduce((s, p) => s + (p.likes || 0), 0);
+    document.getElementById('st-picks').textContent    = real.filter(p => p.adminPick).length;
 
-    document.getElementById('st-total').textContent    = total;
-    document.getElementById('st-students').textContent = students;
-    document.getElementById('st-likes').textContent    = likes;
-    document.getElementById('st-picks').textContent    = picks;
-
-    // 신분별
     const roleCounts = {};
     real.forEach(p => { roleCounts[p.role] = (roleCounts[p.role] || 0) + 1; });
     const maxR = Math.max(...Object.values(roleCounts), 1);
@@ -1318,7 +1347,6 @@
           <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(cnt/maxR*100)}%"></div></div>
         </div>`).join('');
 
-    // 반별
     const classCounts = {};
     real.forEach(p => {
       const cls = (p.studentId || '').slice(0, 3);
@@ -1333,30 +1361,23 @@
           <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(cnt/maxC*100)}%"></div></div>
         </div>`).join('');
 
-    // 픽 목록
     const pickedPosts = real.filter(p => p.adminPick).sort((a, b) => b.id.localeCompare(a.id));
-    if (pickedPosts.length === 0) {
-      document.getElementById('pickedList').innerHTML =
-        '<div style="font-size:13px;color:var(--muted);padding:4px 0;">아직 픽된 게시글이 없습니다.</div>';
-    } else {
-      document.getElementById('pickedList').innerHTML = pickedPosts.map(p => `
-        <div style="border:1px solid #2a2a2a;border-radius:8px;padding:12px;margin-bottom:8px;background:#0d0d0d;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+    document.getElementById('pickedList').innerHTML = pickedPosts.length === 0
+      ? '<div style="font-size:13px;color:var(--muted);padding:4px 0;">아직 픽된 게시글이 없습니다.</div>'
+      : pickedPosts.map(p => `
+        <div style="border:1px solid #2a2a2a;border-radius:8px;padding:10px;margin-bottom:8px;background:#0d0d0d;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
             <span class="role-badge">${roleIcons[p.role] || ''} ${esc(p.role || '')}</span>
-            <span style="font-size:12px;color:var(--sub);">${esc(p.realName || '')} · ${esc(p.nickname || '')}</span>
-            <span style="font-size:11px;color:var(--muted);margin-left:auto;">${classLabel(p.studentId)}</span>
+            <span style="font-size:11px;color:var(--sub);">${esc(p.realName || '')} · ${esc(p.nickname || '')}</span>
+            <span style="font-size:10px;color:var(--muted);margin-left:auto;">${classLabel(p.studentId)}</span>
           </div>
           <div style="font-size:13px;color:#e0e0e0;line-height:1.5;">${esc(p.content || '')}</div>
         </div>`).join('');
-    }
   }
 
   /* ══════════════════════════════════
      도구
   ══════════════════════════════════ */
-  window.deletePost = (id) => {
-    if (confirm('이 게시글을 삭제하시겠습니까?')) remove(ref(db, `posts/${id}`));
-  };
   window.resetAll = () => {
     if (confirm('⚠️ 모든 게시글을 삭제합니까?'))
       if (confirm('정말요? 되돌릴 수 없습니다.')) remove(postsRef);
@@ -1379,12 +1400,12 @@
     const now = new Date();
     const time = `${now.getMonth()+1}.${now.getDate()}. ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     const dummy = [
-      { role: "진골", content: "오늘 안압지 팟 구함~ 🥂 진골끼리만요" },
-      { role: "농민", content: "세금이 너무 많다! 이러다 다 굶어 죽겠어 😡" },
+      { role: "진골",     content: "오늘 안압지 팟 구함~ 🥂 진골끼리만요" },
+      { role: "농민",     content: "세금이 너무 많다! 이러다 다 굶어 죽겠어 😡" },
       { role: "선종 승려", content: "마음을 비우면 모든 것이 보입니다 🧘" },
       { role: "풍수지리사", content: "새 도읍지를 찾아야 할 때입니다. 한강 주변이 길지입니다 🧭" },
-      { role: "6두품", content: "능력으로 인정받고 싶은데 골품제가 너무 답답해. 당나라라도 가야 하나..." },
-      { role: "호족", content: "중앙 통제가 약해진 틈을 타 우리 지역 세력을 키울 때가 됐다." },
+      { role: "6두품",    content: "능력으로 인정받고 싶은데 골품제가 너무 답답해. 당나라라도 가야 하나..." },
+      { role: "호족",     content: "중앙 통제가 약해진 틈을 타 우리 지역 세력을 키울 때가 됐다." },
     ];
     dummy.forEach(d => {
       const r = push(postsRef);
