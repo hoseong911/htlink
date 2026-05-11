@@ -1,661 +1,1397 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SILLAVER 관리자 센터</title>
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        :root {
-            --admin-red: #d32f2f;
-            --naver-green: #03c75a;
-            --pick-gold: #ffb300;
-            --bg-dark: #0e0e10;
-            --panel-dark: #1a1a1d;
-            --panel-darker: #141417;
-            --border-dark: #2a2a2e;
-            --text-main: #e8e8eb;
-            --text-sub: #9a9aa0;
-            --text-muted: #6a6a70;
-        }
-        * { box-sizing: border-box; }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-dark); margin: 0; padding: 0; color: var(--text-main); min-height: 100vh; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>관리자 센터 — S_threads</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --card: #111;
+      --panel: #141414;
+      --text: #f0f0f0;
+      --sub: #888;
+      --muted: #555;
+      --border: #222;
+      --border2: #2a2a2a;
+      --accent: #fff;
+      --danger: #f91880;
+      --success: #2ecc71;
+      --gold: #f5a623;
+      --blue: #4a9eff;
+      --sidebar-w: 210px;
+      --topbar-h: 54px;
+      --bottombar-h: 60px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Pretendard', sans-serif;
+      min-height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .login-box { background: var(--panel-dark); padding: 40px; border-radius: 12px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.7); border: 1px solid var(--border-dark); }
-        .login-box h2 { color: var(--naver-green); margin-top: 0; }
-        .login-box input { padding: 12px; border: 1px solid var(--border-dark); background: var(--panel-darker); color: var(--text-main); border-radius: 8px; font-size: 18px; width: 220px; text-align: center; display: block; margin: 20px auto; outline: none; }
-        .login-box input:focus { border-color: var(--naver-green); }
+    /* ── 로그인 ── */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 360px;
+      padding: 48px 32px 40px;
+      text-align: center;
+    }
+    .login-logo {
+      font-family: 'Jua', sans-serif;
+      font-size: 3rem;
+      letter-spacing: -1px;
+      margin-bottom: 4px;
+    }
+    .login-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 36px;
+      letter-spacing: 0.05em;
+    }
+    .login-input {
+      width: 100%;
+      padding: 14px 18px;
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      font-family: 'Pretendard', sans-serif;
+      outline: none;
+      margin-bottom: 12px;
+      transition: border-color 0.15s;
+      letter-spacing: 2px;
+    }
+    .login-input:focus { border-color: #555; }
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 800;
+      font-family: 'Pretendard', sans-serif;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: opacity 0.15s;
+    }
+    .login-btn:hover { opacity: 0.88; }
+    .login-err {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 10px;
+      display: none;
+    }
 
-        .app-layout { display: flex; min-height: 100vh; }
-        .sidebar { width: 200px; background: var(--panel-darker); border-right: 1px solid var(--border-dark); padding: 20px 12px; flex-shrink: 0; }
-        .sidebar-section-title { font-size: 11px; color: var(--text-muted); padding: 0 12px 8px; font-weight: 700; letter-spacing: 0.5px; }
-        .menu-item { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 8px; cursor: pointer; color: var(--text-sub); font-weight: 600; font-size: 14px; margin-bottom: 4px; transition: 0.15s; }
-        .menu-item:hover { background: var(--panel-dark); color: var(--text-main); }
-        .menu-item.active { background: var(--panel-dark); color: var(--text-main); }
-        .menu-item .menu-icon { font-size: 16px; }
+    /* ── 어드민 앱 ── */
+    #adminApp { display: none; height: 100vh; flex-direction: column; }
 
-        .main-content { flex: 1; padding: 24px; overflow-x: hidden; }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-        .page-title { font-size: 24px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; }
+    /* 상단바 */
+    .top-bar {
+      background: #000;
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: var(--topbar-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 200;
+      position: sticky;
+      top: 0;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-logo { font-family: 'Jua', sans-serif; font-size: 1.25rem; }
+    .brand-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: #000;
+      background: #fff;
+      border-radius: 5px;
+      padding: 2px 8px;
+      letter-spacing: 0.03em;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+    .logout-btn {
+      font-size: 12px;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-family: 'Pretendard', sans-serif;
+      transition: 0.15s;
+    }
+    .logout-btn:hover { color: var(--danger); border-color: #400; }
 
-        .btn { padding: 9px 16px; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; font-size: 13px; transition: 0.15s; }
-        .btn-red { background: var(--admin-red); color: white; }
-        .btn-red:hover { background: #b71c1c; }
-        .btn-green { background: var(--naver-green); color: white; }
-        .btn-green:hover { background: #02a34a; }
-        .btn-blue { background: #1565c0; color: white; }
-        .btn-blue:hover { background: #0d47a1; }
-        .btn-gray { background: var(--panel-dark); color: var(--text-main); border: 1px solid var(--border-dark); }
-        .btn-gray:hover { background: var(--border-dark); }
-        .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    /* 레이아웃 */
+    .admin-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
 
-        .panel { background: var(--panel-dark); border-radius: 12px; padding: 20px; border: 1px solid var(--border-dark); margin-bottom: 16px; }
+    /* 사이드바 (데스크톱) */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: #000;
+      border-right: 1px solid var(--border);
+      padding: 16px 10px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      position: sticky;
+      top: var(--topbar-h);
+      height: calc(100vh - var(--topbar-h));
+    }
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0 10px;
+      margin: 14px 0 6px;
+    }
+    .sidebar-label:first-child { margin-top: 0; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--sub);
+      transition: 0.12s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .nav-item:hover { background: #1a1a1a; color: var(--text); }
+    .nav-item.active { background: #1c1c1c; color: #fff; font-weight: 700; }
+    .nav-item .nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
 
-        .page { display: none; }
-        .page.active { display: block; }
+    /* 메인 콘텐츠 */
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      max-width: 980px;
+    }
 
-        .post-tabs { display: flex; gap: 8px; margin-bottom: 0; flex-wrap: wrap; }
-        .post-tab { padding: 16px 28px; border-radius: 10px 10px 0 0; border: 1px solid var(--border-dark); border-bottom: none; background: var(--panel-darker); color: var(--text-sub); font-size: 16px; cursor: pointer; font-weight: 800; transition: 0.15s; }
-        .post-tab:hover { color: var(--text-main); background: var(--panel-dark); }
-        .post-tab.active { background: var(--naver-green); color: white; border-color: var(--naver-green); }
+    /* 하단 탭바 (모바일) */
+    .bottom-tab-bar {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--bottombar-h);
+      background: #000;
+      border-top: 1px solid var(--border);
+      z-index: 300;
+    }
+    .bottom-tabs {
+      display: flex;
+      height: 100%;
+    }
+    .bottom-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      transition: 0.12s;
+      border: none;
+      background: none;
+      font-family: 'Pretendard', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .bottom-tab .tab-icon { font-size: 20px; line-height: 1; }
+    .bottom-tab.active { color: #fff; }
 
-        .sub-filter-section { background: var(--panel-darker); border: 1px solid var(--border-dark); border-radius: 0 10px 10px 10px; padding: 16px 18px; margin-bottom: 18px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-        .sub-filter-divider { width: 1px; height: 22px; background: var(--border-dark); margin: 0 4px; }
-        .sub-filter-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-        .sub-filter-label { font-size: 12px; color: var(--text-muted); margin-right: 6px; font-weight: 600; }
-        .sub-filter-btn { padding: 7px 14px; border-radius: 16px; border: 1px solid var(--border-dark); background: var(--panel-dark); color: var(--text-sub); font-size: 13px; cursor: pointer; font-weight: 600; transition: 0.15s; }
-        .sub-filter-btn:hover { color: var(--text-main); border-color: var(--text-sub); }
-        .sub-filter-btn.active { background: var(--text-main); color: var(--bg-dark); border-color: var(--text-main); }
-        .sub-filter-btn.pick-active.active { background: var(--pick-gold); border-color: var(--pick-gold); color: #1a1a1d; }
+    /* 페이지 패널 */
+    .panel { display: none; }
+    .panel.active { display: block; }
 
-        .post-card { background: var(--panel-darker); border: 1px solid var(--border-dark); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
-        .post-card.picked { border-left: 3px solid var(--pick-gold); background: linear-gradient(90deg, rgba(255,179,0,0.08), var(--panel-darker) 60%); }
-        .post-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-        .post-author { font-size: 13px; color: var(--text-sub); }
-        .post-author .name { color: var(--text-main); font-weight: 700; margin-right: 8px; }
-        .post-cat-tag { display: inline-block; background: rgba(21,101,192,0.2); color: #64b5f6; font-size: 11px; padding: 3px 9px; border-radius: 4px; font-weight: 700; }
-        .post-content { font-size: 15px; color: var(--text-main); line-height: 1.5; word-break: break-word; white-space: pre-wrap; }
-        .post-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 10px; flex-wrap: wrap; }
-        .post-meta { display: flex; gap: 14px; font-size: 12px; color: var(--text-muted); align-items: center; }
-        .post-meta .like-count { color: #ff6b81; font-weight: 700; }
-        .post-meta .pick-mark { color: var(--pick-gold); font-weight: 700; }
+    /* 페이지 타이틀 */
+    .page-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      font-family: 'Jua', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .page-header .page-title { margin-bottom: 0; }
 
-        .pick-toggle { display: inline-flex; align-items: center; gap: 5px; background: var(--panel-dark); border: 1px solid var(--border-dark); padding: 7px 14px; border-radius: 16px; font-size: 13px; cursor: pointer; color: var(--text-sub); font-weight: 700; transition: 0.15s; }
-        .pick-toggle:hover { color: var(--pick-gold); border-color: var(--pick-gold); }
-        .pick-toggle.active { background: var(--pick-gold); color: #1a1a1d; border-color: var(--pick-gold); }
+    /* 카드 */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--sub);
+      margin-bottom: 14px;
+      letter-spacing: 0.04em;
+    }
 
-        .keyword-rank-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; background: var(--panel-darker); border: 1px solid var(--border-dark); border-radius: 8px; margin-bottom: 6px; }
-        .keyword-rank-num { width: 28px; text-align: center; font-weight: 900; font-size: 17px; color: var(--naver-green); }
-        .keyword-rank-num.top { color: var(--pick-gold); font-size: 19px; }
-        .keyword-rank-word { flex: 1; font-size: 15px; font-weight: 700; color: var(--text-main); }
-        .keyword-rank-count { background: var(--panel-dark); padding: 4px 10px; border-radius: 12px; font-size: 12px; color: var(--text-sub); font-weight: 600; }
-        .keyword-rank-users { font-size: 12px; color: var(--text-muted); max-width: 40%; text-align: right; line-height: 1.4; }
+    /* 통계 카드 */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 26px;
+      font-weight: 800;
+      font-family: 'Jua', sans-serif;
+    }
+    .stat-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; }
 
-        .empty-msg { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 14px; }
+    /* 필터 바 */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .filter-bar input,
+    .filter-bar select {
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-size: 13px;
+      font-family: 'Pretendard', sans-serif;
+      outline: none;
+      background: #161616;
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+    .filter-bar input { flex: 1; min-width: 180px; }
+    .filter-bar input:focus,
+    .filter-bar select:focus { border-color: #555; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 20px; }
-        .stat-card { background: var(--panel-dark); border-radius: 10px; padding: 18px 22px; border: 1px solid var(--border-dark); }
-        .stat-label { font-size: 12px; color: var(--text-sub); font-weight: 600; margin-bottom: 6px; }
-        .stat-value { font-size: 28px; font-weight: 900; color: var(--text-main); }
-        .stat-value.green { color: var(--naver-green); }
-        .stat-value.gold { color: var(--pick-gold); }
+    /* 반 칩 */
+    .class-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .class-chip {
+      padding: 5px 12px;
+      border: 1.5px solid #2a2a2a;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--sub);
+      background: #161616;
+      cursor: pointer;
+      font-family: 'Pretendard', sans-serif;
+      transition: 0.12s;
+      white-space: nowrap;
+    }
+    .class-chip:hover { border-color: #555; color: #ccc; }
+    .class-chip.active { background: #fff; border-color: #fff; color: #000; font-weight: 700; }
 
-        .table-wrap { background: var(--panel-dark); border-radius: 12px; overflow: auto; border: 1px solid var(--border-dark); }
-        .data-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-        .data-table th { background: var(--panel-darker); padding: 13px 14px; text-align: left; border-bottom: 1px solid var(--border-dark); font-size: 12px; color: var(--text-sub); white-space: nowrap; font-weight: 700; }
-        .data-table td { padding: 13px 14px; border-bottom: 1px solid var(--border-dark); vertical-align: top; font-size: 13px; color: var(--text-main); }
-        .data-table tr:last-child td { border-bottom: none; }
-        .data-table tr:hover td { background: var(--panel-darker); }
+    /* 테이블 */
+    .table-wrap { overflow-x: auto; border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th {
+      background: #0d0d0d;
+      padding: 10px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      color: var(--sub);
+      font-weight: 700;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #161616; }
+    .td-content {
+      max-width: 200px;
+      word-break: break-all;
+      font-size: 12px;
+      color: #aaa;
+      line-height: 1.4;
+    }
 
-        .student-name { font-weight: 800; color: var(--text-main); font-size: 15px; }
-        .student-id { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
-        .timestamp { font-size: 12px; color: var(--text-muted); white-space: nowrap; line-height: 1.5; }
-        .tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin: 2px 3px 2px 0; }
-        .tag-keyword { background: rgba(3,199,90,0.15); color: #5fd590; font-weight: 600; }
-        .tag-cat { background: rgba(21,101,192,0.2); color: #64b5f6; font-size: 11px; padding: 2px 6px; border-radius: 3px; }
-        .news-row { margin-bottom: 5px; font-size: 13px; line-height: 1.4; }
-        .ad-text { background: rgba(255,193,7,0.08); border-left: 3px solid #ffc107; padding: 8px 10px; border-radius: 4px; font-size: 13px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: var(--text-main); }
-        .del-btn { color: #ff6b6b; cursor: pointer; font-weight: 700; padding: 5px 10px; border: 1px solid #ff6b6b; background: transparent; border-radius: 4px; font-size: 12px; white-space: nowrap; }
-        .del-btn:hover { background: rgba(255,107,107,0.1); }
-        .loading { text-align: center; padding: 50px; font-weight: bold; color: var(--text-muted); }
-        .edit-btn { color: #64b5f6; cursor: pointer; font-weight: 700; padding: 5px 10px; border: 1px solid #64b5f6; background: transparent; border-radius: 4px; font-size: 12px; white-space: nowrap; margin-right: 4px; }
-        .edit-btn:hover { background: rgba(100,181,246,0.1); }
-        .action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+    /* 뱃지 */
+    .role-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 5px;
+      padding: 2px 7px;
+      white-space: nowrap;
+      background: #1c1c1c;
+      color: #aaa;
+      border: 1px solid #2a2a2a;
+    }
+    .student-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 4px;
+      padding: 2px 6px;
+      background: rgba(74, 158, 255, 0.12);
+      color: var(--blue);
+      border: 1px solid rgba(74, 158, 255, 0.25);
+    }
 
-        .chart-section { background: var(--panel-dark); border: 1px solid var(--border-dark); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
-        .chart-title { font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 14px; }
-        .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-        .bar-label { width: 100px; font-size: 13px; color: var(--text-sub); flex-shrink: 0; }
-        .bar-track { flex: 1; height: 24px; background: var(--panel-darker); border-radius: 4px; overflow: hidden; }
-        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--naver-green), #5fd590); border-radius: 4px; transition: width 0.4s ease; }
-        .bar-value { width: 36px; font-size: 13px; color: var(--text-main); font-weight: 700; text-align: right; flex-shrink: 0; }
+    /* 버튼 */
+    .btn {
+      padding: 9px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Pretendard', sans-serif;
+      transition: 0.15s;
+    }
+    .btn-primary { background: #fff; color: #000; }
+    .btn-primary:hover { background: #e8e8e8; }
+    .btn-warn { background: #251e00; color: var(--gold); border: 1px solid #5a4800; }
+    .btn-warn:hover { background: #322800; }
+    .btn-danger { background: #1c0000; color: var(--danger); border: 1px solid #500; }
+    .btn-danger:hover { background: #280000; }
+    .btn-blue { background: #0d2244; color: var(--blue); border: 1px solid #1a3a6a; }
+    .btn-blue:hover { background: #122a52; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
-        .filter-bar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-        .search-input { flex: 1; min-width: 200px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-dark); background: var(--panel-darker); color: var(--text-main); font-size: 14px; outline: none; font-family: inherit; }
-        .search-input:focus { border-color: var(--naver-green); }
-        .search-input::placeholder { color: var(--text-muted); }
+    .btn-sm {
+      padding: 4px 9px;
+      font-size: 11px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .btn-sm-danger { background: #1c0000; color: var(--danger); border: 1px solid #400; }
+    .btn-sm-danger:hover { background: #280000; }
+    .btn-sm-edit { background: #0d2244; color: var(--blue); border: 1px solid #1a3a6a; }
+    .btn-sm-edit:hover { background: #122a52; }
+    .btn-pick {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 17px;
+      color: #333;
+      transition: color 0.15s;
+      padding: 0 4px;
+    }
+    .btn-pick.picked { color: var(--gold); }
+    .btn-pick:hover { color: var(--gold); }
 
-        .class-filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; padding: 12px 14px; background: var(--panel-darker); border-radius: 8px; border: 1px solid var(--border-dark); align-items: center; }
-        .class-filter-bar .label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-right: 4px; }
-        .class-chip { padding: 6px 13px; border-radius: 14px; border: 1px solid var(--border-dark); background: var(--panel-dark); color: var(--text-sub); font-size: 13px; cursor: pointer; font-weight: 600; transition: 0.15s; }
-        .class-chip.active { background: var(--naver-green); color: white; border-color: var(--naver-green); }
-        .class-chip .count { font-size: 11px; opacity: 0.7; margin-left: 4px; }
+    /* 바 차트 */
+    .bar-wrap { margin-bottom: 10px; }
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--sub);
+      margin-bottom: 4px;
+    }
+    .bar-bg { background: #1c1c1c; border-radius: 3px; height: 7px; }
+    .bar-fill { background: #fff; height: 7px; border-radius: 3px; transition: width 0.5s; }
 
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: center; z-index: 3000; }
-        .modal-overlay.show { display: flex; }
-        .modal-box { background: var(--panel-dark); padding: 28px; border-radius: 12px; border: 1px solid var(--border-dark); width: 90%; max-width: 380px; }
-        .modal-title { font-size: 18px; font-weight: 800; margin: 0 0 6px; color: var(--text-main); }
-        .modal-desc { font-size: 13px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.5; }
-        .modal-field { margin-bottom: 14px; }
-        .modal-field label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px; font-weight: 700; }
-        .modal-field input { width: 100%; padding: 11px 13px; border: 1px solid var(--border-dark); background: var(--panel-darker); color: var(--text-main); border-radius: 8px; font-size: 15px; outline: none; font-family: inherit; }
-        .modal-field input:focus { border-color: var(--naver-green); }
-        .modal-warning { font-size: 12px; color: #ffa726; background: rgba(255,167,38,0.1); padding: 10px 12px; border-radius: 6px; margin-bottom: 16px; line-height: 1.5; }
-        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+    /* 도구 섹션 */
+    .tool-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    .tool-section-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+    .tool-notice {
+      background: #251e00;
+      border: 1px solid #5a4800;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #c8a060;
+      margin-bottom: 12px;
+    }
+    .danger-zone {
+      background: #100000;
+      border: 1px solid #3a0000;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
 
-        /* 로그아웃 버튼 */
-        .logout-btn { background: transparent; border: 1px solid var(--border-dark); color: var(--text-muted); padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-top: 20px; width: 100%; font-family: inherit; }
-        .logout-btn:hover { color: var(--text-main); border-color: var(--text-sub); }
+    /* 테이블 카운트 */
+    .table-count {
+      padding: 10px 14px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: right;
+      border-top: 1px solid var(--border);
+    }
 
-        @media (max-width: 768px) {
-            .app-layout { flex-direction: column; }
-            .sidebar { width: 100%; padding: 10px; display: flex; gap: 6px; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border-dark); }
-            .sidebar-section-title { display: none; }
-            .menu-item { white-space: nowrap; margin-bottom: 0; flex-shrink: 0; }
-            .main-content { padding: 16px; }
-        }
-    </style>
+    /* 모달 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 28px;
+      width: 90%;
+      max-width: 360px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+    .modal-title {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .modal-desc {
+      font-size: 12px;
+      color: var(--sub);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .modal-warn {
+      font-size: 12px;
+      color: #c8a060;
+      background: #251e00;
+      border: 1px solid #5a4800;
+      border-radius: 7px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .modal-field { margin-bottom: 12px; }
+    .modal-field label {
+      display: block;
+      font-size: 11px;
+      color: var(--sub);
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+    }
+    .modal-field input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid #2a2a2a;
+      background: #0d0d0d;
+      color: #fff;
+      border-radius: 9px;
+      font-size: 14px;
+      outline: none;
+      font-family: 'Pretendard', sans-serif;
+      transition: border-color 0.15s;
+    }
+    .modal-field input:focus { border-color: #555; }
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 18px;
+    }
+    .btn-modal-cancel {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+      background: transparent;
+      color: var(--sub);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .btn-modal-cancel:hover { color: #fff; }
+    .btn-modal-save {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      background: #fff;
+      color: #000;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .btn-modal-save:hover { background: #e0e0e0; }
+
+    /* ── 반응형: 모바일 ── */
+    @media (max-width: 700px) {
+      .sidebar { display: none; }
+      .bottom-tab-bar { display: block; }
+      .admin-body { padding-bottom: var(--bottombar-h); }
+      .content-area {
+        padding: 16px;
+        max-width: 100%;
+        height: calc(100vh - var(--topbar-h) - var(--bottombar-h));
+        overflow-y: auto;
+      }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .page-title { font-size: 17px; }
+      .page-header { flex-direction: column; align-items: flex-start; }
+      .btn-row { width: 100%; }
+      .btn-row .btn { flex: 1; text-align: center; }
+      th, td { padding: 8px 6px; }
+      .td-content { max-width: 130px; }
+    }
+
+    @media (max-width: 480px) {
+      .stat-num { font-size: 22px; }
+      .filter-bar input { min-width: 140px; }
+    }
+  </style>
 </head>
 <body>
 
-<div id="login-overlay">
-    <div class="login-box">
-        <h2>SILLAVER 관리자 접속</h2>
-        <p style="font-size:14px; margin-bottom:10px;">데이터 관리를 위해 비밀번호를 입력해주세요.</p>
-        <input type="password" id="admin-pw" placeholder="비밀번호 입력" onkeypress="if(event.keyCode==13) checkLogin()">
-        <button class="btn btn-green" style="width:220px;padding:14px;font-size:16px;margin:0 auto;display:block;" onclick="checkLogin()">관리자 모드 진입</button>
-    </div>
+<!-- 로그인 -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">S_threads</div>
+    <div class="login-sub">관리자 센터 · 신라 하대 스레드</div>
+    <input type="password" id="adminPw" class="login-input" placeholder="관리자 비밀번호"
+      onkeydown="if(event.key==='Enter') tryLogin()">
+    <button class="login-btn" onclick="tryLogin()">접속하기</button>
+    <div class="login-err" id="loginErr">비밀번호가 올바르지 않습니다.</div>
+  </div>
 </div>
 
-<div class="app-layout" id="admin-main" style="display:none;">
-    <aside class="sidebar">
-        <div class="sidebar-section-title">메뉴</div>
-        <div class="menu-item active" data-page="posts" onclick="switchPage('posts')"><span class="menu-icon">📝</span> 게시글 관리</div>
-        <div class="menu-item" data-page="stats" onclick="switchPage('stats')"><span class="menu-icon">📊</span> 통계</div>
-        <div class="menu-item" data-page="tools" onclick="switchPage('tools')"><span class="menu-icon">🛠️</span> 도구</div>
-        <button class="logout-btn" onclick="adminLogout()">🔓 로그아웃</button>
-    </aside>
+<!-- 어드민 앱 -->
+<div id="adminApp">
+  <!-- 상단바 -->
+  <div class="top-bar">
+    <div class="brand">
+      <span class="brand-logo">S_threads</span>
+      <span class="brand-badge">관리자</span>
+    </div>
+    <div class="topbar-right">
+      <button class="logout-btn" onclick="logoutAdmin()">로그아웃</button>
+    </div>
+  </div>
 
-    <main class="main-content">
+  <div class="admin-body">
+    <!-- 사이드바 (데스크톱) -->
+    <nav class="sidebar">
+      <div class="sidebar-label">메뉴</div>
+      <button class="nav-item active" onclick="showPanel('posts')">
+        <span class="nav-icon">📋</span> 게시글 관리
+      </button>
+      <button class="nav-item" onclick="showPanel('students')">
+        <span class="nav-icon">👥</span> 학생 명단
+      </button>
+      <button class="nav-item" onclick="showPanel('stats')">
+        <span class="nav-icon">📊</span> 통계
+      </button>
+      <button class="nav-item" onclick="showPanel('tools')">
+        <span class="nav-icon">🔧</span> 도구
+      </button>
+    </nav>
 
-        <!-- 게시글 관리 -->
-        <div class="page active" id="page-posts">
-            <div class="page-header">
-                <h1 class="page-title">📝 게시글 관리</h1>
-                <button class="btn btn-gray" onclick="location.href='sillaver.html'">포털 메인으로</button>
-            </div>
-            <div class="post-tabs">
-                <button class="post-tab active" data-tab="keyword" onclick="switchPostTab('keyword',this)">🔍 검색어 순위</button>
-                <button class="post-tab" data-tab="news" onclick="switchPostTab('news',this)">📰 기사 헤드라인</button>
-                <button class="post-tab" data-tab="ad" onclick="switchPostTab('ad',this)">📢 광고 내용</button>
-            </div>
-            <div class="panel" style="border-radius:0 12px 12px 12px;">
-                <div id="filter-keyword" class="sub-filter-section">
-                    <div class="sub-filter-row">
-                        <span class="sub-filter-label">정렬</span>
-                        <button class="sub-filter-btn active" onclick="setKeywordSort('count',this)">횟수순</button>
-                        <button class="sub-filter-btn" onclick="setKeywordSort('latest',this)">최신순</button>
-                    </div>
-                </div>
-                <div id="filter-news" class="sub-filter-section" style="display:none;">
-                    <div class="sub-filter-row">
-                        <button class="sub-filter-btn active" onclick="setNewsCat('전체',this)">전체</button>
-                        <button class="sub-filter-btn" onclick="setNewsCat('정치',this)">🏛️ 정치</button>
-                        <button class="sub-filter-btn" onclick="setNewsCat('중앙제도',this)">📜 중앙</button>
-                        <button class="sub-filter-btn" onclick="setNewsCat('지방행정',this)">🗺️ 지방</button>
-                        <button class="sub-filter-btn" onclick="setNewsCat('군사',this)">⚔️ 군사</button>
-                        <button class="sub-filter-btn" onclick="setNewsCat('토지',this)">🌾 토지</button>
-                    </div>
-                    <div class="sub-filter-divider"></div>
-                    <div class="sub-filter-row">
-                        <span class="sub-filter-label">정렬</span>
-                        <button class="sub-filter-btn active" onclick="setNewsSort('latest',this)">최신순</button>
-                        <button class="sub-filter-btn" onclick="setNewsSort('studentId',this)">학번순</button>
-                        <button class="sub-filter-btn" onclick="setNewsSort('likes',this)">좋아요순</button>
-                        <button class="sub-filter-btn pick-active" onclick="setNewsSort('pick',this)">⭐ 픽 모아보기</button>
-                    </div>
-                </div>
-                <div id="filter-ad" class="sub-filter-section" style="display:none;">
-                    <div class="sub-filter-row">
-                        <span class="sub-filter-label">정렬</span>
-                        <button class="sub-filter-btn active" onclick="setAdSort('latest',this)">최신순</button>
-                        <button class="sub-filter-btn" onclick="setAdSort('studentId',this)">학번순</button>
-                        <button class="sub-filter-btn" onclick="setAdSort('likes',this)">좋아요순</button>
-                        <button class="sub-filter-btn pick-active" onclick="setAdSort('pick',this)">⭐ 픽 모아보기</button>
-                    </div>
-                </div>
-                <div id="post-content-area"><div class="empty-msg">데이터를 불러오는 중...</div></div>
-            </div>
+    <!-- 콘텐츠 -->
+    <main class="content-area" id="contentArea">
+
+      <!-- ── 게시글 관리 ── -->
+      <div id="panel-posts" class="panel active">
+        <div class="page-title">📋 게시글 관리</div>
+        <div class="filter-bar">
+          <input type="text" id="searchInput"
+            placeholder="🔍 학번, 이름, 닉네임, 신분, 내용 검색..."
+            oninput="applyFilters()">
+          <select id="roleFilter" onchange="applyFilters()">
+            <option value="">전체 신분</option>
+            <option value="진골">👑 진골 귀족</option>
+            <option value="6두품">📜 6두품 지식인</option>
+            <option value="호족">🏰 지방 호족</option>
+            <option value="농민">🌾 일반 농민</option>
+            <option value="선종 승려">🧘 선종 승려</option>
+            <option value="풍수지리사">🧭 풍수지리사</option>
+          </select>
+          <select id="pickFilter" onchange="applyFilters()">
+            <option value="">전체</option>
+            <option value="pick">⭐ 픽된 글만</option>
+            <option value="nopick">픽 없는 글만</option>
+          </select>
+        </div>
+        <div style="margin-bottom:12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:0.08em;">반별 필터</div>
+          <div class="class-chips" id="postsClassChips">
+            <button class="class-chip active" onclick="setPostsClassFilter('all',this)">전체 반</button>
+          </div>
         </div>
 
-        <!-- 통계 -->
-        <div class="page" id="page-stats">
-            <div class="page-header">
-                <h1 class="page-title">📊 통계 · 학생별 제출 내역</h1>
-                <div class="btn-row"><button class="btn btn-blue" onclick="exportToExcel()">📥 엑셀로 저장</button></div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card"><div class="stat-label">총 제출 학생 수</div><div class="stat-value green" id="stat-total">-</div></div>
-                <div class="stat-card"><div class="stat-label">뉴스 헤드라인 작성</div><div class="stat-value" id="stat-news">-</div></div>
-                <div class="stat-card"><div class="stat-label">광고 배너 작성</div><div class="stat-value" id="stat-ad">-</div></div>
-                <div class="stat-card"><div class="stat-label">총 검색어 수</div><div class="stat-value" id="stat-keywords">-</div></div>
-                <div class="stat-card"><div class="stat-label">총 좋아요</div><div class="stat-value" style="color:#ff6b81;" id="stat-likes">-</div></div>
-                <div class="stat-card"><div class="stat-label">선생님 PICK 수</div><div class="stat-value gold" id="stat-picks">-</div></div>
-            </div>
-            <div class="chart-section">
-                <div class="chart-title">📰 분야별 기사 작성 현황</div>
-                <div id="news-chart"></div>
-            </div>
-            <div class="class-filter-bar" id="class-filter-bar"><span class="label">학반</span><button class="class-chip active" onclick="setClassFilter('전체',this)">전체</button></div>
-            <div class="filter-bar">
-                <input type="text" class="search-input" id="stats-search" placeholder="🔎 학번 또는 이름으로 검색..." oninput="renderStatsTable()">
-            </div>
-            <div class="table-wrap">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th width="5%">#</th><th width="14%">학생 정보</th><th width="11%">제출 시각</th>
-                            <th width="17%">검색어</th><th width="25%">뉴스 헤드라인</th><th width="16%">광고 배너</th><th width="12%">관리</th>
-                        </tr>
-                    </thead>
-                    <tbody id="data-list"></tbody>
-                </table>
-                <div id="loading-msg" class="loading">데이터를 불러오는 중입니다...</div>
-            </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>학번</th>
+                  <th>반</th>
+                  <th>이름</th>
+                  <th>닉네임</th>
+                  <th>신분</th>
+                  <th>내용</th>
+                  <th>❤</th>
+                  <th>픽</th>
+                  <th>수정</th>
+                  <th>삭제</th>
+                </tr>
+              </thead>
+              <tbody id="postsBody"></tbody>
+            </table>
+          </div>
+          <div class="table-count" id="postsCount"></div>
+        </div>
+      </div>
+
+      <!-- ── 학생 명단 ── -->
+      <div id="panel-students" class="panel">
+        <div class="page-header">
+          <div class="page-title">👥 학생 명단</div>
+          <div class="btn-row">
+            <button class="btn btn-blue" onclick="exportStudentsExcel()">📥 엑셀 저장</button>
+          </div>
         </div>
 
-        <!-- 도구 -->
-        <div class="page" id="page-tools">
-            <div class="page-header">
-                <h1 class="page-title">🛠️ 도구</h1>
-                <button class="btn btn-gray" onclick="location.href='sillaver.html'">포털 메인으로</button>
-            </div>
-            <div class="panel">
-                <div style="font-size:16px;font-weight:700;margin-bottom:8px;">📥 데이터 내보내기</div>
-                <div style="font-size:13px;color:var(--text-sub);margin-bottom:16px;line-height:1.5;">학생 제출 기록 전체를 엑셀로 저장합니다.</div>
-                <button class="btn btn-blue" onclick="exportToExcel()">📥 엑셀로 저장</button>
-            </div>
-            <div class="panel">
-                <div style="font-size:16px;font-weight:700;margin-bottom:8px;">👥 학생 명단 관리</div>
-                <div style="font-size:13px;color:var(--text-sub);margin-bottom:16px;line-height:1.5;">학생 명단 업로드 및 관리는 student2026.html에서 합니다.</div>
-                <button class="btn btn-gray" onclick="location.href='../student2026.html'">student2026.html 열기</button>
-            </div>
-            <div class="panel" style="border-color:rgba(211,47,47,0.4);">
-                <div style="font-size:16px;font-weight:700;margin-bottom:8px;color:#ff6b6b;">⚠️ 위험 구역</div>
-                <div style="font-size:13px;color:var(--text-sub);margin-bottom:16px;line-height:1.5;">아래 작업은 되돌릴 수 없습니다.</div>
-                <button class="btn btn-red" onclick="resetAll()">🚨 전체 제출 데이터 초기화</button>
-            </div>
+        <div class="filter-bar">
+          <input type="text" id="studentSearch"
+            placeholder="🔍 학번 또는 이름 검색..."
+            oninput="renderStudentsTable()">
+          <select id="studentClassFilter" onchange="renderStudentsTable()">
+            <option value="">전체 반</option>
+          </select>
         </div>
+
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>학번</th>
+                  <th>반</th>
+                  <th>이름</th>
+                  <th>게시글</th>
+                  <th>좋아요</th>
+                  <th>픽</th>
+                  <th>수정</th>
+                </tr>
+              </thead>
+              <tbody id="studentsBody"></tbody>
+            </table>
+          </div>
+          <div class="table-count" id="studentsCount"></div>
+        </div>
+      </div>
+
+      <!-- ── 통계 ── -->
+      <div id="panel-stats" class="panel">
+        <div class="page-header">
+          <div class="page-title">📊 통계</div>
+          <button class="btn btn-blue" onclick="exportPostsExcel()">📥 엑셀 저장</button>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-num" id="st-total">-</div>
+            <div class="stat-lbl">전체 게시글</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="st-students">-</div>
+            <div class="stat-lbl">참여 학생</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="st-likes">-</div>
+            <div class="stat-lbl">총 좋아요</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="st-picks">-</div>
+            <div class="stat-lbl">PICK 수</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏛️ 신분별 게시글</div>
+          <div id="roleStats"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏫 반별 참여 현황</div>
+          <div id="classStats"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">⭐ 픽된 게시글</div>
+          <div id="pickedList"></div>
+        </div>
+      </div>
+
+      <!-- ── 도구 ── -->
+      <div id="panel-tools" class="panel">
+        <div class="page-title">🔧 도구</div>
+        <div class="tool-section">
+          <div class="tool-section-title">📝 더미 게시글</div>
+          <div class="btn-row" style="margin-bottom:8px;">
+            <button class="btn btn-primary" onclick="initDummy()">더미 생성</button>
+            <button class="btn btn-warn" onclick="deleteDummy()">더미만 삭제</button>
+          </div>
+          <div style="font-size:11px; color:var(--muted);">더미는 학번 00000 · System 계정으로 저장됩니다.</div>
+        </div>
+        <div class="tool-section">
+          <div class="tool-section-title">🎭 신분별 삭제</div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <select id="roleDeleteSelect"
+              style="padding:9px 12px; background:#161616; border:1px solid #2a2a2a; border-radius:8px; color:#fff; font-family:'Pretendard',sans-serif; font-size:13px; outline:none;">
+              <option value="">신분 선택</option>
+              <option value="진골">👑 진골 귀족</option>
+              <option value="6두품">📜 6두품 지식인</option>
+              <option value="호족">🏰 지방 호족</option>
+              <option value="농민">🌾 일반 농민</option>
+              <option value="선종 승려">🧘 선종 승려</option>
+              <option value="풍수지리사">🧭 풍수지리사</option>
+            </select>
+            <button class="btn btn-warn" onclick="deleteAllByRole()">해당 신분 전체 삭제</button>
+          </div>
+        </div>
+        <div class="danger-zone">
+          <div class="tool-section-title" style="color:var(--danger);">⚠️ 위험 구역</div>
+          <div class="tool-notice">아래 기능은 되돌릴 수 없습니다. 신중하게 사용하세요.</div>
+          <button class="btn btn-danger" onclick="resetAll()">🗑️ 전체 게시글 초기화</button>
+        </div>
+      </div>
 
     </main>
+  </div>
+
+  <!-- 하단 탭바 (모바일) -->
+  <div class="bottom-tab-bar">
+    <div class="bottom-tabs">
+      <button class="bottom-tab active" id="btab-posts" onclick="showPanel('posts')">
+        <span class="tab-icon">📋</span>
+        <span>게시글</span>
+      </button>
+      <button class="bottom-tab" id="btab-students" onclick="showPanel('students')">
+        <span class="tab-icon">👥</span>
+        <span>학생</span>
+      </button>
+      <button class="bottom-tab" id="btab-stats" onclick="showPanel('stats')">
+        <span class="tab-icon">📊</span>
+        <span>통계</span>
+      </button>
+      <button class="bottom-tab" id="btab-tools" onclick="showPanel('tools')">
+        <span class="tab-icon">🔧</span>
+        <span>도구</span>
+      </button>
+    </div>
+  </div>
 </div>
 
-<!-- 학생 정보 편집 모달 -->
-<div class="modal-overlay" id="edit-modal">
-    <div class="modal-box">
-        <h3 class="modal-title">✏️ 학생 정보 수정</h3>
-        <p class="modal-desc">학번과 이름을 수정합니다.</p>
-        <div class="modal-warning">⚠️ 학번을 변경할 때, 같은 학번으로 이미 제출한 학생이 있으면 저장되지 않습니다.</div>
-        <div class="modal-field">
-            <label>학번 (5자리 숫자)</label>
-            <input type="text" id="edit-student-id" maxlength="5" inputmode="numeric">
-        </div>
-        <div class="modal-field">
-            <label>이름</label>
-            <input type="text" id="edit-student-name">
-        </div>
-        <div class="modal-actions">
-            <button class="btn btn-gray" onclick="closeEditModal()">취소</button>
-            <button class="btn btn-green" onclick="saveEdit()">저장</button>
-        </div>
+<!-- 게시글 수정 모달 -->
+<div class="modal-overlay" id="postEditModal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ 게시글 수정</div>
+    <div class="modal-desc">내용을 수정합니다.</div>
+    <div class="modal-field">
+      <label>내용</label>
+      <input type="text" id="editPostContent">
     </div>
+    <div class="modal-field">
+      <label>닉네임</label>
+      <input type="text" id="editPostNickname">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closePostEditModal()">취소</button>
+      <button class="btn-modal-save" onclick="savePostEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 학생 수정 모달 -->
+<div class="modal-overlay" id="studentEditModal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ 학생 정보 수정</div>
+    <div class="modal-desc">학번과 이름을 수정합니다.</div>
+    <div class="modal-warn">⚠️ 학번을 변경하면 해당 학번으로 된 게시글 정보도 함께 변경됩니다.</div>
+    <div class="modal-field">
+      <label>학번 (5자리)</label>
+      <input type="text" id="editStudentId" maxlength="5" inputmode="numeric">
+    </div>
+    <div class="modal-field">
+      <label>이름</label>
+      <input type="text" id="editStudentName">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeStudentEditModal()">취소</button>
+      <button class="btn-modal-save" onclick="saveStudentEdit()">저장</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import {
-        getFirestore, collection, onSnapshot, query, orderBy,
-        deleteDoc, doc, getDocs, updateDoc
-    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getDatabase, ref, set, push, onValue, remove, update, get
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
-        authDomain: "ho0911seong-56638.firebaseapp.com",
-        projectId: "ho0911seong-56638",
-        storageBucket: "ho0911seong-56638.firebasestorage.app",
-        messagingSenderId: "994509567071",
-        appId: "1:994509567071:web:778c95931e95e9cbf557ea"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
+    authDomain: "ho0911seong-56638.firebaseapp.com",
+    databaseURL: "https://ho0911seong-56638-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "ho0911seong-56638",
+    storageBucket: "ho0911seong-56638.firebasestorage.app",
+    messagingSenderId: "994509567071",
+    appId: "1:994509567071:web:de99e71c125ec2a3f557ea"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const postsRef = ref(db, 'posts');
+  const toastRef = ref(db, 'silla_toast');
 
-    const ADMIN_SS_KEY = 'sillaverAdmin';
+  const ADMIN_PW_HASH = "57765044de4726b8a55db8c3846a7b6a038a2beaff40c0cc5113744ad8b62694";
+  const SESSION_KEY = 'sthreads_admin_v1';
 
-    let allDocs = [];
-    let currentPostTab = 'keyword';
-    let keywordSortMode = 'count';
-    let newsCat = '전체';
-    let newsSort = 'latest';
-    let adSort = 'latest';
-    let classFilter = '전체';
-    let editingDocId = null;
+  const roleIcons = {
+    "진골": "👑", "6두품": "📜", "호족": "🏰",
+    "농민": "🌾", "선종 승려": "🧘", "풍수지리사": "🧭"
+  };
 
-    function parseClass(sid) {
-        if (!sid || sid.length < 3) return null;
-        const g = sid.substring(0,1), c = parseInt(sid.substring(1,3),10);
-        return isNaN(c) ? null : `${g}-${c}`;
+  let allPosts = [];       // Firebase posts
+  let allStudents = [];    // Firebase students (명단)
+  let postsClassFilter = 'all';
+  let editingPostId = null;
+  let editingStudentKey = null;
+
+  /* ── 유틸 ── */
+  async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  function esc(s) {
+    const d = document.createElement('div');
+    d.textContent = String(s || '');
+    return d.innerHTML;
+  }
+  function classLabel(sid) {
+    const cls = (sid || '').slice(0, 3);
+    return /^\d{3}$/.test(cls)
+      ? `${cls[0]}학년 ${parseInt(cls.slice(1))}반`
+      : '-';
+  }
+
+  /* ── 로그인 / 세션 ── */
+  window.tryLogin = async () => {
+    const hash = await sha256(document.getElementById('adminPw').value);
+    if (hash === ADMIN_PW_HASH) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      enterAdmin();
+    } else {
+      document.getElementById('loginErr').style.display = 'block';
     }
-    function esc(str) {
-        if (typeof str !== 'string') return '';
-        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
-    }
-    function formatTime(ts) {
-        if (!ts) return '-';
-        const d = ts.toDate ? ts.toDate() : new Date(ts), pad = n => String(n).padStart(2,'0');
-        return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}<br>${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    }
-    function formatTimeShort(ts) {
-        if (!ts) return '-';
-        const d = ts.toDate ? ts.toDate() : new Date(ts), pad = n => String(n).padStart(2,'0');
-        return `${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
+  };
+  window.logoutAdmin = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    location.reload();
+  };
 
-    function enterAdmin() {
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('admin-main').style.display = 'flex';
-        startAdminListener();
-    }
+  function enterAdmin() {
+    document.getElementById('loginScreen').style.display = 'none';
+    const app = document.getElementById('adminApp');
+    app.style.display = 'flex';
+    app.style.flexDirection = 'column';
+    startListening();
+  }
 
-    // ── 로그인 ──
-    window.checkLogin = function() {
-        const pw = document.getElementById('admin-pw').value;
-        if (pw === "ghtjd12!@") {
-            sessionStorage.setItem(ADMIN_SS_KEY, '1'); // 세션 동안 로그인 유지
-            enterAdmin();
-        } else { alert("비밀번호가 일치하지 않습니다."); }
-    };
+  // 세션 유지
+  window.addEventListener('DOMContentLoaded', () => {
+    if (sessionStorage.getItem(SESSION_KEY) === '1') enterAdmin();
+  });
 
-    // ── 로그아웃 ──
-    window.adminLogout = function() {
-        sessionStorage.removeItem(ADMIN_SS_KEY);
-        location.reload();
-    };
+  /* ── 패널 전환 ── */
+  window.showPanel = (name) => {
+    document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+    document.getElementById(`panel-${name}`)?.classList.add('active');
 
-    // ── 페이지 로드 시 세션 확인 ──
-    window.addEventListener('DOMContentLoaded', () => {
-        if (sessionStorage.getItem(ADMIN_SS_KEY) === '1') {
-            enterAdmin();
-        }
+    // 사이드바
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    const navMap = { posts: '게시글', students: '학생', stats: '통계', tools: '도구' };
+    [...document.querySelectorAll('.nav-item')].find(el =>
+      el.textContent.trim().includes(navMap[name])
+    )?.classList.add('active');
+
+    // 하단 탭
+    document.querySelectorAll('.bottom-tab').forEach(el => el.classList.remove('active'));
+    document.getElementById(`btab-${name}`)?.classList.add('active');
+  };
+
+  /* ── Firebase 리스닝 ── */
+  function startListening() {
+    // 게시글
+    onValue(postsRef, snap => {
+      const data = snap.val();
+      allPosts = data ? Object.values(data).filter(p => p && p.id) : [];
+      buildPostsClassChips();
+      applyFilters();
+      renderStats();
     });
 
-    window.switchPage = function(page) {
-        document.querySelectorAll('.menu-item').forEach(m => m.classList.toggle('active', m.dataset.page === page));
-        document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === `page-${page}`));
-    };
+    // 학생 명단 (students 노드)
+    onValue(ref(db, 'students'), snap => {
+      const data = snap.val();
+      allStudents = data
+        ? Object.entries(data).map(([key, val]) => ({ _key: key, ...val }))
+        : [];
+      buildStudentClassFilter();
+      renderStudentsTable();
+    });
+  }
 
-    function startAdminListener() {
-        const q = query(collection(db, "silla_v3"), orderBy("timestamp", "desc"));
-        onSnapshot(q, (snapshot) => {
-            allDocs = [];
-            snapshot.forEach(d => allDocs.push({ id: d.id, ...d.data() }));
-            document.getElementById('loading-msg').style.display = 'none';
-            renderPostsTab();
-            renderStatsPage();
-        });
+  /* ══════════════════════════════════
+     게시글 관리
+  ══════════════════════════════════ */
+  function buildPostsClassChips() {
+    const classes = new Set(
+      allPosts
+        .filter(p => p.studentId && p.studentId !== '00000' && /^\d{5}$/.test(p.studentId))
+        .map(p => p.studentId.slice(0, 3))
+    );
+    const container = document.getElementById('postsClassChips');
+    const cur = postsClassFilter;
+    container.innerHTML =
+      `<button class="class-chip${cur === 'all' ? ' active' : ''}" onclick="setPostsClassFilter('all',this)">전체 반</button>`;
+    [...classes].sort().forEach(cls => {
+      const lbl = `${cls[0]}학년 ${parseInt(cls.slice(1))}반`;
+      container.innerHTML +=
+        `<button class="class-chip${cur === cls ? ' active' : ''}" onclick="setPostsClassFilter('${cls}',this)">${lbl}</button>`;
+    });
+  }
+
+  window.setPostsClassFilter = (cls, btn) => {
+    postsClassFilter = cls;
+    document.querySelectorAll('#postsClassChips .class-chip').forEach(el => el.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  };
+
+  window.applyFilters = () => {
+    const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const roleF = document.getElementById('roleFilter')?.value || '';
+    const pickF = document.getElementById('pickFilter')?.value || '';
+
+    let filtered = allPosts.filter(p => p.studentId !== '00000');
+    if (postsClassFilter !== 'all')
+      filtered = filtered.filter(p => (p.studentId || '').startsWith(postsClassFilter));
+    if (roleF) filtered = filtered.filter(p => p.role === roleF);
+    if (pickF === 'pick')   filtered = filtered.filter(p => p.adminPick === true);
+    if (pickF === 'nopick') filtered = filtered.filter(p => !p.adminPick);
+    if (q) filtered = filtered.filter(p =>
+      (p.studentId || '').includes(q) ||
+      (p.realName || '').toLowerCase().includes(q) ||
+      (p.nickname || '').toLowerCase().includes(q) ||
+      (p.content || '').toLowerCase().includes(q) ||
+      (p.role || '').includes(q)
+    );
+    filtered.sort((a, b) => b.id.localeCompare(a.id));
+    renderPostsTable(filtered);
+  };
+
+  function renderPostsTable(posts) {
+    const tbody = document.getElementById('postsBody');
+    tbody.innerHTML = '';
+    posts.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${esc(p.studentId || '')}</td>
+        <td style="font-size:11px;color:var(--muted);white-space:nowrap;">${classLabel(p.studentId)}</td>
+        <td>${esc(p.realName || '')}</td>
+        <td style="color:var(--muted);">${esc(p.nickname || '')}</td>
+        <td><span class="role-badge">${roleIcons[p.role] || ''} ${esc(p.role || '')}</span></td>
+        <td class="td-content">${esc(p.content || '')}</td>
+        <td style="color:#f91880;font-weight:700;">${p.likes || 0}</td>
+        <td>
+          <button class="btn-pick${p.adminPick ? ' picked' : ''}"
+            onclick="togglePick('${p.id}',${!!p.adminPick},'${(p.content || '').slice(0,80).replace(/'/g,"\\'").replace(/\n/g,' ')}','${esc(p.nickname || '')}')">
+            ${p.adminPick ? '★' : '☆'}
+          </button>
+        </td>
+        <td>
+          <button class="btn-sm btn-sm-edit"
+            onclick="openPostEditModal('${p.id}')">수정</button>
+        </td>
+        <td>
+          <button class="btn-sm btn-sm-danger"
+            onclick="deletePost('${p.id}')">삭제</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('postsCount').textContent = `${posts.length}개 표시 중`;
+  }
+
+  /* 픽 토글 */
+  window.togglePick = async (postId, isPicked, content, nickname) => {
+    const newPick = !isPicked;
+    const updates = {};
+    updates[`posts/${postId}/adminPick`] = newPick ? true : null;
+    await update(ref(db), updates);
+    if (newPick) {
+      await set(toastRef, {
+        key: `${postId}_${Date.now()}`,
+        postId, content, nickname,
+        ts: Date.now()
+      });
+    }
+  };
+
+  /* 게시글 수정 모달 */
+  window.openPostEditModal = (id) => {
+    const p = allPosts.find(x => x.id === id);
+    if (!p) return;
+    editingPostId = id;
+    document.getElementById('editPostContent').value = p.content || '';
+    document.getElementById('editPostNickname').value = p.nickname || '';
+    document.getElementById('postEditModal').classList.add('show');
+  };
+  window.closePostEditModal = () => {
+    editingPostId = null;
+    document.getElementById('postEditModal').classList.remove('show');
+  };
+  window.savePostEdit = async () => {
+    if (!editingPostId) return;
+    const content = document.getElementById('editPostContent').value.trim();
+    const nickname = document.getElementById('editPostNickname').value.trim();
+    if (!content) { alert('내용을 입력해주세요.'); return; }
+    const updates = {};
+    updates[`posts/${editingPostId}/content`] = content;
+    updates[`posts/${editingPostId}/nickname`] = nickname;
+    await update(ref(db), updates);
+    closePostEditModal();
+  };
+
+  /* 삭제 */
+  window.deletePost = (id) => {
+    if (confirm('이 게시글을 삭제하시겠습니까?'))
+      remove(ref(db, `posts/${id}`));
+  };
+
+  /* ══════════════════════════════════
+     학생 명단
+  ══════════════════════════════════ */
+  function buildStudentClassFilter() {
+    const classes = new Set(
+      allStudents
+        .filter(s => s.studentId && /^\d{5}$/.test(s.studentId))
+        .map(s => s.studentId.slice(0, 3))
+    );
+    const sel = document.getElementById('studentClassFilter');
+    const curVal = sel.value;
+    sel.innerHTML = '<option value="">전체 반</option>';
+    [...classes].sort().forEach(cls => {
+      const opt = document.createElement('option');
+      opt.value = cls;
+      opt.textContent = `${cls[0]}학년 ${parseInt(cls.slice(1))}반`;
+      sel.appendChild(opt);
+    });
+    if (curVal) sel.value = curVal;
+  }
+
+  window.renderStudentsTable = () => {
+    const q = (document.getElementById('studentSearch')?.value || '').toLowerCase();
+    const clsF = document.getElementById('studentClassFilter')?.value || '';
+    const tbody = document.getElementById('studentsBody');
+    tbody.innerHTML = '';
+
+    let list = [...allStudents];
+    if (clsF) list = list.filter(s => (s.studentId || '').startsWith(clsF));
+    if (q) list = list.filter(s =>
+      (s.studentId || '').includes(q) ||
+      (s.name || '').toLowerCase().includes(q)
+    );
+    list.sort((a, b) => (a.studentId || '').localeCompare(b.studentId || ''));
+
+    list.forEach((s, i) => {
+      // 해당 학생의 게시글 수 / 좋아요 / 픽 집계
+      const myPosts = allPosts.filter(p => p.studentId === s.studentId && p.studentId !== '00000');
+      const myLikes = myPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
+      const myPicks = myPosts.filter(p => p.adminPick).length;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color:var(--muted);font-weight:600;">${i + 1}</td>
+        <td>
+          <div style="font-weight:700;">${esc(s.studentId || '')}</div>
+        </td>
+        <td style="font-size:11px;color:var(--muted);white-space:nowrap;">${classLabel(s.studentId)}</td>
+        <td>${esc(s.name || s.realName || '')}</td>
+        <td>
+          ${myPosts.length > 0
+            ? `<span class="student-badge">${myPosts.length}개</span>`
+            : `<span style="color:var(--muted);font-size:11px;">-</span>`}
+        </td>
+        <td style="color:#f91880;">${myLikes > 0 ? myLikes : '-'}</td>
+        <td style="color:var(--gold);">${myPicks > 0 ? '⭐'.repeat(Math.min(myPicks, 3)) : '-'}</td>
+        <td>
+          <button class="btn-sm btn-sm-edit"
+            onclick="openStudentEditModal('${s._key}')">수정</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('studentsCount').textContent =
+      `${list.length}명 표시 중 (전체 ${allStudents.length}명)`;
+  };
+
+  /* 학생 수정 모달 */
+  window.openStudentEditModal = (key) => {
+    const s = allStudents.find(x => x._key === key);
+    if (!s) return;
+    editingStudentKey = key;
+    document.getElementById('editStudentId').value = s.studentId || '';
+    document.getElementById('editStudentName').value = s.name || s.realName || '';
+    document.getElementById('studentEditModal').classList.add('show');
+  };
+  window.closeStudentEditModal = () => {
+    editingStudentKey = null;
+    document.getElementById('studentEditModal').classList.remove('show');
+  };
+  window.saveStudentEdit = async () => {
+    if (!editingStudentKey) return;
+    const newId = document.getElementById('editStudentId').value.trim();
+    const newName = document.getElementById('editStudentName').value.trim();
+    if (!newId || !newName) { alert('학번과 이름을 모두 입력해주세요.'); return; }
+    if (!/^\d{5}$/.test(newId)) { alert('학번은 숫자 5자리여야 합니다.'); return; }
+
+    // 중복 체크
+    const original = allStudents.find(s => s._key === editingStudentKey);
+    if (original?.studentId !== newId) {
+      const conflict = allStudents.find(s => s._key !== editingStudentKey && s.studentId === newId);
+      if (conflict) {
+        alert(`학번 ${newId}는 이미 ${conflict.name || conflict.realName} 학생이 사용 중입니다.`);
+        return;
+      }
     }
 
-    window.switchPostTab = function(tab, btnEl) {
-        currentPostTab = tab;
-        document.querySelectorAll('.post-tab').forEach(t => t.classList.remove('active'));
-        if (btnEl) btnEl.classList.add('active');
-        document.getElementById('filter-keyword').style.display = tab === 'keyword' ? 'flex' : 'none';
-        document.getElementById('filter-news').style.display = tab === 'news' ? 'flex' : 'none';
-        document.getElementById('filter-ad').style.display = tab === 'ad' ? 'flex' : 'none';
-        renderPostsTab();
-    };
-    window.setKeywordSort = function(mode, btnEl) {
-        keywordSortMode = mode;
-        document.querySelectorAll('#filter-keyword .sub-filter-btn').forEach(b => b.classList.remove('active'));
-        if (btnEl) btnEl.classList.add('active');
-        renderPostsTab();
-    };
-    window.setNewsCat = function(cat, btnEl) {
-        newsCat = cat;
-        const firstRow = document.querySelector('#filter-news .sub-filter-row');
-        if (firstRow) firstRow.querySelectorAll('.sub-filter-btn').forEach(b => b.classList.remove('active'));
-        if (btnEl) btnEl.classList.add('active');
-        renderPostsTab();
-    };
-    window.setNewsSort = function(mode, btnEl) {
-        newsSort = mode;
-        const rows = document.querySelectorAll('#filter-news .sub-filter-row');
-        if (rows.length >= 2) rows[1].querySelectorAll('.sub-filter-btn').forEach(b => b.classList.remove('active'));
-        if (btnEl) btnEl.classList.add('active');
-        renderPostsTab();
-    };
-    window.setAdSort = function(mode, btnEl) {
-        adSort = mode;
-        document.querySelectorAll('#filter-ad .sub-filter-btn').forEach(b => b.classList.remove('active'));
-        if (btnEl) btnEl.classList.add('active');
-        renderPostsTab();
-    };
+    try {
+      await update(ref(db, `students/${editingStudentKey}`), { studentId: newId, name: newName });
+      // 해당 학번의 게시글도 업데이트
+      if (original?.studentId !== newId) {
+        const postsToUpdate = allPosts.filter(p => p.studentId === original.studentId);
+        const postUpdates = {};
+        postsToUpdate.forEach(p => { postUpdates[`posts/${p.id}/studentId`] = newId; });
+        if (Object.keys(postUpdates).length > 0) await update(ref(db), postUpdates);
+      }
+      alert('수정되었습니다.');
+      closeStudentEditModal();
+    } catch (e) { alert('수정 중 오류: ' + e.message); }
+  };
 
-    function renderPostsTab() {
-        const area = document.getElementById('post-content-area');
-        if (!area) return;
-        if (allDocs.length === 0) { area.innerHTML = `<div class="empty-msg">아직 등록된 게시글이 없습니다.</div>`; return; }
-        if (currentPostTab === 'keyword') renderKeywordList(area);
-        else if (currentPostTab === 'news') renderNewsList(area);
-        else if (currentPostTab === 'ad') renderAdList(area);
+  /* 학생 엑셀 저장 */
+  window.exportStudentsExcel = () => {
+    if (!allStudents.length) { alert('저장할 학생 명단이 없습니다.'); return; }
+    const rows = allStudents.map((s, i) => {
+      const myPosts = allPosts.filter(p => p.studentId === s.studentId && p.studentId !== '00000');
+      const myLikes = myPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
+      return {
+        '번호': i + 1,
+        '학번': s.studentId || '',
+        '이름': s.name || s.realName || '',
+        '반': classLabel(s.studentId),
+        '게시글 수': myPosts.length,
+        '총 좋아요': myLikes,
+        'PICK 수': myPosts.filter(p => p.adminPick).length
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = Array(Object.keys(rows[0]).length).fill({ wch: 14 });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '학생 명단');
+    const now = new Date(), pad = n => String(n).padStart(2, '0');
+    XLSX.writeFile(wb, `S_threads_학생명단_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}.xlsx`);
+  };
+
+  /* 게시글 엑셀 저장 */
+  window.exportPostsExcel = () => {
+    const real = allPosts.filter(p => p.studentId !== '00000');
+    if (!real.length) { alert('저장할 게시글이 없습니다.'); return; }
+    const rows = real.map((p, i) => ({
+      '번호': i + 1,
+      '학번': p.studentId || '',
+      '이름': p.realName || '',
+      '닉네임': p.nickname || '',
+      '반': classLabel(p.studentId),
+      '신분': p.role || '',
+      '내용': p.content || '',
+      '좋아요': p.likes || 0,
+      'PICK': p.adminPick ? '⭐' : '',
+      '작성시각': p.time || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = Array(Object.keys(rows[0]).length).fill({ wch: 16 });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '게시글');
+    const now = new Date(), pad = n => String(n).padStart(2, '0');
+    XLSX.writeFile(wb, `S_threads_게시글_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}.xlsx`);
+  };
+
+  /* ══════════════════════════════════
+     통계
+  ══════════════════════════════════ */
+  function renderStats() {
+    const real = allPosts.filter(p => p.studentId !== '00000');
+    const total    = real.length;
+    const students = new Set(real.map(p => p.studentId)).size;
+    const likes    = real.reduce((s, p) => s + (p.likes || 0), 0);
+    const picks    = real.filter(p => p.adminPick).length;
+
+    document.getElementById('st-total').textContent    = total;
+    document.getElementById('st-students').textContent = students;
+    document.getElementById('st-likes').textContent    = likes;
+    document.getElementById('st-picks').textContent    = picks;
+
+    // 신분별
+    const roleCounts = {};
+    real.forEach(p => { roleCounts[p.role] = (roleCounts[p.role] || 0) + 1; });
+    const maxR = Math.max(...Object.values(roleCounts), 1);
+    document.getElementById('roleStats').innerHTML = Object.entries(roleCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([role, cnt]) => `
+        <div class="bar-wrap">
+          <div class="bar-label"><span>${roleIcons[role] || ''} ${role}</span><span>${cnt}개</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(cnt/maxR*100)}%"></div></div>
+        </div>`).join('');
+
+    // 반별
+    const classCounts = {};
+    real.forEach(p => {
+      const cls = (p.studentId || '').slice(0, 3);
+      if (/^\d{3}$/.test(cls)) classCounts[cls] = (classCounts[cls] || 0) + 1;
+    });
+    const maxC = Math.max(...Object.values(classCounts), 1);
+    document.getElementById('classStats').innerHTML = Object.entries(classCounts)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([cls, cnt]) => `
+        <div class="bar-wrap">
+          <div class="bar-label"><span>${cls[0]}학년 ${parseInt(cls.slice(1))}반</span><span>${cnt}개</span></div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(cnt/maxC*100)}%"></div></div>
+        </div>`).join('');
+
+    // 픽 목록
+    const pickedPosts = real.filter(p => p.adminPick).sort((a, b) => b.id.localeCompare(a.id));
+    if (pickedPosts.length === 0) {
+      document.getElementById('pickedList').innerHTML =
+        '<div style="font-size:13px;color:var(--muted);padding:4px 0;">아직 픽된 게시글이 없습니다.</div>';
+    } else {
+      document.getElementById('pickedList').innerHTML = pickedPosts.map(p => `
+        <div style="border:1px solid #2a2a2a;border-radius:8px;padding:12px;margin-bottom:8px;background:#0d0d0d;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span class="role-badge">${roleIcons[p.role] || ''} ${esc(p.role || '')}</span>
+            <span style="font-size:12px;color:var(--sub);">${esc(p.realName || '')} · ${esc(p.nickname || '')}</span>
+            <span style="font-size:11px;color:var(--muted);margin-left:auto;">${classLabel(p.studentId)}</span>
+          </div>
+          <div style="font-size:13px;color:#e0e0e0;line-height:1.5;">${esc(p.content || '')}</div>
+        </div>`).join('');
     }
+  }
 
-    function renderKeywordList(area) {
-        const map = {};
-        allDocs.forEach(d => {
-            (d.keywords||[]).forEach(word => {
-                const key = word.replace(/\s+/g,'');
-                if (!map[key]) map[key] = { display: word, count: 0, users: [], lastTs: null };
-                map[key].count++;
-                map[key].users.push({ name: d.studentName, id: d.studentId });
-                const tsMs = d.timestamp?.toMillis?.() || 0;
-                if (!map[key].lastTs || tsMs > map[key].lastTs) map[key].lastTs = tsMs;
-            });
-        });
-        let arr = Object.values(map);
-        if (keywordSortMode === 'count') arr.sort((a,b) => b.count-a.count || (b.lastTs||0)-(a.lastTs||0));
-        else arr.sort((a,b) => (b.lastTs||0)-(a.lastTs||0));
-        if (arr.length === 0) { area.innerHTML = `<div class="empty-msg">아직 입력된 검색어가 없습니다.</div>`; return; }
-        area.innerHTML = arr.map((item,i) => {
-            const usersText = item.users.map(u=>`${esc(u.name)}(${esc(u.id)})`).slice(0,5).join(', ');
-            const more = item.users.length > 5 ? ` 외 ${item.users.length-5}명` : '';
-            return `<div class="keyword-rank-item"><span class="keyword-rank-num ${i<3?'top':''}">${i+1}</span><span class="keyword-rank-word">${esc(item.display)}</span><span class="keyword-rank-users">${usersText}${more}</span><span class="keyword-rank-count">${item.count}회</span></div>`;
-        }).join('');
-    }
-
-    function renderNewsList(area) {
-        const arr = [];
-        allDocs.forEach(d => {
-            (d.news||[]).forEach(n => {
-                const likes = (d.newsLikes?.[n.category]) || [], pick = (d.newsPicks?.[n.category]) || {};
-                arr.push({ docId:d.id, title:n.title, category:n.category, studentId:d.studentId, studentName:d.studentName, timestamp:d.timestamp, likeCount:likes.length, picked:!!pick.picked, pickedAt:pick.pickedAt||null });
-            });
-        });
-        let filtered = newsCat !== '전체' ? arr.filter(n=>n.category===newsCat) : arr;
-        if (newsSort==='latest') filtered.sort((a,b)=>(b.timestamp?.toMillis?.()||0)-(a.timestamp?.toMillis?.()||0));
-        else if (newsSort==='studentId') filtered.sort((a,b)=>(a.studentId||'').localeCompare(b.studentId||''));
-        else if (newsSort==='likes') filtered.sort((a,b)=>b.likeCount-a.likeCount);
-        else if (newsSort==='pick') { filtered=filtered.filter(n=>n.picked); filtered.sort((a,b)=>(b.pickedAt?.toMillis?.()||0)-(a.pickedAt?.toMillis?.()||0)); }
-        if (filtered.length===0) { area.innerHTML=`<div class="empty-msg">${newsSort==='pick'?'아직 픽된 기사가 없습니다.':'해당 조건의 기사가 없습니다.'}</div>`; return; }
-        area.innerHTML = filtered.map(n =>
-            `<div class="post-card${n.picked?' picked':''}"><div class="post-card-header"><div class="post-author"><span class="name">${esc(n.studentName)}</span><span style="color:var(--text-muted);">${esc(n.studentId)}</span></div><span class="post-cat-tag">${esc(n.category)}</span></div><div class="post-content">${esc(n.title)}</div><div class="post-card-footer"><div class="post-meta"><span>${formatTimeShort(n.timestamp)}</span><span class="like-count">❤️ ${n.likeCount}</span>${n.picked?`<span class="pick-mark">⭐ PICK</span>`:''}</div><button class="pick-toggle ${n.picked?'active':''}" onclick="toggleNewsPick('${n.docId}','${esc(n.category)}',${n.picked})">${n.picked?'⭐ PICK 해제':'☆ PICK 주기'}</button></div></div>`
-        ).join('');
-    }
-
-    function renderAdList(area) {
-        let arr = allDocs.filter(d=>d.ad).map(d=>({ docId:d.id, content:d.ad, studentId:d.studentId, studentName:d.studentName, timestamp:d.timestamp, likeCount:(d.adLikes||[]).length, picked:!!d.adPick, pickedAt:d.adPickedAt||null }));
-        if (adSort==='latest') arr.sort((a,b)=>(b.timestamp?.toMillis?.()||0)-(a.timestamp?.toMillis?.()||0));
-        else if (adSort==='studentId') arr.sort((a,b)=>(a.studentId||'').localeCompare(b.studentId||''));
-        else if (adSort==='likes') arr.sort((a,b)=>b.likeCount-a.likeCount);
-        else if (adSort==='pick') { arr=arr.filter(a=>a.picked); arr.sort((a,b)=>(b.pickedAt?.toMillis?.()||0)-(a.pickedAt?.toMillis?.()||0)); }
-        if (arr.length===0) { area.innerHTML=`<div class="empty-msg">${adSort==='pick'?'아직 픽된 광고가 없습니다.':'등록된 광고가 없습니다.'}</div>`; return; }
-        area.innerHTML = arr.map(ad =>
-            `<div class="post-card${ad.picked?' picked':''}"><div class="post-card-header"><div class="post-author"><span class="name">${esc(ad.studentName)}</span><span style="color:var(--text-muted);">${esc(ad.studentId)}</span></div><span class="post-cat-tag" style="background:rgba(255,193,7,0.15);color:#ffc107;">광고</span></div><div class="post-content">${esc(ad.content)}</div><div class="post-card-footer"><div class="post-meta"><span>${formatTimeShort(ad.timestamp)}</span><span class="like-count">❤️ ${ad.likeCount}</span>${ad.picked?`<span class="pick-mark">⭐ PICK</span>`:''}</div><button class="pick-toggle ${ad.picked?'active':''}" onclick="toggleAdPick('${ad.docId}',${ad.picked})">${ad.picked?'⭐ PICK 해제':'☆ PICK 주기'}</button></div></div>`
-        ).join('');
-    }
-
-    window.toggleNewsPick = async function(docId, category, currentlyPicked) {
-        try {
-            const targetDoc = allDocs.find(d=>d.id===docId);
-            const newsPicks = targetDoc?.newsPicks ? {...targetDoc.newsPicks} : {};
-            newsPicks[category] = currentlyPicked ? {picked:false,pickedAt:null} : {picked:true,pickedAt:new Date()};
-            await updateDoc(doc(db,"silla_v3",docId), {newsPicks});
-        } catch(e) { alert("픽 적용 중 오류: "+e.message); }
-    };
-    window.toggleAdPick = async function(docId, currentlyPicked) {
-        try {
-            if (currentlyPicked) await updateDoc(doc(db,"silla_v3",docId),{adPick:false,adPickedAt:null});
-            else await updateDoc(doc(db,"silla_v3",docId),{adPick:true,adPickedAt:new Date()});
-        } catch(e) { alert("픽 적용 중 오류: "+e.message); }
-    };
-
-    function renderStatsPage() {
-        let totalNews=0,totalAd=0,totalKeywords=0,totalLikes=0,totalPicks=0;
-        const catCounts={'정치':0,'중앙제도':0,'지방행정':0,'군사':0,'토지':0};
-        allDocs.forEach(d=>{
-            totalNews+=(d.news||[]).length>0?1:0; totalAd+=d.ad?1:0; totalKeywords+=(d.keywords||[]).length;
-            (d.news||[]).forEach(n=>{if(catCounts[n.category]!==undefined)catCounts[n.category]++;});
-            Object.values(d.newsLikes||{}).forEach(arr=>{totalLikes+=(arr||[]).length;});
-            totalLikes+=(d.adLikes||[]).length;
-            Object.values(d.newsPicks||{}).forEach(p=>{if(p&&p.picked)totalPicks++;});
-            if(d.adPick)totalPicks++;
-        });
-        document.getElementById('stat-total').textContent=allDocs.length;
-        document.getElementById('stat-news').textContent=totalNews;
-        document.getElementById('stat-ad').textContent=totalAd;
-        document.getElementById('stat-keywords').textContent=totalKeywords;
-        document.getElementById('stat-likes').textContent=totalLikes;
-        document.getElementById('stat-picks').textContent=totalPicks;
-        const maxCount=Math.max(1,...Object.values(catCounts));
-        const catLabels={'정치':'🏛️ 정치','중앙제도':'📜 중앙제도','지방행정':'🗺️ 지방행정','군사':'⚔️ 군사','토지':'🌾 토지/경제'};
-        document.getElementById('news-chart').innerHTML=Object.entries(catCounts).map(([cat,count])=>
-            `<div class="bar-row"><div class="bar-label">${catLabels[cat]}</div><div class="bar-track"><div class="bar-fill" style="width:${(count/maxCount*100).toFixed(0)}%"></div></div><div class="bar-value">${count}</div></div>`
-        ).join('');
-        renderClassFilterBar(); renderStatsTable();
-    }
-
-    function renderClassFilterBar() {
-        const bar=document.getElementById('class-filter-bar'); if(!bar)return;
-        const classMap={};
-        allDocs.forEach(d=>{const cls=parseClass(d.studentId);if(cls)classMap[cls]=(classMap[cls]||0)+1;});
-        const sortedClasses=Object.keys(classMap).sort((a,b)=>{const[ga,ca]=a.split('-').map(Number),[gb,cb]=b.split('-').map(Number);return ga!==gb?ga-gb:ca-cb;});
-        if(classFilter!=='전체'&&!sortedClasses.includes(classFilter))classFilter='전체';
-        bar.innerHTML=`<span class="label">학반</span><button class="class-chip ${classFilter==='전체'?'active':''}" onclick="setClassFilter('전체',this)">전체 <span class="count">${allDocs.length}</span></button>`
-            +sortedClasses.map(cls=>{const[g,c]=cls.split('-');return`<button class="class-chip ${classFilter===cls?'active':''}" onclick="setClassFilter('${cls}',this)">${g}학년 ${c}반 <span class="count">${classMap[cls]}</span></button>`;}).join('');
-    }
-
-    window.setClassFilter=function(cls,btnEl){
-        classFilter=cls;
-        document.querySelectorAll('#class-filter-bar .class-chip').forEach(b=>b.classList.remove('active'));
-        if(btnEl)btnEl.classList.add('active');
-        renderStatsTable();
-    };
-
-    window.renderStatsTable=function(){
-        const list=document.getElementById('data-list');
-        const searchVal=(document.getElementById('stats-search').value||'').trim().toLowerCase();
-        list.innerHTML='';
-        const filtered=allDocs.filter(d=>{
-            if(classFilter!=='전체'&&parseClass(d.studentId)!==classFilter)return false;
-            if(!searchVal)return true;
-            return(d.studentId||'').toLowerCase().includes(searchVal)||(d.studentName||'').toLowerCase().includes(searchVal);
-        });
-        if(filtered.length===0){list.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">검색 결과가 없습니다.</td></tr>`;return;}
-        filtered.forEach((d,i)=>{
-            const newsLikesObj=d.newsLikes||{},adLikesArr=d.adLikes||[],picks=d.newsPicks||{};
-            const keywordTags=(d.keywords||[]).map(k=>`<span class="tag tag-keyword">🔍 ${esc(k)}</span>`).join('');
-            const newsList=(d.news||[]).map(n=>{
-                const lc=(newsLikesObj[n.category]||[]).length,isP=picks[n.category]&&picks[n.category].picked;
-                return`<div class="news-row"><span class="tag tag-cat">${esc(n.category)}</span>${esc(n.title)}${lc>0?`<span style="color:#ff6b81;font-size:11px;margin-left:4px;">❤️${lc}</span>`:''}${isP?`<span style="color:var(--pick-gold);font-size:11px;margin-left:4px;">⭐</span>`:''}</div>`;
-            }).join('');
-            const adHtml=d.ad?`<div class="ad-text">${esc(d.ad)}${adLikesArr.length>0?`<span style="color:#ff6b81;font-size:11px;display:block;margin-top:4px;">❤️ ${adLikesArr.length}</span>`:''}${d.adPick?`<span style="color:var(--pick-gold);font-size:11px;"> ⭐ PICK</span>`:''}</div>`:'<span style="color:var(--text-muted);">-</span>';
-            const tr=document.createElement('tr');
-            tr.innerHTML=`<td style="color:var(--text-muted);font-weight:600;">${i+1}</td><td><div class="student-name">${esc(d.studentName||'')}</div><div class="student-id">${esc(d.studentId||'')}</div></td><td class="timestamp">${formatTime(d.timestamp)}</td><td>${keywordTags||'<span style="color:var(--text-muted);">-</span>'}</td><td>${newsList||'<span style="color:var(--text-muted);">-</span>'}</td><td>${adHtml}</td><td><div class="action-btns"><button class="edit-btn" onclick="openEditModal('${esc(d.id)}')">수정</button><button class="del-btn" onclick="deleteEntry('${esc(d.id)}')">삭제</button></div></td>`;
-            list.appendChild(tr);
-        });
-    };
-
-    window.openEditModal=function(docId){
-        const target=allDocs.find(d=>d.id===docId); if(!target)return;
-        editingDocId=docId;
-        document.getElementById('edit-student-id').value=target.studentId||'';
-        document.getElementById('edit-student-name').value=target.studentName||'';
-        document.getElementById('edit-modal').classList.add('show');
-    };
-    window.closeEditModal=function(){editingDocId=null;document.getElementById('edit-modal').classList.remove('show');};
-    window.saveEdit=async function(){
-        if(!editingDocId)return;
-        const newId=document.getElementById('edit-student-id').value.trim();
-        const newName=document.getElementById('edit-student-name').value.trim();
-        if(!newId||!newName){alert("학번과 이름을 모두 입력해주세요.");return;}
-        if(!/^\d{5}$/.test(newId)){alert("학번은 숫자 5자리여야 합니다.");return;}
-        const original=allDocs.find(d=>d.id===editingDocId);
-        if(!original){alert("대상 학생 정보를 찾을 수 없습니다.");closeEditModal();return;}
-        if(original.studentId!==newId){
-            const conflict=allDocs.find(d=>d.id!==editingDocId&&d.studentId===newId);
-            if(conflict){alert(`해당 학번(${newId})은 이미 ${conflict.studentName} 학생이 사용 중입니다.`);return;}
-        }
-        try{
-            await updateDoc(doc(db,"silla_v3",editingDocId),{studentId:newId,studentName:newName});
-            alert("수정되었습니다."); closeEditModal();
-        }catch(e){alert("수정 중 오류: "+e.message);}
-    };
-    window.deleteEntry=async function(docId){
-        if(confirm("이 학생의 기록을 삭제하시겠습니까?")){
-            try{await deleteDoc(doc(db,"silla_v3",docId));}
-            catch(e){alert("삭제 중 오류: "+e.message);}
-        }
-    };
-    window.resetAll=async function(){
-        if(confirm("🚨 경고! 모든 학생 제출 데이터를 완전히 삭제하시겠습니까?")){
-            try{
-                const snap=await getDocs(collection(db,"silla_v3"));
-                await Promise.all(snap.docs.map(d=>deleteDoc(doc(db,"silla_v3",d.id))));
-                alert("모든 데이터가 초기화되었습니다.");
-            }catch(e){alert("초기화 중 오류: "+e.message);}
-        }
-    };
-    window.exportToExcel=function(){
-        if(!allDocs||allDocs.length===0){alert("저장할 데이터가 없습니다.");return;}
-        const rows=allDocs.map((data,i)=>{
-            const ts=data.timestamp?(()=>{const d=data.timestamp.toDate?data.timestamp.toDate():new Date(data.timestamp),pad=n=>String(n).padStart(2,'0');return`${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;})():'-';
-            const keywords=(data.keywords||[]).join(', ');
-            const newsMap={},newsLikesMap={},newsPickMap={};
-            (data.news||[]).forEach(n=>{newsMap[n.category]=n.title;});
-            const newsLikes=data.newsLikes||{},newsPicks=data.newsPicks||{};
-            ['정치','중앙제도','지방행정','군사','토지'].forEach(cat=>{newsLikesMap[cat]=(newsLikes[cat]||[]).length;newsPickMap[cat]=(newsPicks[cat]&&newsPicks[cat].picked)?'⭐':'';});
-            return{'번호':i+1,'학번':data.studentId||'','이름':data.studentName||'','제출 시각':ts,'검색어':keywords,'뉴스_정치':newsMap['정치']||'','정치_좋아요':newsLikesMap['정치']||0,'정치_PICK':newsPickMap['정치']||'','뉴스_중앙제도':newsMap['중앙제도']||'','중앙_좋아요':newsLikesMap['중앙제도']||0,'중앙_PICK':newsPickMap['중앙제도']||'','뉴스_지방행정':newsMap['지방행정']||'','지방_좋아요':newsLikesMap['지방행정']||0,'지방_PICK':newsPickMap['지방행정']||'','뉴스_군사':newsMap['군사']||'','군사_좋아요':newsLikesMap['군사']||0,'군사_PICK':newsPickMap['군사']||'','뉴스_토지경제':newsMap['토지']||'','토지_좋아요':newsLikesMap['토지']||0,'토지_PICK':newsPickMap['토지']||'','광고 배너':data.ad||'','광고_좋아요':(data.adLikes||[]).length,'광고_PICK':data.adPick?'⭐':''};
-        });
-        const ws=XLSX.utils.json_to_sheet(rows);
-        ws['!cols']=Array(Object.keys(rows[0]).length).fill({wch:16});
-        const wb=XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb,ws,'학생 제출 데이터');
-        const now=new Date(),pad=n=>String(n).padStart(2,'0');
-        XLSX.writeFile(wb,`SILLAVER_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.xlsx`);
-    };
+  /* ══════════════════════════════════
+     도구
+  ══════════════════════════════════ */
+  window.deletePost = (id) => {
+    if (confirm('이 게시글을 삭제하시겠습니까?')) remove(ref(db, `posts/${id}`));
+  };
+  window.resetAll = () => {
+    if (confirm('⚠️ 모든 게시글을 삭제합니까?'))
+      if (confirm('정말요? 되돌릴 수 없습니다.')) remove(postsRef);
+  };
+  window.deleteDummy = () => {
+    if (!confirm('더미 게시글을 모두 삭제할까요?')) return;
+    const toDelete = allPosts.filter(p => p.studentId === '00000');
+    toDelete.forEach(p => remove(ref(db, `posts/${p.id}`)));
+    alert(`더미 ${toDelete.length}개 삭제 완료`);
+  };
+  window.deleteAllByRole = () => {
+    const role = document.getElementById('roleDeleteSelect').value;
+    if (!role) { alert("신분을 선택하세요."); return; }
+    if (!confirm(`"${role}" 신분의 모든 게시글을 삭제합니까?`)) return;
+    const toDelete = allPosts.filter(p => p.role === role && p.studentId !== '00000');
+    toDelete.forEach(p => remove(ref(db, `posts/${p.id}`)));
+    alert(`${toDelete.length}개 삭제 완료`);
+  };
+  window.initDummy = () => {
+    const now = new Date();
+    const time = `${now.getMonth()+1}.${now.getDate()}. ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const dummy = [
+      { role: "진골", content: "오늘 안압지 팟 구함~ 🥂 진골끼리만요" },
+      { role: "농민", content: "세금이 너무 많다! 이러다 다 굶어 죽겠어 😡" },
+      { role: "선종 승려", content: "마음을 비우면 모든 것이 보입니다 🧘" },
+      { role: "풍수지리사", content: "새 도읍지를 찾아야 할 때입니다. 한강 주변이 길지입니다 🧭" },
+      { role: "6두품", content: "능력으로 인정받고 싶은데 골품제가 너무 답답해. 당나라라도 가야 하나..." },
+      { role: "호족", content: "중앙 통제가 약해진 틈을 타 우리 지역 세력을 키울 때가 됐다." },
+    ];
+    dummy.forEach(d => {
+      const r = push(postsRef);
+      set(r, { ...d, id: r.key, studentId: '00000', realName: 'System', nickname: '더미', time, likes: 0, likedBy: { init: true } });
+    });
+    alert(`더미 ${dummy.length}개 생성 완료`);
+  };
 </script>
-
 </body>
 </html>
