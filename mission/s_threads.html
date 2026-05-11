@@ -19,7 +19,6 @@
       min-height: 100vh; overflow-x: hidden;
     }
 
-    /* ── 공통 input / select ── */
     input, select {
       width: 100%; padding: 15px;
       background: #1e1e1e; border: 1px solid #333; border-radius: 12px;
@@ -48,7 +47,6 @@
       margin-bottom: 28px; letter-spacing: 0.04em;
     }
 
-    /* 인풋 래퍼 (상태 아이콘) */
     .input-wrap { position: relative; margin-bottom: 8px; }
     .input-wrap input { margin-bottom: 0; }
     .input-status {
@@ -56,7 +54,6 @@
       font-size: 16px; pointer-events: none;
     }
 
-    /* 검증 메시지 */
     .verify-msg {
       font-size: 11px; padding: 0 4px; margin-bottom: 6px; height: 16px;
       transition: 0.15s;
@@ -71,9 +68,7 @@
       font-family: 'Pretendard', sans-serif;
       transition: opacity 0.15s;
     }
-    .btn-main:disabled {
-      opacity: 0.4; cursor: not-allowed;
-    }
+    .btn-main:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-main:not(:disabled):hover { opacity: 0.88; }
     .btn-main.danger { background: #c0392b; color: #fff; }
     .btn-main.gray   { background: #2a2a2a; color: #bbb; }
@@ -100,12 +95,8 @@
       border-radius: 50%; display: flex; align-items: center;
       justify-content: center; font-size: 22px; flex-shrink: 0;
     }
-    .modal-user-info .modal-name {
-      font-size: 15px; font-weight: 800;
-    }
-    .modal-user-info .modal-id {
-      font-size: 11px; color: #555; margin-top: 2px;
-    }
+    .modal-user-info .modal-name { font-size: 15px; font-weight: 800; }
+    .modal-user-info .modal-id   { font-size: 11px; color: #555; margin-top: 2px; }
     .modal-section-label {
       font-size: 10px; font-weight: 700; color: #555;
       letter-spacing: 0.08em; text-transform: uppercase;
@@ -133,7 +124,6 @@
     }
     .header-logo { font-family: 'Jua', sans-serif; font-size: 1.4rem; }
 
-    /* 프로필 버튼 (개선) */
     .profile-btn {
       display: flex; align-items: center; gap: 7px;
       background: #1a1a1a; border: 1px solid #2a2a2a;
@@ -152,7 +142,6 @@
       max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
 
-    /* 신분 탭 */
     .role-tabs {
       display: flex; overflow-x: auto; scrollbar-width: none;
       width: 100%;
@@ -201,6 +190,12 @@
       font-size: 10px; color: var(--sub); background: #1a1a1a;
       padding: 2px 6px; border-radius: 4px; margin-left: 5px;
     }
+    /* 더미 게시글 표시용 배지 */
+    .dummy-tag {
+      font-size: 10px; color: #555; background: #1a1a1a;
+      padding: 2px 6px; border-radius: 4px; margin-left: 5px;
+      border: 1px solid #2a2a2a;
+    }
     .time { color: var(--sub); font-size: 11px; margin-left: auto; }
     .content-text { font-size: 15px; line-height: 1.5; margin: 6px 0; color: #efefef; white-space: pre-wrap; }
 
@@ -217,7 +212,6 @@
 
     footer { padding: 30px 20px; text-align: center; color: #333; font-size: 11px; }
 
-    /* ── 로딩 스피너 ── */
     .spinner-wrap {
       display: flex; flex-direction: column; align-items: center; gap: 12px;
       padding: 30px 0;
@@ -229,7 +223,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── 토스트 ── */
     #toastContainer {
       position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
       z-index: 9999; display: flex; flex-direction: column; gap: 8px;
@@ -385,7 +378,7 @@
   </div>
 
   <div id="feed"></div>
-  <footer>v2.1 · Incheon Dongyang Middle School</footer>
+  <footer>v2.2 · Incheon Dongyang Middle School</footer>
 </div>
 
 <script type="module">
@@ -407,7 +400,7 @@
   const db = getDatabase(app);
   const postsRef = ref(db, 'posts');
   const toastRef = ref(db, 'silla_toast');
-  const studentsRef = ref(db, 'students');
+  const studentsRef = ref(db, 'students'); // ✅ Realtime DB students 노드
 
   const roleIcons = {
     "진골": "👑", "6두품": "📜", "호족": "🏰",
@@ -425,7 +418,7 @@
   let studentMapLoaded = false;
 
   /* ════════════════════════════
-     학생 명단 로드
+     학생 명단 로드 — Realtime DB students 노드
   ════════════════════════════ */
   async function loadStudentMap() {
     if (studentMapLoaded) return;
@@ -433,10 +426,10 @@
       const snap = await get(studentsRef);
       const data = snap.val();
       if (data) {
-        // 두 가지 필드명 모두 지원: name / realName
         Object.values(data).forEach(s => {
-          const sid = s.studentId || s.id || '';
-          const sname = s.name || s.realName || '';
+          // student2026.html이 저장하는 필드: { studentId, name }
+          const sid   = s.studentId || s.id || '';
+          const sname = s.name || s.studentName || s.realName || '';
           if (sid && sname) studentMap[sid] = sname;
         });
       }
@@ -450,21 +443,20 @@
      로그인 검증 UI
   ════════════════════════════ */
   let idVerifyTimer = null;
-  let verifiedStudentName = null; // 명단에서 찾은 이름
+  let verifiedStudentName = null;
 
   window.validateNick = (el) => {
     el.value = el.value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
   };
 
-  // 학번 입력 → 명단 대조
   window.onIdInput = async (el) => {
     const val = el.value.replace(/\D/g, '');
     el.value = val;
-    const idMsg = document.getElementById('idMsg');
-    const idStatus = document.getElementById('idStatus');
+    const idMsg     = document.getElementById('idMsg');
+    const idStatus  = document.getElementById('idStatus');
     const nameInput = document.getElementById('joinName');
-    const nameMsg = document.getElementById('nameMsg');
-    const nameStatus = document.getElementById('nameStatus');
+    const nameMsg   = document.getElementById('nameMsg');
+    const nameStatus= document.getElementById('nameStatus');
 
     verifiedStudentName = null;
     nameInput.disabled = true;
@@ -484,7 +476,6 @@
       return;
     }
 
-    // 5자리 완성 → 명단 조회
     idMsg.textContent = '';
     idStatus.textContent = '⏳';
 
@@ -493,7 +484,7 @@
       await loadStudentMap();
 
       if (Object.keys(studentMap).length === 0) {
-        // 명단이 없으면 형식만 확인
+        // 명단 비어있으면 형식만 확인
         el.classList.add('valid');
         idStatus.textContent = '✅';
         idMsg.textContent = '학번 형식 확인 완료';
@@ -505,7 +496,7 @@
       }
 
       if (studentMap[val] !== undefined) {
-        // 명단에 있음 → 이름 자동 채우기
+        // ✅ 명단에 있음 → 이름 자동 채우기
         verifiedStudentName = studentMap[val];
         el.classList.add('valid');
         idStatus.textContent = '✅';
@@ -519,7 +510,7 @@
         nameMsg.textContent = `${verifiedStudentName} 학생으로 확인되었습니다`;
         nameMsg.className = 'verify-msg ok';
       } else {
-        // 명단에 없음
+        // ❌ 명단에 없음
         el.classList.add('invalid');
         idStatus.textContent = '❌';
         idMsg.textContent = '명단에 없는 학번입니다. 선생님께 문의하세요.';
@@ -530,11 +521,10 @@
     }, 400);
   };
 
-  // 이름 입력 → 명단 대조 (명단 있을 때만 엄격하게)
   window.onNameInput = (el) => {
     const val = el.value.trim();
-    const nameMsg = document.getElementById('nameMsg');
-    const nameStatus = document.getElementById('nameStatus');
+    const nameMsg   = document.getElementById('nameMsg');
+    const nameStatus= document.getElementById('nameStatus');
 
     el.classList.remove('valid', 'invalid');
     nameStatus.textContent = '';
@@ -547,7 +537,6 @@
     }
 
     if (verifiedStudentName) {
-      // 명단 이름과 비교
       if (val === verifiedStudentName) {
         el.classList.add('valid');
         nameStatus.textContent = '✅';
@@ -560,7 +549,6 @@
         nameMsg.className = 'verify-msg err';
       }
     } else {
-      // 명단 없이 형식만
       el.classList.add('valid');
       nameStatus.textContent = '✅';
       nameMsg.textContent = '';
@@ -569,15 +557,13 @@
   };
 
   function isLoginValid() {
-    const id = document.getElementById('joinId').value.trim();
+    const id   = document.getElementById('joinId').value.trim();
     const name = document.getElementById('joinName').value.trim();
     const nick = document.getElementById('joinNick').value.trim();
     if (!/^\d{5}$/.test(id)) return false;
     if (!name) return false;
     if (!nick) return false;
-    // 명단 있으면 이름도 일치해야 함
     if (verifiedStudentName && name !== verifiedStudentName) return false;
-    // 명단 있는데 학번이 없으면 불가
     if (studentMapLoaded && Object.keys(studentMap).length > 0 && !studentMap[id]) return false;
     return true;
   }
@@ -586,7 +572,6 @@
     document.getElementById('enterBtn').disabled = !isLoginValid();
   }
 
-  // 닉네임/신분 바뀌어도 버튼 상태 업데이트
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('joinNick').addEventListener('input', updateEnterBtn);
     document.getElementById('joinRole').addEventListener('change', updateEnterBtn);
@@ -633,7 +618,6 @@
     document.getElementById('myAvatar').textContent = icon;
     document.getElementById('headerAvatar').textContent = icon;
     document.getElementById('headerNick').textContent = currentUser.nick;
-    // 모달
     document.getElementById('modalAvatar').textContent = icon;
     document.getElementById('modalName').textContent = `${currentUser.name} (${currentUser.nick})`;
     document.getElementById('modalId').textContent = `학번 ${currentUser.id} · ${currentUser.role}`;
@@ -647,6 +631,7 @@
   function listenFeed() {
     onValue(postsRef, snap => {
       const data = snap.val();
+      // ✅ 더미(00000) 포함 전체 표시 — 필터 제거
       allPostsCache = data ? Object.values(data).filter(p => p && p.id) : [];
       renderFeed();
     });
@@ -700,7 +685,7 @@
   function renderFeed() {
     const feed = document.getElementById('feed');
     feed.innerHTML = '';
-    let posts = allPostsCache.filter(p => p.studentId !== '00000');
+    let posts = [...allPostsCache];
 
     if (currentRoleFilter === 'pick') {
       posts = posts.filter(p => p.adminPick === true);
@@ -720,9 +705,12 @@
     }
 
     posts.forEach(post => {
+      const isDummy = post.studentId === '00000';
       const isLiked = post.likedBy && post.likedBy[currentUser.id];
       const card = document.createElement('div');
       card.className = 'thread-card';
+      // ✅ 더미는 살짝 어둡게 구분
+      if (isDummy) card.style.opacity = '0.75';
 
       const avatar = document.createElement('div');
       avatar.className = 'avatar-circle';
@@ -739,7 +727,7 @@
       }
 
       const meta = document.createElement('div');
-      meta.style.cssText = 'display:flex; align-items:center;';
+      meta.style.cssText = 'display:flex; align-items:center; flex-wrap:wrap;';
       const nick = document.createElement('span');
       nick.className = 'nickname';
       nick.textContent = post.nickname;
@@ -749,7 +737,15 @@
       const time = document.createElement('span');
       time.className = 'time';
       time.textContent = post.time;
-      meta.append(nick, roleTag, time);
+      meta.append(nick, roleTag);
+      // ✅ 더미 표시 배지
+      if (isDummy) {
+        const dummyTag = document.createElement('span');
+        dummyTag.className = 'dummy-tag';
+        dummyTag.textContent = '예시';
+        meta.appendChild(dummyTag);
+      }
+      meta.appendChild(time);
 
       const contentEl = document.createElement('div');
       contentEl.className = 'content-text';
@@ -758,7 +754,8 @@
       const likeBtn = document.createElement('div');
       likeBtn.style.cssText = `color:${isLiked ? '#f91880' : '#777'}; cursor:pointer; font-size:13px; margin-top:4px; display:inline-block;`;
       likeBtn.textContent = `${isLiked ? '❤️' : '♡'} ${post.likes || 0}`;
-      likeBtn.onclick = () => toggleLike(post.id, !!isLiked);
+      // 더미는 좋아요 비활성화
+      if (!isDummy) likeBtn.onclick = () => toggleLike(post.id, !!isLiked);
 
       body.append(meta, contentEl, likeBtn);
       card.append(avatar, body);
