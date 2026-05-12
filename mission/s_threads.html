@@ -583,9 +583,10 @@
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('joinNick').addEventListener('input', updateEnterBtn);
     document.getElementById('joinRole').addEventListener('change', updateEnterBtn);
-    document.getElementById('postInput').addEventListener('input', function() {
-      document.getElementById('charCount').textContent = `${this.value.length} / 300`;
-    });
+document.getElementById('postInput').addEventListener('input', function() {
+  const len = this.value.replace(/\s/g, '').length;
+  document.getElementById('charCount').textContent = `${len} / 300`;
+});
   });
 
   /* ════════════════════════════
@@ -786,7 +787,7 @@
   ════════════════════════════ */
   window.createPost = () => {
     const content = document.getElementById('postInput').value.trim();
-    if (!content) return;
+if (content.replace(/\s/g, '').length < 30) return;
     const now = new Date();
     const time = `${now.getMonth()+1}.${now.getDate()}. ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     const r = push(postsRef);
