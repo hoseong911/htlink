@@ -732,10 +732,18 @@ document.getElementById('postInput').addEventListener('input', function() {
       posts = posts.filter(p => p.role === currentRoleFilter);
     }
 
+    // ✅ 정렬 알고리즘 수정 (타임스탬프 기반 정렬 적용 및 기존 데이터 하위 호환성 확보)
     if (currentSort === 'popular') {
-      posts.sort((a, b) => (b.likes || 0) - (a.likes || 0) || b.id.localeCompare(a.id));
+      posts.sort((a, b) => 
+        (b.likes || 0) - (a.likes || 0) || 
+        ((b.timestamp || 0) - (a.timestamp || 0)) || 
+        (a.id < b.id ? 1 : (a.id > b.id ? -1 : 0))
+      );
     } else {
-      posts.sort((a, b) => b.id.localeCompare(a.id));
+      posts.sort((a, b) => 
+        ((b.timestamp || 0) - (a.timestamp || 0)) || 
+        (a.id < b.id ? 1 : (a.id > b.id ? -1 : 0))
+      );
     }
 
     if (!posts.length) {
@@ -817,11 +825,11 @@ document.getElementById('postInput').addEventListener('input', function() {
   ════════════════════════════ */
   window.createPost = () => {
     const content = document.getElementById('postInput').value.trim();
-const trimmedLen = content.replace(/\s/g, '').length;
-if (trimmedLen < 30) {
-  showToast(`공백 제외 30자 이상 작성해 주세요. (현재 ${trimmedLen}자)`);
-  return;
-}
+    const trimmedLen = content.replace(/\s/g, '').length;
+    if (trimmedLen < 30) {
+      showToast(`공백 제외 30자 이상 작성해 주세요. (현재 ${trimmedLen}자)`);
+      return;
+    }
     const now = new Date();
     const time = `${now.getMonth()+1}.${now.getDate()}. ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     const r = push(postsRef);
@@ -831,7 +839,10 @@ if (trimmedLen < 30) {
       realName: currentUser.name,
       nickname: currentUser.nick,
       role: currentUser.role,
-      content, time, likes: 0,
+      content, 
+      time, 
+      timestamp: Date.now(), // ✅ 타임스탬프 필드 추가
+      likes: 0,
       likedBy: { init: true }
     });
     document.getElementById('postInput').value = '';
