@@ -107,6 +107,21 @@
         .lecture-list-btn .lec-icon { color: var(--brand-green); font-size: 18px; }
         .lecture-list-btn .lec-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
 
+        /* ── 로딩 스피너 ── */
+        .loading-msg {
+            text-align: center; color: var(--text-muted);
+            padding: 48px 0; font-size: 14px;
+            display: flex; flex-direction: column; align-items: center; gap: 14px;
+        }
+        .spinner {
+            width: 28px; height: 28px;
+            border: 3px solid var(--border-gray);
+            border-top-color: var(--brand-green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
         /* ── 작성 영역 ── */
         .writing-header { margin-bottom: 24px; }
         .writing-header h2 { font-size: 22px; font-weight: 900; color: var(--brand-green); margin-bottom: 10px; }
@@ -333,24 +348,32 @@
     let startTime = 0;
     let cheatCount = 0;
 
+    // ── 데이터 준비 상태 플래그 ──
+    // Firebase 첫 응답이 오기 전에는 "로딩 중" 표시를 위해 사용
+    let lecturesReady = false;
+    let submissionsReady = false;
+
     // ── Firebase 구독 ──
-    // [수정] desc → asc : 오래된 강의가 위, 최신 강의가 아래
     db.collection("lectures").orderBy("createdAt", "asc").onSnapshot(snap => {
         activeLectures = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-        if (currentUser) {
-            renderLectureList();
-            renderArchiveList();
-        }
+        lecturesReady = true;
+        // 로그인 여부와 무관하게 항상 렌더링
+        // (로그인 전이면 screen-main이 hidden이라 화면엔 안 보이지만, 데이터는 준비됨)
+        renderLectureList();
+        renderArchiveList();
     });
 
     db.collection("submissions").orderBy("createdAt", "desc").onSnapshot(snap => {
         allSubmissions = snap.docs.map(d => ({ subId: d.id, ...d.data() }));
+        submissionsReady = true;
+        // 제출 데이터가 바뀌면 강의 목록도 다시 그려서 ✅ 상태 갱신
+        renderLectureList();
     });
 
     // ── 로그인 / 로그아웃 ──
     function login() {
-        const id   = document.getElementById('student-id').value.trim();
-        const name = document.getElementById('student-name').value.trim();
+        const id     = document.getElementById('student-id').value.trim();
+        const name   = document.getElementById('student-name').value.trim();
         const verify = document.getElementById('verify-phrase').value.trim();
         if (!id || !name || !verify) { alert("모든 칸을 입력해주세요!"); return; }
 
@@ -374,12 +397,16 @@
         if (saved) {
             try {
                 currentUser = JSON.parse(saved);
-                document.getElementById('student-id').value = currentUser.id;
+                document.getElementById('student-id').value   = currentUser.id;
                 document.getElementById('student-name').value = currentUser.name;
                 document.getElementById('verify-phrase').value = currentUser.verify;
                 document.getElementById('welcome-chip').textContent = `${currentUser.id} ${currentUser.name}`;
                 show('screen-main'); hide('screen-login');
                 switchTab('today');
+                // 이 시점에 onSnapshot 데이터가 아직 안 왔을 수 있으므로
+                // renderLectureList()를 직접 호출 → "불러오는 중..." 스피너 표시
+                renderLectureList();
+                renderArchiveList();
             } catch(e) { localStorage.removeItem('sc_user'); }
         }
     });
@@ -401,18 +428,31 @@
 
     // ── 강의 목록 ──
     function renderLectureList() {
+        if (!currentUser) return; // 로그인 전이면 렌더링 생략
         const el = document.getElementById('student-lecture-list');
-        el.innerHTML = '';
 
-        // [수정] isOpen 이 true 인 강의만 표시 (관리자가 공개한 강의만)
+        // Firebase 데이터 아직 미도착 → 로딩 스피너
+        if (!lecturesReady) {
+            el.innerHTML = `
+                <div class="loading-msg">
+                    <div class="spinner"></div>
+                    <span>강의 목록 불러오는 중…</span>
+                </div>`;
+            return;
+        }
+
+        el.innerHTML = '';
         const openLectures = activeLectures.filter(l => l.isOpen === true);
 
         if (!openLectures.length) {
             el.innerHTML = '<p class="empty-msg">현재 열린 강의가 없습니다.</p>';
             return;
         }
+
         openLectures.forEach(lec => {
-            const alreadySubmitted = allSubmissions.some(s => s.lectureDocId === lec.docId && s.id === currentUser.id);
+            const alreadySubmitted = allSubmissions.some(
+                s => s.lectureDocId === lec.docId && s.id === currentUser.id
+            );
             const btn = document.createElement('button');
             btn.className = 'lecture-list-btn';
             btn.innerHTML = `
@@ -476,10 +516,24 @@
 
     // ── 아카이브 ──
     function renderArchiveList() {
+        if (!currentUser) return;
         const el = document.getElementById('student-archive-list');
+
+        if (!lecturesReady) {
+            el.innerHTML = `
+                <div class="loading-msg">
+                    <div class="spinner"></div>
+                    <span>아카이브 불러오는 중…</span>
+                </div>`;
+            return;
+        }
+
         el.innerHTML = '';
         const archived = activeLectures.filter(l => l.isArchived);
-        if (!archived.length) { el.innerHTML = '<p class="empty-msg">아직 공개된 아카이브가 없습니다.</p>'; return; }
+        if (!archived.length) {
+            el.innerHTML = '<p class="empty-msg">아직 공개된 아카이브가 없습니다.</p>';
+            return;
+        }
         archived.forEach(lec => {
             const btn = document.createElement('button');
             btn.className = 'archive-lec-btn';
