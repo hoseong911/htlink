@@ -122,6 +122,54 @@
         .absent-chip { background: rgba(243,114,127,0.1); border: 1px solid rgba(243,114,127,0.3); color: var(--text-error); padding: 6px 14px; border-radius: 500px; font-size: 13px; font-weight: 700; }
         .absent-ok { color: var(--brand-green); font-size: 14px; font-weight: 700; }
 
+        /* ══ 현황 점검 탭 ══ */
+        .inspect-cat-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .inspect-cat-btn {
+            background: var(--bg-interactive); color: var(--text-muted);
+            padding: 10px 20px; border-radius: 500px; font-size: 13px; font-weight: 700;
+            border: none; cursor: pointer; transition: all 0.15s;
+        }
+        .inspect-cat-btn.active { background: var(--text-error); color: #fff; }
+        .inspect-cat-btn:nth-child(2).active { background: #f0a500; color: #000; }
+        .inspect-cat-btn:nth-child(3).active { background: var(--brand-accent); color: #fff; }
+        .inspect-cat-btn:hover:not(.active) { color: var(--text-base); }
+
+        .inspect-class-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+        .inspect-class-btn {
+            background: var(--bg-interactive); color: var(--text-muted);
+            padding: 7px 16px; border-radius: 500px; font-size: 12px; font-weight: 700;
+            border: none; cursor: pointer; transition: all 0.15s;
+        }
+        .inspect-class-btn.active { background: var(--text-base); color: #000; }
+        .inspect-class-btn:hover:not(.active) { color: var(--text-base); }
+
+        .inspect-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+
+        /* 미제출 카드 */
+        .inspect-chip-absent {
+            background: rgba(243,114,127,0.1); border: 1px solid rgba(243,114,127,0.35);
+            color: var(--text-error); padding: 8px 16px; border-radius: 500px;
+            font-size: 13px; font-weight: 700;
+        }
+        /* 50자 미만 카드 */
+        .inspect-chip-short {
+            background: rgba(240,165,0,0.1); border: 1px solid rgba(240,165,0,0.35);
+            color: #f0a500; padding: 8px 16px; border-radius: 500px;
+            font-size: 13px; font-weight: 700;
+        }
+        /* 이탈 카드 */
+        .inspect-chip-cheat {
+            background: rgba(61,145,244,0.1); border: 1px solid rgba(61,145,244,0.35);
+            color: var(--brand-accent); padding: 8px 16px; border-radius: 500px;
+            font-size: 13px; font-weight: 700;
+        }
+        .inspect-chip-cheat .cheat-cnt {
+            background: var(--brand-accent); color: #fff;
+            font-size: 11px; font-weight: 900; padding: 2px 7px;
+            border-radius: 500px; margin-left: 6px;
+        }
+        .inspect-ok { color: var(--brand-green); font-size: 14px; font-weight: 700; padding: 20px 0; }
+
         /* ── 강의 카드 ── */
         .lecture-card { background: var(--bg-surface); border-radius: 10px; padding: 20px; margin-bottom: 12px; border: 1px solid var(--border-gray); }
         .lecture-card .lec-title { font-size: 16px; font-weight: 800; color: var(--brand-green); margin-bottom: 6px; }
@@ -220,6 +268,7 @@
         <div class="nav-tabs">
             <button id="tab-btn-lectures" class="active" onclick="switchTab('lectures')">📚 강의 관리</button>
             <button id="tab-btn-answers" onclick="switchTab('answers')">📋 답변 관리</button>
+            <button id="tab-btn-inspect" onclick="switchTab('inspect')">📊 현황 점검</button>
             <button id="tab-btn-archive" onclick="switchTab('archive')">🖼️ 아카이브</button>
         </div>
 
@@ -252,16 +301,6 @@
 
             <!-- 통계 칩 -->
             <div id="answer-stats" class="stat-chips hidden"></div>
-
-            <!-- ══ 미제출자 패널 ══ -->
-            <div id="absent-panel" class="absent-panel hidden">
-                <div class="absent-panel-header">
-                    <div class="absent-panel-title">⚠️ 미제출자</div>
-                    <div class="absent-total-chip" id="absent-total-chip"></div>
-                </div>
-                <div class="absent-class-tabs" id="absent-class-tabs"></div>
-                <div class="absent-grid" id="absent-grid"></div>
-            </div>
 
             <!-- 반 필터 -->
             <div class="filter-tabs">
@@ -297,7 +336,34 @@
             </div>
         </div>
 
-        <!-- 3. 아카이브 -->
+        <!-- 3. 현황 점검 -->
+        <div id="tab-inspect" class="hidden">
+            <div class="surface-card" style="margin-bottom:20px;">
+                <div class="row" style="flex-wrap:wrap; gap:10px; align-items:center;">
+                    <select id="inspect-lecture-select" onchange="onInspectLectureChange()" style="flex:1; min-width:200px; margin-bottom:0;">
+                        <option value="">강의를 선택하세요</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 현황 요약 칩 -->
+            <div id="inspect-stats" class="stat-chips hidden"></div>
+
+            <!-- 카테고리 탭 -->
+            <div class="inspect-cat-tabs hidden" id="inspect-cat-tabs">
+                <button class="inspect-cat-btn active" onclick="setInspectCat('absent', this)">⚠️ 미제출</button>
+                <button class="inspect-cat-btn" onclick="setInspectCat('short', this)">✏️ 50자 미만</button>
+                <button class="inspect-cat-btn" onclick="setInspectCat('cheat', this)">🚨 이탈 2회 이상</button>
+            </div>
+
+            <!-- 반 탭 -->
+            <div class="inspect-class-tabs hidden" id="inspect-class-tabs"></div>
+
+            <!-- 결과 그리드 -->
+            <div id="inspect-grid" class="inspect-grid hidden"></div>
+        </div>
+
+        <!-- 4. 아카이브 -->
         <div id="tab-archive" class="hidden">
             <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px; padding:0 4px;">
                 공개하면 학생 아카이브 탭과 <a href="archive.html" target="_blank" style="color:var(--brand-green); text-decoration:none;">전시 페이지</a>에 나타납니다.
@@ -353,7 +419,6 @@
     let submissionsReady = false;
     let currentFilter    = 'all';
     let currentSort      = 'recent';
-    let currentAbsentCls = 'all'; // 미제출자 패널 현재 반 탭
 
     let lectureUnsub     = null;
     let submissionUnsub  = null;
@@ -419,8 +484,8 @@
             allSubmissions   = snap.docs.map(d => ({ subId: d.id, ...d.data() }));
             submissionsReady = true;
             renderAnswers();
-            renderLectureAdmin();  // 제출 건수 갱신
-            renderAbsentPanel();   // 제출 바뀌면 미제출자 갱신
+            renderLectureAdmin();     // 제출 건수 갱신
+            renderInspectPanel();     // 현황 점검 갱신
         });
 
         // Realtime DB: 학생 명단 (student2026.html 과 동일 노드)
@@ -436,7 +501,7 @@
             }
             allStudents.sort((a, b) => a.studentId.localeCompare(b.studentId));
             studentsReady = true;
-            renderAbsentPanel();
+            renderInspectPanel(); // 명단 바뀌면 현황도 갱신
         });
     }
 
@@ -450,7 +515,7 @@
 
     /* ── 탭 전환 ── */
     function switchTab(tab) {
-        ['lectures','answers','archive'].forEach(t => {
+        ['lectures','answers','inspect','archive'].forEach(t => {
             document.getElementById(`tab-btn-${t}`).classList.toggle('active', t === tab);
             document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
         });
@@ -468,73 +533,148 @@
         return isNaN(c) ? null : c;
     }
 
-    /* ─────────────────────────────────────────
-       미제출자 패널
-    ───────────────────────────────────────── */
-    function renderAbsentPanel() {
-        const lecId = document.getElementById('answer-lecture-select').value;
-        const panel = document.getElementById('absent-panel');
+    /* ── 강의 선택 변경 (답변 관리) ── */
+    function onLectureChange() {
+        renderAnswers();
+    }
 
-        if (!lecId || !studentsReady || allStudents.length === 0) {
-            panel.classList.add('hidden');
+    /* ═══════════════════════════════════════════════
+       현황 점검 탭
+    ═══════════════════════════════════════════════ */
+    let currentInspectCat = 'absent'; // absent | short | cheat
+    let currentInspectCls = 'all';
+
+    function onInspectLectureChange() {
+        currentInspectCat = 'absent';
+        currentInspectCls = 'all';
+        // 카테고리 탭 active 초기화
+        document.querySelectorAll('.inspect-cat-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+        renderInspectPanel();
+    }
+
+    function setInspectCat(cat, btn) {
+        currentInspectCat = cat;
+        currentInspectCls = 'all';
+        document.querySelectorAll('.inspect-cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderInspectPanel();
+    }
+
+    function setInspectCls(cls) {
+        currentInspectCls = cls;
+        renderInspectPanel();
+    }
+
+    function renderInspectPanel() {
+        const lecId    = document.getElementById('inspect-lecture-select').value;
+        const statsEl  = document.getElementById('inspect-stats');
+        const catTabs  = document.getElementById('inspect-cat-tabs');
+        const clsTabs  = document.getElementById('inspect-class-tabs');
+        const grid     = document.getElementById('inspect-grid');
+
+        if (!lecId) {
+            statsEl.classList.add('hidden');
+            catTabs.classList.add('hidden');
+            clsTabs.classList.add('hidden');
+            grid.classList.add('hidden');
             return;
         }
 
-        // 이 강의 제출자 학번 집합
-        const submittedIds = new Set(
-            allSubmissions.filter(s => s.lectureDocId === lecId).map(s => String(s.id))
-        );
+        const lecSubs = allSubmissions.filter(s => s.lectureDocId === lecId);
+        const submittedIds = new Set(lecSubs.map(s => String(s.id)));
 
-        // 미제출 학생
-        const absent = allStudents.filter(s => !submittedIds.has(String(s.studentId)));
+        /* ── 세 그룹 계산 ── */
+        // 미제출: 명단에 있지만 제출 안 한 학생
+        const absentList = studentsReady
+            ? allStudents.filter(s => !submittedIds.has(String(s.studentId)))
+            : [];
 
-        // 존재하는 반 목록 (미제출자 기준)
-        const absentClasses = [
-            ...new Set(absent.map(s => classNumFromId(s.studentId)).filter(c => c !== null))
-        ].sort((a, b) => a - b);
+        // 50자 미만: 제출했지만 textLength < 50
+        const shortList  = lecSubs.filter(s => (s.textLength || 0) < 50);
 
-        // 총계 칩
-        document.getElementById('absent-total-chip').innerHTML =
-            `미제출 <span>${absent.length}</span>명 / 전체 ${allStudents.length}명`;
+        // 이탈 2회 이상: cheatCount >= 2
+        const cheatList  = lecSubs.filter(s => (s.cheatCount || 0) >= 2);
 
-        // 반 탭
-        const tabsEl = document.getElementById('absent-class-tabs');
-        tabsEl.innerHTML = `
-            <button class="absent-class-btn ${currentAbsentCls === 'all' ? 'active' : ''}"
-                onclick="setAbsentClass('all')">전체 (${absent.length}명)</button>
-            ${absentClasses.map(c => {
-                const cnt = absent.filter(s => classNumFromId(s.studentId) === c).length;
-                return `<button class="absent-class-btn ${currentAbsentCls == c ? 'active' : ''}"
-                    onclick="setAbsentClass(${c})">${c}반 (${cnt}명)</button>`;
-            }).join('')}`;
+        /* ── 통계 칩 ── */
+        statsEl.classList.remove('hidden');
+        statsEl.innerHTML = `
+            <div class="stat-chip" style="cursor:pointer;" onclick="setInspectCatByIdx(0)">
+                <span class="num" style="color:var(--text-error);">${absentList.length}</span>미제출
+            </div>
+            <div class="stat-chip" style="cursor:pointer;" onclick="setInspectCatByIdx(1)">
+                <span class="num" style="color:#f0a500;">${shortList.length}</span>50자 미만
+            </div>
+            <div class="stat-chip" style="cursor:pointer;" onclick="setInspectCatByIdx(2)">
+                <span class="num" style="color:var(--brand-accent);">${cheatList.length}</span>이탈 2회 이상
+            </div>`;
 
-        // 미제출자 칩 목록
-        const filtered = currentAbsentCls === 'all'
-            ? absent
-            : absent.filter(s => classNumFromId(s.studentId) === Number(currentAbsentCls));
+        catTabs.classList.remove('hidden');
 
-        const grid = document.getElementById('absent-grid');
-        if (filtered.length === 0) {
-            grid.innerHTML = `<span class="absent-ok">✅ ${currentAbsentCls === 'all' ? '전원' : currentAbsentCls + '반 전원'} 제출 완료!</span>`;
+        /* ── 현재 카테고리 데이터 결정 ── */
+        let items = []; // { label, sub? } — absent는 student 객체, 나머지는 submission 객체
+        let chipClass = '';
+
+        if (currentInspectCat === 'absent') {
+            items     = absentList.map(s => ({ id: s.studentId, name: s.studentName }));
+            chipClass = 'inspect-chip-absent';
+        } else if (currentInspectCat === 'short') {
+            items     = shortList.map(s => ({ id: s.id, name: s.name, meta: `${s.textLength}자` }));
+            chipClass = 'inspect-chip-short';
         } else {
-            grid.innerHTML = filtered
-                .map(s => `<span class="absent-chip">${s.studentId} ${s.studentName}</span>`)
-                .join('');
+            items     = cheatList.map(s => ({ id: s.id, name: s.name, cheat: s.cheatCount }));
+            chipClass = 'inspect-chip-cheat';
         }
 
-        panel.classList.remove('hidden');
+        /* ── 반 목록 생성 ── */
+        const classes = [...new Set(items.map(i => classNumFromId(i.id)).filter(c => c !== null))].sort((a,b) => a-b);
+
+        clsTabs.classList.remove('hidden');
+        clsTabs.innerHTML = `
+            <button class="inspect-class-btn ${currentInspectCls === 'all' ? 'active' : ''}"
+                onclick="setInspectCls('all')">전체 (${items.length}명)</button>
+            ${classes.map(c => {
+                const cnt = items.filter(i => classNumFromId(i.id) === c).length;
+                return `<button class="inspect-class-btn ${currentInspectCls == c ? 'active' : ''}"
+                    onclick="setInspectCls(${c})">${c}반 (${cnt}명)</button>`;
+            }).join('')}`;
+
+        /* ── 필터링 ── */
+        const filtered = currentInspectCls === 'all'
+            ? items
+            : items.filter(i => classNumFromId(i.id) === Number(currentInspectCls));
+
+        grid.classList.remove('hidden');
+
+        if (filtered.length === 0) {
+            const label = currentInspectCat === 'absent' ? '미제출자' : currentInspectCat === 'short' ? '50자 미만 학생' : '이탈 2회 이상 학생';
+            grid.innerHTML = `<span class="inspect-ok">✅ ${currentInspectCls === 'all' ? '전체' : currentInspectCls + '반'} ${label} 없음!</span>`;
+            return;
+        }
+
+        if (currentInspectCat === 'cheat') {
+            grid.innerHTML = filtered
+                .sort((a,b) => b.cheat - a.cheat)
+                .map(i => `<span class="${chipClass}">${i.id} ${i.name}<span class="cheat-cnt">${i.cheat}회</span></span>`)
+                .join('');
+        } else if (currentInspectCat === 'short') {
+            grid.innerHTML = filtered
+                .sort((a,b) => (a.meta||'').localeCompare(b.meta||'', undefined, {numeric:true}))
+                .map(i => `<span class="${chipClass}">${i.id} ${i.name} <span style="font-size:11px;opacity:0.75;">${i.meta}</span></span>`)
+                .join('');
+        } else {
+            grid.innerHTML = filtered
+                .map(i => `<span class="${chipClass}">${i.id} ${i.name}</span>`)
+                .join('');
+        }
     }
 
-    function setAbsentClass(cls) {
-        currentAbsentCls = cls;
-        renderAbsentPanel();
-    }
-
-    /* ── 강의 선택 변경 ── */
-    function onLectureChange() {
-        currentAbsentCls = 'all';
-        renderAnswers();
-        renderAbsentPanel();
+    // 통계 칩 클릭 시 카테고리 전환 헬퍼
+    function setInspectCatByIdx(idx) {
+        const cats = ['absent','short','cheat'];
+        currentInspectCat = cats[idx];
+        currentInspectCls = 'all';
+        document.querySelectorAll('.inspect-cat-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+        renderInspectPanel();
     }
 
     /* ── 강의 목록 렌더 ── */
@@ -615,11 +755,19 @@
 
     /* ── 강의 셀렉트 ── */
     function populateLectureSelect() {
+        // 답변 관리 셀렉트
         const sel = document.getElementById('answer-lecture-select');
         const cur = sel.value;
         sel.innerHTML = '<option value="">강의를 선택하세요</option>';
         activeLectures.forEach(l => sel.innerHTML += `<option value="${l.docId}">${l.title}</option>`);
         if (cur && activeLectures.some(l => l.docId === cur)) sel.value = cur;
+
+        // 현황 점검 셀렉트
+        const isel = document.getElementById('inspect-lecture-select');
+        const icur = isel.value;
+        isel.innerHTML = '<option value="">강의를 선택하세요</option>';
+        activeLectures.forEach(l => isel.innerHTML += `<option value="${l.docId}">${l.title}</option>`);
+        if (icur && activeLectures.some(l => l.docId === icur)) isel.value = icur;
     }
 
     /* ── 필터 / 정렬 ── */
