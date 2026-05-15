@@ -114,17 +114,20 @@
         .open-toggle-label { font-size: 12px; font-weight: 700; white-space: nowrap; line-height: 1; }
         .open-toggle-label.on  { color: var(--brand-green); }
         .open-toggle-label.off { color: var(--text-muted); }
-        .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+        .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; display: inline-block; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .toggle-switch .slider { position: absolute; inset: 0; background: var(--border-gray); border-radius: 500px; cursor: pointer; transition: background 0.2s; }
-        .toggle-switch .slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+        .toggle-switch .slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 4px; top: 4px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
         .toggle-switch input:checked + .slider { background: var(--brand-green); }
-        .toggle-switch input:checked + .slider::before { transform: translateX(16px); }
+        .toggle-switch input:checked + .slider::before { transform: translateX(20px); }
 
         /* 이모지 액션 버튼 */
         .btn-emoji { background: var(--bg-interactive); border: 1px solid var(--border-gray); border-radius: 8px; padding: 0; width: 36px; height: 36px; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; transition: all 0.15s; }
         .btn-emoji:hover { background: var(--bg-card-hover); border-color: var(--text-muted); }
         .btn-emoji.danger:hover { border-color: var(--text-error); background: rgba(243,114,127,0.1); }
+
+        /* 강의카드 액션 오른쪽 정렬 */
+        .lecture-card .lec-actions { justify-content: flex-end; }
 
         .more-detail { background: var(--bg-interactive); border-radius: 8px; padding: 14px 16px; margin-top: 12px; font-size: 13px; line-height: 1.7; border: 1px solid var(--border-gray); }
         .more-detail .detail-label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
@@ -286,7 +289,7 @@
             <!-- NEW -->
             <div id="qtab-new" class="hidden">
                 <div class="surface-card">
-                    <div class="form-group"><label>강의명</label><input type="text" id="new-title" placeholder="N강 : 강의명"></div>
+                    <div class="form-group"><label>강의명</label><input type="text" id="new-title" placeholder="N강 : 강의명 입력"></div>
                     <div class="form-group"><label>오늘의 질문</label><input type="text" id="new-question" placeholder="오늘의 생각 질문을 입력하세요"></div>
                     <div class="form-group"><label>설명</label><textarea id="new-reference" class="large" placeholder="참고 내용이나 설명을 자유롭게 작성하세요"></textarea></div>
                     <button class="btn-primary" onclick="addLecture()">강의 생성</button>
@@ -638,13 +641,10 @@
                 <div class="lec-title">${escHtml(lec.title)}</div>
                 <div id="view-${lec.docId}">
                     <div class="lec-actions">
-                        <div class="open-toggle-wrap">
-                            <span class="open-toggle-label ${isOpen ? 'on' : 'off'}" id="toggle-label-${lec.docId}">${isOpen ? '🟢 공개' : '⚫ 비공개'}</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" ${isOpen ? 'checked' : ''} onchange="toggleOpen('${lec.docId}', this.checked, '${lec.docId}')">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
+                        <label class="toggle-switch" title="${isOpen ? '공개 중' : '비공개'}" style="width:44px; height:24px; flex-shrink:0;">
+                            <input type="checkbox" ${isOpen ? 'checked' : ''} onchange="toggleOpen('${lec.docId}', this.checked, '${lec.docId}')">
+                            <span class="slider" id="toggle-slider-${lec.docId}"></span>
+                        </label>
                         <button class="btn-emoji" title="수정" onclick="toggleEdit('${lec.docId}', true)">✏️</button>
                         <button class="btn-emoji danger" title="삭제" onclick="deleteLecture('${lec.docId}', '${escHtml(lec.title).replace(/'/g,"\\'")}')">🗑️</button>
                         <button class="btn-emoji" title="더보기" onclick="toggleMore('${lec.docId}')">🔍</button>
@@ -671,13 +671,8 @@
         });
     }
 
-    function toggleOpen(docId, value, labelId) {
+    function toggleOpen(docId, value) {
         db.collection("lectures").doc(docId).update({ isOpen: value });
-        const label = document.getElementById(`toggle-label-${labelId}`);
-        if (label) {
-            label.textContent = value ? '🟢 공개' : '⚫ 비공개';
-            label.className = `open-toggle-label ${value ? 'on' : 'off'}`;
-        }
     }
     function toggleEdit(docId, open) {
         document.getElementById(`view-${docId}`).classList.toggle('hidden', open);
