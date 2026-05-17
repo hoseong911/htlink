@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>천년의 기억 - 관리자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #f4ead5;
+    --paper-dark: #e8d9b8;
+    --red-seal: #a8322d;
+    --gold: #c9a44c;
+    --gold-dark: #8b6f2a;
+    --jade: #4a6b5c;
+    --shadow: rgba(26, 20, 16, 0.15);
+    --bg-admin: #f5f5f0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Gowun Batang', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-admin);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .login-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--paper) 0%, var(--paper-dark) 100%);
+  }
+  .login-screen.hidden { display: none; }
+  .login-box {
+    background: white;
+    padding: 3rem;
+    border: 2px solid var(--ink);
+    box-shadow: 0 10px 40px var(--shadow);
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+  }
+  .login-title {
+    font-family: 'Nanum Myeongjo', serif;
+    font-weight: 800;
+    font-size: 1.8rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.2em;
+  }
+  .login-subtitle { color: var(--jade); font-style: italic; margin-bottom: 2rem; font-size: 0.95rem; }
+  .login-seal {
+    width: 80px;
+    height: 80px;
+    background: var(--red-seal);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nanum Myeongjo', serif;
+    font-weight: 800;
+    font-size: 1rem;
+    margin: 0 auto 2rem;
+    box-shadow: 0 4px 15px rgba(168, 50, 45, 0.4);
+  }
+  .form-group { margin-bottom: 1.2rem; text-align: left; }
+  .form-label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: var(--ink);
+    font-size: 0.9rem;
+  }
+  .form-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #ddd;
+    background: var(--paper);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+  .form-input:focus { outline: none; border-color: var(--red-seal); background: white; }
+
+  .btn {
+    padding: 0.8rem 1.5rem;
+    font-family: 'Nanum Myeongjo', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 0.1em;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .btn:hover { background: var(--gold); }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--red-seal); border-color: var(--red-seal); }
+  .btn-full { width: 100%; margin-top: 1rem; }
+  .btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
+
+  .login-error {
+    background: #fee;
+    border-left: 4px solid var(--red-seal);
+    padding: 0.8rem 1rem;
+    margin-top: 1rem;
+    color: var(--red-seal);
+    font-size: 0.9rem;
+    display: none;
+  }
+  .login-error.show { display: block; }
+
+  .main-screen { display: none; min-height: 100vh; }
+  .main-screen.active { display: block; }
+
+  .main-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    box-shadow: 0 2px 10px var(--shadow);
+  }
+  .header-title {
+    font-family: 'Nanum Myeongjo', serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    letter-spacing: 0.15em;
+  }
+  .header-actions { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+  .user-email { color: var(--gold); font-size: 0.85rem; }
+
+  .main-tabs {
+    background: white;
+    border-bottom: 2px solid var(--ink);
+    display: flex;
+    overflow-x: auto;
+    padding: 0 1rem;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    padding: 1rem 1.5rem;
+    font-family: 'Nanum Myeongjo', serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: var(--ink);
+    border-bottom: 3px solid transparent;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  .tab-btn:hover { background: var(--paper); }
+  .tab-btn.active { color: var(--red-seal); border-bottom-color: var(--red-seal); }
+
+  .main-content { padding: 2rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+
+  .episode-item {
+    background: white;
+    border: 2px solid var(--ink);
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .episode-item-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    transition: background 0.3s ease;
+  }
+  .episode-item-header:hover { background: var(--red-seal); }
+  .episode-item-info { flex: 1; min-width: 0; }
+  .episode-num { color: var(--gold); font-size: 0.8rem; letter-spacing: 0.2em; margin-bottom: 0.2rem; }
+  .episode-name {
+    font-family: 'Nanum Myeongjo', serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .episode-toggle { color: var(--gold); font-size: 1.3rem; transition: transform 0.3s ease; flex-shrink: 0; }
+  .episode-item.expanded .episode-toggle { transform: rotate(180deg); }
+  .episode-item-body { display: none; padding: 1.5rem; }
+  .episode-item.expanded .episode-item-body { display: block; animation: slideDown 0.4s ease; }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .field-group { margin-bottom: 1.2rem; }
+  .field-label {
+    display: block;
+    font-weight: 700;
+    color: var(--red-seal);
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+  }
+  .field-hint { color: #888; font-size: 0.8rem; margin-bottom: 0.4rem; font-style: italic; }
+  .field-input, .field-textarea {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1px solid #ccc;
+    background: var(--paper);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+  }
+  .field-input:focus, .field-textarea:focus {
+    outline: none;
+    border-color: var(--red-seal);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(168, 50, 45, 0.1);
+  }
+  .field-textarea { min-height: 80px; resize: vertical; line-height: 1.7; }
+
+  .field-tag {
+    display: inline-block;
+    background: var(--paper-dark);
+    border: 1px solid var(--gold-dark);
+    padding: 0.2rem 0.7rem;
+    font-size: 0.8rem;
+    color: var(--ink);
+    margin-right: 0.3rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .array-item {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .array-item-num {
+    background: var(--ink);
+    color: var(--paper);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .array-item-input { flex: 1; min-width: 200px; }
+
+  .save-bar {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 2px solid var(--ink);
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 0.8rem;
+    justify-content: flex-end;
+    box-shadow: 0 -4px 15px var(--shadow);
+    z-index: 50;
+    flex-wrap: wrap;
+  }
+  .save-indicator { color: var(--jade); font-size: 0.9rem; align-self: center; margin-right: auto; }
+
+  .settings-section {
+    background: white;
+    border: 2px solid var(--ink);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .settings-section h3 {
+    font-family: 'Nanum Myeongjo', serif;
+    color: var(--red-seal);
+    margin-bottom: 1rem;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--gold-dark);
+    padding-bottom: 0.5rem;
+  }
+
+  .preview-controls-bar {
+    background: white;
+    border: 2px solid var(--ink);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .preview-episode {
+    background: white;
+    border: 2px solid var(--ink);
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .preview-ep-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+  .preview-ep-header:hover { background: var(--red-seal); }
+  .preview-ep-body { display: none; padding: 1.5rem; }
+  .preview-episode.expanded .preview-ep-body { display: block; animation: slideDown 0.4s ease; }
+
+  .preview-section { margin-bottom: 1.2rem; }
+  .preview-section-label {
+    display: inline-block;
+    background: var(--red-seal);
+    color: white;
+    padding: 0.25rem 0.8rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+  .preview-section-label.answer { background: var(--jade); }
+  .preview-section-label.hint { background: var(--gold-dark); }
+  .preview-section-label.treasure { background: var(--ink); color: var(--gold); }
+  .preview-section-content {
+    background: var(--paper);
+    border-left: 3px solid var(--gold-dark);
+    padding: 0.8rem 1rem;
+    line-height: 1.8;
+  }
+  .preview-section-content.story { font-style: italic; color: var(--jade); }
+  .preview-section-content.answer {
+    border-left-color: var(--jade);
+    background: rgba(74, 107, 92, 0.08);
+    font-weight: 700;
+  }
+
+  .toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1rem 1.8rem;
+    border: 2px solid var(--gold);
+    box-shadow: 0 6px 25px var(--shadow);
+    font-weight: 700;
+    z-index: 1000;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 90%;
+    text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--jade); border-color: var(--gold); }
+  .toast.error { background: var(--red-seal); border-color: var(--gold); }
+
+  .loading { text-align: center; padding: 4rem 2rem; color: var(--jade); }
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--paper-dark);
+    border-top-color: var(--red-seal);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state { text-align: center; padding: 3rem 2rem; color: #888; }
+
+  .info-banner {
+    background: #fff8e1;
+    border-left: 4px solid var(--gold);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+  .info-banner strong { color: var(--red-seal); }
+
+  @media (max-width: 600px) {
+    .login-box { padding: 2rem 1.5rem; }
+    .main-content { padding: 1rem; }
+    .main-header { padding: 0.8rem 1rem; }
+    .header-title { font-size: 1.1rem; }
+    .header-actions { width: 100%; justify-content: space-between; }
+    .save-bar { flex-direction: column-reverse; }
+    .save-bar .btn { width: 100%; }
+    .save-indicator { text-align: center; margin-right: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 로그인 화면 -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-seal">관리</div>
+    <h1 class="login-title">관리자 입장</h1>
+    <p class="login-subtitle">천년의 기억 관리실</p>
+    <form id="loginForm" onsubmit="return false;">
+      <div class="form-group">
+        <label class="form-label">이메일</label>
+        <input type="email" class="form-input" id="loginEmail" placeholder="이메일 입력" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호</label>
+        <input type="password" class="form-input" id="loginPassword" placeholder="비밀번호 입력" autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" id="loginBtn" onclick="window.handleLogin()">입장하기</button>
+    </form>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- 메인 화면 -->
+<div class="main-screen" id="mainScreen">
+  <header class="main-header">
+    <div class="header-title">🏯 천년의 기억 · 관리실</div>
+    <div class="header-actions">
+      <span class="user-email" id="userEmail"></span>
+      <button class="btn btn-sm" onclick="window.handleLogout()">나가기</button>
+    </div>
+  </header>
+
+  <nav class="main-tabs">
+    <button class="tab-btn active" onclick="window.switchTab('episodes')" id="tab-episodes">📜 에피소드 편집</button>
+    <button class="tab-btn" onclick="window.switchTab('settings')" id="tab-settings">⚙️ 게임 설정</button>
+    <button class="tab-btn" onclick="window.switchTab('preview')" id="tab-preview">👁️ 미리보기</button>
+  </nav>
+
+  <main class="main-content">
+    <div id="content-episodes">
+      <div class="info-banner">
+        <strong>📝 안내:</strong> 각 에피소드를 클릭해 펼친 뒤 텍스트를 수정하고 하단의 <strong>"저장하기"</strong> 버튼을 누르세요. 저장 후 학생 페이지를 새로고침하면 반영됩니다.
+      </div>
+      <div id="episodesList">
+        <div class="loading"><div class="loading-spinner"></div>데이터를 불러오는 중...</div>
+      </div>
+    </div>
+
+    <div id="content-settings" style="display:none;">
+      <div class="info-banner">
+        <strong>⚙️ 안내:</strong> 인트로 화면과 엔딩 화면의 텍스트를 수정할 수 있습니다.
+      </div>
+      <div id="settingsList">
+        <div class="loading"><div class="loading-spinner"></div>설정을 불러오는 중...</div>
+      </div>
+    </div>
+
+    <div id="content-preview" style="display:none;">
+      <div class="info-banner">
+        <strong>👁️ 안내:</strong> 학생들이 보게 될 내용과 정답을 한눈에 확인할 수 있습니다. <strong>이 화면은 관리자만 볼 수 있습니다.</strong>
+      </div>
+      <div class="preview-controls-bar">
+        <button class="btn btn-sm" onclick="window.expandAllPreview(true)">📂 모두 펼치기</button>
+        <button class="btn btn-sm" onclick="window.expandAllPreview(false)">📁 모두 접기</button>
+        <button class="btn btn-sm btn-primary" onclick="window.openStudentView()">🎮 학생 화면 열기</button>
+      </div>
+      <div id="previewContent">
+        <div class="loading"><div class="loading-spinner"></div>미리보기 준비 중...</div>
+      </div>
+    </div>
+  </main>
+
+  <div class="save-bar" id="saveBar" style="display:none;">
+    <span class="save-indicator" id="saveIndicator"></span>
+    <button class="btn" onclick="window.reloadData()">🔄 새로고침</button>
+    <button class="btn btn-primary" onclick="window.saveAll()">💾 저장하기</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, getDocs, collection, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDAc5S87JK-LtXzk5-iTR9rt7RnHWnUXTQ",
+  authDomain: "ho0911seong-56638.firebaseapp.com",
+  databaseURL: "https://ho0911seong-56638-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ho0911seong-56638",
+  storageBucket: "ho0911seong-56638.firebasestorage.app",
+  messagingSenderId: "994509567071",
+  appId: "1:994509567071:web:40720d76850dd739f557ea"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let episodes = [];
+let gameSettings = {};
+let currentTab = 'episodes';
+
+// 로그인
+window.handleLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errorEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+
+  if (!email || !password) {
+    errorEl.textContent = '이메일과 비밀번호를 모두 입력하시오.';
+    errorEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '입장 중...';
+  errorEl.classList.remove('show');
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    let msg = '입장에 실패하였소.';
+    if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
+      msg = '이메일 또는 비밀번호가 옳지 않소.';
+    } else if (e.code === 'auth/invalid-email') {
+      msg = '이메일 형식이 올바르지 않소.';
+    } else if (e.code === 'auth/too-many-requests') {
+      msg = '잠시 후에 다시 시도해 주시오.';
+    }
+    errorEl.textContent = msg;
+    errorEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = '입장하기';
+  }
+};
+
+window.handleLogout = async function() {
+  if (!confirm('정말 나가시겠습니까? 저장하지 않은 내용은 사라집니다.')) return;
+  await signOut(auth);
+  location.reload();
+};
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('mainScreen').classList.add('active');
+    document.getElementById('userEmail').textContent = user.email;
+    loadData();
+  } else {
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('mainScreen').classList.remove('active');
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const pwdInput = document.getElementById('loginPassword');
+  if (pwdInput) {
+    pwdInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') window.handleLogin();
+    });
+  }
+});
+
+async function loadData() {
+  try {
+    const q = query(collection(db, '202606_escape_episodes'), orderBy('order'));
+    const snap = await getDocs(q);
+    episodes = [];
+    snap.forEach(d => {
+      const data = d.data();
+      data._docId = d.id;
+      episodes.push(data);
+    });
+
+    const settingsDoc = await getDoc(doc(db, '202606_escape_settings', 'main'));
+    gameSettings = settingsDoc.exists() ? settingsDoc.data() : {};
+
+    renderCurrentTab();
+  } catch (e) {
+    console.error('데이터 로드 실패:', e);
+    showToast('데이터를 불러오지 못했소: ' + e.message, 'error');
+  }
+}
+
+window.reloadData = async function() {
+  if (!confirm('저장하지 않은 변경사항은 사라집니다. 새로고침하시겠습니까?')) return;
+  await loadData();
+  showToast('새로 불러왔소.', 'success');
+};
+
+window.switchTab = function(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+
+  document.getElementById('content-episodes').style.display = tab === 'episodes' ? 'block' : 'none';
+  document.getElementById('content-settings').style.display = tab === 'settings' ? 'block' : 'none';
+  document.getElementById('content-preview').style.display = tab === 'preview' ? 'block' : 'none';
+
+  document.getElementById('saveBar').style.display = (tab === 'preview') ? 'none' : 'flex';
+
+  renderCurrentTab();
+};
+
+function renderCurrentTab() {
+  if (currentTab === 'episodes') renderEpisodes();
+  else if (currentTab === 'settings') renderSettings();
+  else if (currentTab === 'preview') renderPreview();
+}
+
+// 에피소드 편집
+function renderEpisodes() {
+  const list = document.getElementById('episodesList');
+  if (episodes.length === 0) {
+    list.innerHTML = '<div class="empty-state">에피소드가 없습니다.</div>';
+    return;
+  }
+  list.innerHTML = episodes.map((ep, idx) => `
+    <div class="episode-item" id="ep-item-${idx}">
+      <div class="episode-item-header" onclick="window.toggleEpisode(${idx})">
+        <div class="episode-item-info">
+          <div class="episode-num">${ep.subtitle || `에피소드 ${idx+1}`}</div>
+          <div class="episode-name">${ep.title || '제목 없음'}</div>
+        </div>
+        <div class="episode-toggle">▼</div>
+      </div>
+      <div class="episode-item-body">
+        ${renderEpisodeFields(ep, idx)}
+      </div>
+    </div>
+  `).join('');
+}
+
+window.toggleEpisode = function(idx) {
+  document.getElementById(`ep-item-${idx}`).classList.toggle('expanded');
+};
+
+function renderEpisodeFields(ep, idx) {
+  const typeLabels = {
+    'fillBlanks': '빈칸 채우기', 'kingMatch': '왕·업적 매칭', 'multiSelect': '다중 선택',
+    'classify': '카드 분류', 'singleInput': '비밀번호 추론', 'order': '순서 배열',
+    'pairMatch': '인물·업적 짝짓기', 'finalQuest': '분류 + 단답'
+  };
+
+  let html = `
+    <div class="field-group">
+      <span class="field-tag">문제 유형: ${typeLabels[ep.type] || ep.type}</span>
+      <span class="field-tag">순서: ${ep.order}</span>
+    </div>
+    <div class="field-group">
+      <label class="field-label">📖 에피소드 제목</label>
+      <input type="text" class="field-input" data-ep="${idx}" data-field="title" value="${escapeHTML(ep.title || '')}">
+    </div>
+    <div class="field-group">
+      <label class="field-label">🔢 에피소드 부제 (예: 에피소드 一)</label>
+      <input type="text" class="field-input" data-ep="${idx}" data-field="subtitle" value="${escapeHTML(ep.subtitle || '')}">
+    </div>
+    <div class="field-group">
+      <label class="field-label">📜 스토리 (배경 설명)</label>
+      <textarea class="field-textarea" data-ep="${idx}" data-field="story" rows="3">${escapeHTML(ep.story || '')}</textarea>
+    </div>
+    <div class="field-group">
+      <label class="field-label">🎭 화자 (대사 말하는 사람)</label>
+      <input type="text" class="field-input" data-ep="${idx}" data-field="speaker" value="${escapeHTML(ep.speaker || '')}">
+    </div>
+    <div class="field-group">
+      <label class="field-label">💬 대사</label>
+      <textarea class="field-textarea" data-ep="${idx}" data-field="dialog" rows="2">${escapeHTML(ep.dialog || '')}</textarea>
+    </div>
+    <div class="field-group">
+      <label class="field-label">❓ 문제 (HTML 태그 사용 가능: &lt;br&gt;, &lt;strong&gt;)</label>
+      <textarea class="field-textarea" data-ep="${idx}" data-field="question" rows="3">${escapeHTML(ep.question || '')}</textarea>
+    </div>
+    ${renderTypeSpecificFields(ep, idx)}
+    <div class="field-group">
+      <label class="field-label">💡 힌트</label>
+      <textarea class="field-textarea" data-ep="${idx}" data-field="hint" rows="2">${escapeHTML(ep.hint || '')}</textarea>
+    </div>
+    <div class="field-group">
+      <label class="field-label">✦ 보물 이름</label>
+      <input type="text" class="field-input" data-ep="${idx}" data-field="treasureName" value="${escapeHTML(ep.treasureName || '')}">
+    </div>
+    <div class="field-group">
+      <label class="field-label">✦ 보물 설명</label>
+      <input type="text" class="field-input" data-ep="${idx}" data-field="treasureDesc" value="${escapeHTML(ep.treasureDesc || '')}">
+    </div>
+  `;
+  return html;
+}
+
+function renderTypeSpecificFields(ep, idx) {
+  let html = '';
+  if (ep.type === 'fillBlanks') {
+    html += `<div class="field-group">
+      <label class="field-label">✓ 정답 (빈칸 채우기)</label>
+      <div class="field-hint">①, ②, ③, ④ 순서대로 정답을 입력하세요</div>
+      ${(ep.answers || []).map((ans, i) => `
+        <div class="array-item">
+          <span class="array-item-num">${['①','②','③','④','⑤'][i]}</span>
+          <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="answers" data-arr-idx="${i}" value="${escapeHTML(ans)}">
+        </div>
+      `).join('')}
+    </div>`;
+  } else if (ep.type === 'multiSelect') {
+    html += `<div class="field-group">
+      <label class="field-label">📋 선택지 (정답에 체크)</label>
+      <div class="field-hint">체크된 항목이 정답입니다</div>
+      ${(ep.options || []).map((opt, i) => `
+        <div class="array-item">
+          <span class="array-item-num">${i+1}</span>
+          <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="options" data-arr-idx="${i}" value="${escapeHTML(opt)}">
+          <label style="display:flex; align-items:center; gap:0.3rem; padding:0 0.5rem; font-size:0.85rem;">
+            <input type="checkbox" data-ep="${idx}" data-field="correctAnswers" data-arr-idx="${i}" ${(ep.correctAnswers || []).includes(i) ? 'checked' : ''}>
+            정답
+          </label>
+        </div>
+      `).join('')}
+    </div>`;
+  } else if (ep.type === 'singleInput') {
+    html += `<div class="field-group">
+      <label class="field-label">✓ 정답</label>
+      <input type="text" class="field-input" data-ep="${idx}" data-field="answer" value="${escapeHTML(ep.answer || '')}">
+    </div>`;
+  } else if (ep.type === 'kingMatch') {
+    html += `<div class="field-group">
+      <label class="field-label">👑 왕 이름 (시대순)</label>
+      ${(ep.kings || []).map((k, i) => `
+        <div class="array-item">
+          <span class="array-item-num">${i+1}</span>
+          <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="kings" data-arr-idx="${i}" value="${escapeHTML(k)}">
+        </div>
+      `).join('')}
+    </div>
+    <div class="field-group">
+      <label class="field-label">📜 각 왕의 업적 (시대순)</label>
+      ${(ep.achievements || []).map((a, i) => `
+        <div class="array-item">
+          <span class="array-item-num">${i+1}</span>
+          <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="achievements" data-arr-idx="${i}" value="${escapeHTML(a)}">
+        </div>
+      `).join('')}
+    </div>`;
+  } else if (ep.type === 'classify' || ep.type === 'finalQuest') {
+    html += `<div class="field-group">
+      <label class="field-label">🃏 분류할 카드들</label>
+      ${(ep.items || []).map((item, i) => `
+        <div class="array-item">
+          <span class="array-item-num">${i+1}</span>
+          <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="items" data-arr-idx="${i}" value="${escapeHTML(item)}">
+        </div>
+      `).join('')}
+    </div>
+    <div class="field-group">
+      <label class="field-label">📂 분류 영역 (이름 + 정답 카드 번호)</label>
+      <div class="field-hint">정답 카드 번호는 쉼표로 구분 (예: 1, 4)</div>
+      ${(ep.zones || []).map((zone, zi) => `
+        <div style="background: var(--paper); padding: 0.8rem; margin-bottom: 0.5rem; border: 1px solid var(--gold-dark);">
+          <div class="array-item">
+            <span style="font-weight: 700; min-width: 60px;">영역 ${zi+1}:</span>
+            <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="zoneName" data-arr-idx="${zi}" value="${escapeHTML(zone.name)}" placeholder="영역 이름">
+          </div>
+          <div class="array-item" style="margin-top: 0.4rem;">
+            <span style="font-size: 0.85rem; min-width: 60px;">정답:</span>
+            <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="zoneCorrect" data-arr-idx="${zi}" value="${(zone.correct || []).map(c => c+1).join(', ')}" placeholder="예: 1, 4">
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+    if (ep.type === 'finalQuest') {
+      html += `<div class="field-group">
+        <label class="field-label">❓ 2단계 추가 질문</label>
+        <textarea class="field-textarea" data-ep="${idx}" data-field="finalQuestion" rows="2">${escapeHTML(ep.finalQuestion || '')}</textarea>
+      </div>
+      <div class="field-group">
+        <label class="field-label">✓ 2단계 정답</label>
+        <input type="text" class="field-input" data-ep="${idx}" data-field="finalAnswer" value="${escapeHTML(ep.finalAnswer || '')}">
+      </div>`;
+    }
+  } else if (ep.type === 'order') {
+    html += `<div class="field-group">
+      <label class="field-label">📅 배열할 사건 (정답 순서대로)</label>
+      <div class="field-hint">실제 게임에서는 무작위 순서로 학생에게 보입니다</div>
+      ${(ep.correctOrder || []).map((origIdx, newIdx) => `
+        <div class="array-item">
+          <span class="array-item-num">${newIdx+1}</span>
+          <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="orderItem" data-arr-idx="${newIdx}" value="${escapeHTML((ep.items || [])[origIdx] || '')}">
+        </div>
+      `).join('')}
+    </div>`;
+  } else if (ep.type === 'pairMatch') {
+    html += `<div class="field-group">
+      <label class="field-label">👤 왼쪽 카드 (인물·세력)</label>
+      ${(ep.leftItems || []).map((item, i) => `
+        <div class="array-item">
+          <span class="array-item-num">${i+1}</span>
+          <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="leftItems" data-arr-idx="${i}" value="${escapeHTML(item)}">
+        </div>
+      `).join('')}
+    </div>
+    <div class="field-group">
+      <label class="field-label">📜 오른쪽 카드 (업적)</label>
+      ${(ep.rightItems || []).map((item, i) => `
+        <div class="array-item">
+          <span class="array-item-num">${i+1}</span>
+          <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="rightItems" data-arr-idx="${i}" value="${escapeHTML(item)}">
+        </div>
+      `).join('')}
+    </div>
+    <div class="field-group">
+      <label class="field-label">🔗 정답 짝 (왼쪽 → 오른쪽 번호)</label>
+      <div class="field-hint">각 왼쪽 카드에 대응되는 오른쪽 카드 번호를 입력하세요</div>
+      ${(ep.leftItems || []).map((item, i) => {
+        const rightIdx = ep.correctPairs ? ep.correctPairs[i] : 0;
+        return `<div class="array-item">
+          <span style="min-width: 100px; font-weight: 700;">${escapeHTML(item)}</span>
+          <span style="margin: 0 0.5rem;">↔</span>
+          <input type="number" min="1" max="${(ep.rightItems || []).length}" class="field-input" style="max-width: 80px;" data-ep="${idx}" data-field="pairRight" data-arr-idx="${i}" value="${rightIdx + 1}">
+          <span style="font-size: 0.85rem; color: #888; margin-left: 0.5rem;">번 카드</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  return html;
+}
+
+// 설정 편집
+function renderSettings() {
+  const list = document.getElementById('settingsList');
+  list.innerHTML = `
+    <div class="settings-section">
+      <h3>🏛 게임 제목</h3>
+      <div class="field-group">
+        <label class="field-label">메인 제목 (한자 사용 가능)</label>
+        <input type="text" class="field-input" data-setting="gameTitle" value="${escapeHTML(gameSettings.gameTitle || '')}">
+      </div>
+      <div class="field-group">
+        <label class="field-label">부제 (한글 발음 등)</label>
+        <input type="text" class="field-input" data-setting="gameSubtitle" value="${escapeHTML(gameSettings.gameSubtitle || '')}">
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>📜 인트로 스토리</h3>
+      <div class="field-hint">각 문단을 한 줄씩 입력하세요. HTML 태그(&lt;strong&gt;, &lt;br&gt;) 사용 가능</div>
+      ${(gameSettings.introStory || []).map((p, i) => `
+        <div class="array-item">
+          <span class="array-item-num">${i+1}</span>
+          <input type="text" class="field-input array-item-input" data-setting="introStory" data-arr-idx="${i}" value="${escapeHTML(p)}">
+        </div>
+      `).join('')}
+    </div>
+    <div class="settings-section">
+      <h3>🎉 엔딩 제목</h3>
+      <div class="field-group">
+        <label class="field-label">엔딩 메인 제목</label>
+        <input type="text" class="field-input" data-setting="endingTitle" value="${escapeHTML(gameSettings.endingTitle || '')}">
+      </div>
+      <div class="field-group">
+        <label class="field-label">엔딩 부제</label>
+        <input type="text" class="field-input" data-setting="endingSubtitle" value="${escapeHTML(gameSettings.endingSubtitle || '')}">
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>📜 엔딩 메시지</h3>
+      <div class="field-hint">각 문단을 한 줄씩 입력하세요</div>
+      ${(gameSettings.endingMessage || []).map((p, i) => `
+        <div class="array-item">
+          <span class="array-item-num">${i+1}</span>
+          <input type="text" class="field-input array-item-input" data-setting="endingMessage" data-arr-idx="${i}" value="${escapeHTML(p)}">
+        </div>
+      `).join('')}
+    </div>
+    <div class="settings-section">
+      <h3>✍️ 소감 작성 안내문</h3>
+      <textarea class="field-textarea" data-setting="reflectionPrompt" rows="2">${escapeHTML(gameSettings.reflectionPrompt || '')}</textarea>
+    </div>
+  `;
+}
+
+// 미리보기
+function renderPreview() {
+  const content = document.getElementById('previewContent');
+  if (episodes.length === 0) {
+    content.innerHTML = '<div class="empty-state">에피소드가 없습니다.</div>';
+    return;
+  }
+  let html = '';
+  episodes.forEach((ep, idx) => {
+    html += `
+      <div class="preview-episode" id="prev-ep-${idx}">
+        <div class="preview-ep-header" onclick="window.togglePreviewEp(${idx})">
+          <div style="flex:1; min-width:0;">
+            <div style="color: var(--gold); font-size: 0.8rem; letter-spacing: 0.2em; margin-bottom: 0.2rem;">${ep.subtitle || ''}</div>
+            <div style="font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 1.1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ep.title || ''}</div>
+          </div>
+          <div style="color: var(--gold); font-size: 1.3rem; transition: transform 0.3s ease;" class="prev-toggle">▼</div>
+        </div>
+        <div class="preview-ep-body">
+          ${renderPreviewBody(ep)}
+        </div>
+      </div>
+    `;
+  });
+  content.innerHTML = html;
+}
+
+function renderPreviewBody(ep) {
+  const typeLabels = {
+    'fillBlanks': '빈칸 채우기', 'kingMatch': '왕·업적 매칭', 'multiSelect': '다중 선택',
+    'classify': '카드 분류', 'singleInput': '비밀번호 추론', 'order': '순서 배열',
+    'pairMatch': '인물·업적 짝짓기', 'finalQuest': '분류 + 단답'
+  };
+  return `
+    <div class="preview-section">
+      <span class="preview-section-label">📜 스토리</span>
+      <div class="preview-section-content story">${ep.story || ''}</div>
+    </div>
+    <div class="preview-section">
+      <span class="preview-section-label">💬 대사 (${ep.speaker || ''})</span>
+      <div class="preview-section-content">"${ep.dialog || ''}"</div>
+    </div>
+    <div class="preview-section">
+      <span class="preview-section-label">❓ 문제</span>
+      <div style="margin-bottom: 0.5rem;">
+        <span class="field-tag">유형: ${typeLabels[ep.type] || ep.type}</span>
+      </div>
+      <div class="preview-section-content">${ep.question || ''}</div>
+      ${renderPreviewQuestionDetail(ep)}
+    </div>
+    <div class="preview-section">
+      <span class="preview-section-label answer">✓ 정답</span>
+      <div class="preview-section-content answer">${renderPreviewAnswer(ep)}</div>
+    </div>
+    <div class="preview-section">
+      <span class="preview-section-label hint">💡 힌트</span>
+      <div class="preview-section-content">${ep.hint || ''}</div>
+    </div>
+    <div class="preview-section">
+      <span class="preview-section-label treasure">✦ 보물</span>
+      <div class="preview-section-content">
+        <strong>${ep.treasureName || ''}</strong><br>
+        <span style="color: var(--jade); font-style: italic;">${ep.treasureDesc || ''}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderPreviewQuestionDetail(ep) {
+  let extra = '';
+  if (ep.type === 'kingMatch') {
+    extra = `<div style="margin-top: 0.6rem;">
+      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 왕 카드:</strong>
+      <div style="margin-top: 0.3rem;">${(ep.kings || []).map(k => `<span class="field-tag">${k}</span>`).join('')}</div>
+    </div>
+    <div style="margin-top: 0.6rem;">
+      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 업적 카드:</strong>
+      <div style="margin-top: 0.3rem;">
+        ${(ep.achievements || []).map((a, i) => `<div style="padding: 0.3rem 0.6rem; background: white; margin-bottom: 0.2rem; font-size: 0.9rem;">${i+1}) ${a}</div>`).join('')}
+      </div>
+    </div>`;
+  } else if (ep.type === 'multiSelect') {
+    extra = `<div style="margin-top: 0.6rem;">
+      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 선택지:</strong>
+      <div style="margin-top: 0.3rem;">
+        ${(ep.options || []).map((opt, i) => {
+          const isCorrect = (ep.correctAnswers || []).includes(i);
+          return `<div style="padding: 0.3rem 0.6rem; background: ${isCorrect ? 'rgba(74,107,92,0.15)' : 'white'}; margin-bottom: 0.2rem; font-size: 0.9rem; border-left: 3px solid ${isCorrect ? 'var(--jade)' : '#ccc'};">${isCorrect ? '✓ ' : '✗ '}${opt}</div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  } else if (ep.type === 'classify' || ep.type === 'finalQuest') {
+    extra = `<div style="margin-top: 0.6rem;">
+      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 분류 카드:</strong>
+      <div style="margin-top: 0.3rem;">${(ep.items || []).map(item => `<span class="field-tag">${item}</span>`).join('')}</div>
+    </div>
+    <div style="margin-top: 0.6rem;">
+      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 분류 영역:</strong>
+      <div style="margin-top: 0.3rem;">${(ep.zones || []).map(z => `<span class="field-tag">${z.name}</span>`).join('')}</div>
+    </div>`;
+    if (ep.type === 'finalQuest') {
+      extra += `<div style="margin-top: 0.6rem;">
+        <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 2단계 추가 질문:</strong>
+        <div class="preview-section-content" style="margin-top: 0.3rem;">${ep.finalQuestion || ''}</div>
+      </div>`;
+    }
+  } else if (ep.type === 'order') {
+    extra = `<div style="margin-top: 0.6rem;">
+      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 배열할 사건들 (무작위로 학생에게 노출):</strong>
+      <div style="margin-top: 0.3rem;">
+        ${(ep.items || []).map(item => `<div style="padding: 0.3rem 0.6rem; background: white; margin-bottom: 0.2rem; font-size: 0.9rem;">${item}</div>`).join('')}
+      </div>
+    </div>`;
+  } else if (ep.type === 'pairMatch') {
+    extra = `<div style="margin-top: 0.6rem;">
+      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 왼쪽:</strong>
+      <div style="margin-top: 0.3rem;">${(ep.leftItems || []).map(item => `<span class="field-tag">${item}</span>`).join('')}</div>
+    </div>
+    <div style="margin-top: 0.6rem;">
+      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 오른쪽:</strong>
+      <div style="margin-top: 0.3rem;">${(ep.rightItems || []).map(item => `<span class="field-tag">${item}</span>`).join('')}</div>
+    </div>`;
+  }
+  return extra;
+}
+
+function renderPreviewAnswer(ep) {
+  switch(ep.type) {
+    case 'fillBlanks':
+      return (ep.answers || []).map((a, i) => `<strong>${['①','②','③','④','⑤'][i]}</strong> ${a}`).join(' · ');
+    case 'kingMatch':
+      return (ep.kings || []).map((k, i) => {
+        const achIdx = (ep.correctOrder || [])[i];
+        const ach = (ep.achievements || [])[achIdx];
+        return `<div style="padding: 0.3rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${i+1}. ${k}</strong> — ${ach || ''}</div>`;
+      }).join('');
+    case 'multiSelect':
+      return '정답: ' + (ep.correctAnswers || []).map(i => `<strong>${(ep.options || [])[i]}</strong>`).join(', ');
+    case 'classify':
+      return (ep.zones || []).map(z => `<div style="padding: 0.3rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${z.name}:</strong> ${(z.correct || []).map(i => (ep.items || [])[i]).join(', ')}</div>`).join('');
+    case 'singleInput':
+      return `비밀번호: <strong style="font-size: 1.2rem; letter-spacing: 0.3em;">${ep.answer || ''}</strong>`;
+    case 'order':
+      return (ep.correctOrder || []).map((origIdx, newIdx) => `<div style="padding: 0.3rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${newIdx+1}.</strong> ${(ep.items || [])[origIdx] || ''}</div>`).join('');
+    case 'pairMatch':
+      return Object.keys(ep.correctPairs || {}).map(leftIdx => {
+        const rightIdx = ep.correctPairs[leftIdx];
+        return `<div style="padding: 0.3rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${(ep.leftItems || [])[leftIdx]}</strong> ↔ ${(ep.rightItems || [])[rightIdx]}</div>`;
+      }).join('');
+    case 'finalQuest':
+      let html = '<strong>1단계 분류:</strong><br>';
+      html += (ep.zones || []).map(z => `<div style="padding: 0.3rem 0;"><strong>${z.name}:</strong> ${(z.correct || []).map(i => (ep.items || [])[i]).join(', ')}</div>`).join('');
+      html += `<div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--gold-dark);"><strong>2단계 답:</strong> <span style="font-size: 1.1rem;">${ep.finalAnswer || ''}</span></div>`;
+      return html;
+    default:
+      return '—';
+  }
+}
+
+window.togglePreviewEp = function(idx) {
+  const ep = document.getElementById(`prev-ep-${idx}`);
+  ep.classList.toggle('expanded');
+  const toggle = ep.querySelector('.prev-toggle');
+  toggle.style.transform = ep.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0)';
+};
+
+window.expandAllPreview = function(expand) {
+  document.querySelectorAll('.preview-episode').forEach(el => {
+    const toggle = el.querySelector('.prev-toggle');
+    if (expand) {
+      el.classList.add('expanded');
+      if (toggle) toggle.style.transform = 'rotate(180deg)';
+    } else {
+      el.classList.remove('expanded');
+      if (toggle) toggle.style.transform = 'rotate(0)';
+    }
+  });
+};
+
+window.openStudentView = function() {
+  window.open('index.html', '_blank');
+};
+
+// 저장
+window.saveAll = async function() {
+  const indicator = document.getElementById('saveIndicator');
+  indicator.textContent = '저장 중...';
+  indicator.style.color = 'var(--gold-dark)';
+
+  try {
+    collectEpisodeChanges();
+    collectSettingsChanges();
+
+    for (const ep of episodes) {
+      const epData = {...ep};
+      delete epData._docId;
+      await setDoc(doc(db, '202606_escape_episodes', `ep${ep.id}`), epData);
+    }
+    await setDoc(doc(db, '202606_escape_settings', 'main'), gameSettings);
+
+    indicator.textContent = '✓ 저장 완료 (' + new Date().toLocaleTimeString() + ')';
+    indicator.style.color = 'var(--jade)';
+    showToast('저장되었소이다.', 'success');
+  } catch (e) {
+    console.error(e);
+    indicator.textContent = '✗ 저장 실패';
+    indicator.style.color = 'var(--red-seal)';
+    showToast('저장 실패: ' + e.message, 'error');
+  }
+};
+
+function collectEpisodeChanges() {
+  // order 타입을 위한 임시 저장소 초기화
+  episodes.forEach(ep => {
+    if (ep.type === 'order') ep._tempOrderItems = [];
+  });
+
+  document.querySelectorAll('[data-ep]').forEach(el => {
+    const epIdx = parseInt(el.dataset.ep);
+    const field = el.dataset.field;
+    const arrIdx = el.dataset.arrIdx !== undefined ? parseInt(el.dataset.arrIdx) : null;
+    const ep = episodes[epIdx];
+
+    if (!ep) return;
+
+    if (arrIdx === null) {
+      ep[field] = el.value;
+    } else {
+      const arrayFields = ['answers', 'options', 'kings', 'achievements', 'items', 'leftItems', 'rightItems'];
+      if (arrayFields.includes(field)) {
+        if (!Array.isArray(ep[field])) ep[field] = [];
+        ep[field][arrIdx] = el.value;
+      } else if (field === 'correctAnswers') {
+        if (!Array.isArray(ep.correctAnswers)) ep.correctAnswers = [];
+        if (el.checked) {
+          if (!ep.correctAnswers.includes(arrIdx)) ep.correctAnswers.push(arrIdx);
+        } else {
+          ep.correctAnswers = ep.correctAnswers.filter(i => i !== arrIdx);
+        }
+      } else if (field === 'zoneName') {
+        if (!ep.zones) ep.zones = [];
+        if (!ep.zones[arrIdx]) ep.zones[arrIdx] = { name: '', correct: [] };
+        ep.zones[arrIdx].name = el.value;
+      } else if (field === 'zoneCorrect') {
+        if (!ep.zones) ep.zones = [];
+        if (!ep.zones[arrIdx]) ep.zones[arrIdx] = { name: '', correct: [] };
+        ep.zones[arrIdx].correct = el.value.split(',').map(s => parseInt(s.trim()) - 1).filter(n => !isNaN(n) && n >= 0);
+      } else if (field === 'orderItem') {
+        ep._tempOrderItems[arrIdx] = el.value;
+      } else if (field === 'pairRight') {
+        if (!ep.correctPairs) ep.correctPairs = {};
+        ep.correctPairs[arrIdx] = parseInt(el.value) - 1;
+      }
+    }
+  });
+
+  // order 타입 후처리
+  episodes.forEach(ep => {
+    if (ep.type === 'order' && ep._tempOrderItems && ep._tempOrderItems.length > 0) {
+      ep.items = [...ep._tempOrderItems];
+      ep.correctOrder = ep._tempOrderItems.map((_, i) => i);
+      delete ep._tempOrderItems;
+    }
+  });
+}
+
+function collectSettingsChanges() {
+  document.querySelectorAll('[data-setting]').forEach(el => {
+    const field = el.dataset.setting;
+    const arrIdx = el.dataset.arrIdx !== undefined ? parseInt(el.dataset.arrIdx) : null;
+
+    if (arrIdx === null) {
+      gameSettings[field] = el.value;
+    } else {
+      if (!Array.isArray(gameSettings[field])) gameSettings[field] = [];
+      gameSettings[field][arrIdx] = el.value;
+    }
+  });
+}
+
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast ${type}`;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
+}
+</script>
+
+</body>
+</html>
