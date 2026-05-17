@@ -9,14 +9,37 @@
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&family=Song+Myung&display=swap" rel="stylesheet">
 <style>
   :root {
+    /* 공통 기본 컬러 (먹, 한지) */
     --ink: #1a1410;
     --paper: #f4ead5;
     --paper-dark: #e8d9b8;
-    --red-seal: #a8322d;
-    --gold: #c9a44c;
-    --gold-dark: #8b6f2a;
-    --jade: #4a6b5c;
-    --shadow: rgba(26, 20, 16, 0.15);
+    --shadow: rgba(26, 20, 16, 0.25);
+    
+    /* 동적 포인트 컬러 (기본은 기존의 붉은 인주/금색) */
+    --point-color: #a8322d; 
+    --point-border: #c9a44c;
+    --point-bg: rgba(201, 164, 76, 0.08);
+  }
+
+  /* 신라 테마 (찬란한 황금색) */
+  body.theme-silla {
+    --point-color: #b8860b; 
+    --point-border: #daa520;
+    --point-bg: rgba(218, 165, 32, 0.08);
+  }
+
+  /* 발해 테마 (기품있는 자주색) */
+  body.theme-balhae {
+    --point-color: #6a1b9a; 
+    --point-border: #8e24aa;
+    --point-bg: rgba(106, 27, 154, 0.08);
+  }
+
+  /* 고려 테마 (은은한 청자 비색) */
+  body.theme-goryeo {
+    --point-color: #3b7a57; 
+    --point-border: #4a8f6b;
+    --point-bg: rgba(59, 122, 87, 0.08);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -27,638 +50,146 @@
     color: var(--ink);
     min-height: 100vh;
     background-image:
-      radial-gradient(circle at 20% 30%, rgba(201, 164, 76, 0.08) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, rgba(168, 50, 45, 0.06) 0%, transparent 50%),
-      repeating-linear-gradient(45deg, transparent 0px, transparent 2px, rgba(139, 111, 42, 0.03) 2px, rgba(139, 111, 42, 0.03) 4px);
+      radial-gradient(circle at 20% 30%, var(--point-bg) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(26, 20, 16, 0.03) 0%, transparent 50%),
+      repeating-linear-gradient(45deg, transparent 0px, transparent 2px, rgba(26, 20, 16, 0.02) 2px, rgba(26, 20, 16, 0.02) 4px);
     line-height: 1.7;
+    transition: background-color 0.8s ease, color 0.8s ease;
   }
 
   /* 로딩 화면 */
-  .loading-screen {
-    position: fixed;
-    inset: 0;
-    background: var(--paper);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    gap: 1.5rem;
-  }
+  .loading-screen { position: fixed; inset: 0; background: var(--paper); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 1.5rem; }
   .loading-screen.hidden { display: none; }
-  .loading-spinner {
-    width: 60px;
-    height: 60px;
-    border: 4px solid var(--paper-dark);
-    border-top-color: var(--red-seal);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
+  .loading-spinner { width: 60px; height: 60px; border: 4px solid var(--paper-dark); border-top-color: var(--point-color); border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text {
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: 0.3em;
-  }
+  .loading-text { font-family: 'Nanum Myeongjo', serif; font-weight: 700; letter-spacing: 0.3em; }
 
   /* 인트로 */
-  .intro-screen {
-    min-height: 100vh;
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem;
-    text-align: center;
-    background: radial-gradient(ellipse at center, rgba(244, 234, 213, 1) 0%, rgba(232, 217, 184, 0.8) 100%);
-  }
+  .intro-screen { min-height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 2rem; text-align: center; }
   .intro-screen.active { display: flex; }
-  .intro-title {
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 800;
-    font-size: clamp(2.5rem, 6vw, 4.5rem);
-    color: var(--ink);
-    letter-spacing: 0.3em;
-    margin-bottom: 1rem;
-    animation: fadeInDown 1.5s ease;
-  }
-  .intro-subtitle {
-    font-family: 'Song Myung', serif;
-    font-size: clamp(1rem, 2vw, 1.3rem);
-    color: var(--gold-dark);
-    letter-spacing: 0.5em;
-    margin-bottom: 3rem;
-    animation: fadeIn 2s ease 0.5s both;
-  }
-  .seal {
-    width: 120px;
-    height: 120px;
-    background: var(--red-seal);
-    color: var(--paper);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 800;
-    font-size: 1.8rem;
-    margin: 2rem auto;
-    box-shadow: 0 4px 20px rgba(168, 50, 45, 0.3);
-    animation: pulse 3s ease-in-out infinite;
-    line-height: 1.1;
-    text-align: center;
-  }
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-  .intro-story {
-    max-width: 700px;
-    font-size: 1.1rem;
-    line-height: 2;
-    margin: 2rem auto;
-    color: var(--ink);
-    animation: fadeIn 2s ease 1s both;
-  }
+  .intro-title { font-family: 'Nanum Myeongjo', serif; font-weight: 800; font-size: clamp(2.5rem, 6vw, 4.5rem); letter-spacing: 0.3em; margin-bottom: 1rem; animation: fadeInDown 1.5s ease; text-shadow: 2px 2px 4px var(--shadow); }
+  .intro-subtitle { font-family: 'Song Myung', serif; font-size: clamp(1rem, 2vw, 1.3rem); color: var(--point-border); letter-spacing: 0.5em; margin-bottom: 3rem; animation: fadeIn 2s ease 0.5s both; }
+  .seal { width: 120px; height: 120px; background: var(--point-color); color: var(--paper); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Nanum Myeongjo', serif; font-weight: 800; font-size: 1.8rem; margin: 2rem auto; box-shadow: 0 6px 25px var(--shadow); animation: pulse 3s ease-in-out infinite; line-height: 1.1; text-align: center; transition: background 0.8s ease; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  .intro-story { max-width: 700px; font-size: 1.1rem; line-height: 2; margin: 2rem auto; animation: fadeIn 2s ease 1s both; }
   .intro-story p { margin-bottom: 1rem; }
-  .btn-start {
-    margin-top: 2rem;
-    padding: 1rem 3rem;
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 700;
-    font-size: 1.2rem;
-    background: var(--ink);
-    color: var(--paper);
-    border: 2px solid var(--gold);
-    cursor: pointer;
-    letter-spacing: 0.3em;
-    transition: all 0.3s ease;
-    animation: fadeInUp 2s ease 1.5s both;
-  }
-  .btn-start:hover {
-    background: var(--red-seal);
-    border-color: var(--red-seal);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px var(--shadow);
-  }
+  
+  .btn { padding: 1rem 3rem; font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 1.1rem; border: 2px solid var(--ink); cursor: pointer; letter-spacing: 0.2em; transition: all 0.3s ease; background: var(--paper); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink); }
+  .btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+  
+  .btn-start { background: var(--ink); color: var(--paper); border-color: var(--point-border); animation: fadeInUp 2s ease 1.5s both; margin-top: 2rem; }
+  .btn-start:hover { background: var(--point-color); border-color: var(--point-color); box-shadow: 0 6px 20px var(--shadow); transform: translateY(-2px); }
 
   /* 게임 화면 */
-  .game-screen {
-    display: none;
-    min-height: 100vh;
-    padding: 1.5rem;
-    max-width: 900px;
-    margin: 0 auto;
-  }
+  .game-screen { display: none; min-height: 100vh; padding: 1.5rem; max-width: 900px; margin: 0 auto; }
   .game-screen.active { display: block; animation: fadeIn 0.8s ease; }
-  .progress-bar {
-    background: var(--paper-dark);
-    border: 1px solid var(--gold-dark);
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-  .progress-text {
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: 0.1em;
-  }
+  .progress-bar { background: var(--paper-dark); border: 1px solid var(--point-border); padding: 1rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+  .progress-text { font-weight: 700; letter-spacing: 0.1em; }
   .treasures { display: flex; gap: 0.4rem; }
-  .treasure-dot {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: transparent;
-    border: 2px solid var(--gold-dark);
-    transition: all 0.5s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    color: var(--paper);
-  }
-  .treasure-dot.acquired {
-    background: var(--red-seal);
-    border-color: var(--red-seal);
-    box-shadow: 0 0 10px rgba(168, 50, 45, 0.5);
-  }
-  .treasure-dot.acquired::after { content: '✦'; color: var(--gold); }
+  .treasure-dot { width: 22px; height: 22px; border-radius: 50%; background: transparent; border: 2px solid var(--point-border); transition: all 0.5s ease; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--paper); }
+  .treasure-dot.acquired { background: var(--point-color); border-color: var(--point-color); box-shadow: 0 0 10px var(--shadow); }
+  .treasure-dot.acquired::after { content: '✦'; color: var(--paper); }
 
-  .episode-card {
-    background: var(--paper);
-    border: 2px solid var(--ink);
-    box-shadow: 0 4px 20px var(--shadow), inset 0 0 0 8px var(--paper), inset 0 0 0 9px var(--gold-dark);
-    padding: 2.5rem;
-    position: relative;
-  }
-  .episode-card::before {
-    content: '';
-    position: absolute;
-    top: -1px; left: -1px; right: -1px; bottom: -1px;
-    border: 1px solid var(--gold);
-    pointer-events: none;
-  }
-  .episode-story {
-    font-style: italic;
-    color: var(--jade);
-    background: rgba(74, 107, 92, 0.05);
-    border-left: 4px solid var(--jade);
-    padding: 1.2rem 1.5rem;
-    margin-bottom: 2rem;
-    font-size: 1.05rem;
-    line-height: 2;
-  }
-  .episode-title {
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 800;
-    font-size: 2rem;
-    color: var(--ink);
-    text-align: center;
-    margin-bottom: 0.5rem;
-    letter-spacing: 0.15em;
-  }
-  .episode-number {
-    text-align: center;
-    color: var(--red-seal);
-    font-family: 'Song Myung', serif;
-    letter-spacing: 0.5em;
-    margin-bottom: 2rem;
-    font-size: 0.9rem;
-  }
-  .title-divider {
-    width: 80px;
-    height: 2px;
-    background: var(--gold-dark);
-    margin: 0 auto 2rem;
-    position: relative;
-  }
-  .title-divider::before, .title-divider::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 6px;
-    height: 6px;
-    background: var(--red-seal);
-    border-radius: 50%;
-    transform: translateY(-50%);
-  }
-  .title-divider::before { left: -10px; }
-  .title-divider::after { right: -10px; }
-  .quiz-content {
-    background: rgba(201, 164, 76, 0.08);
-    border: 1px dashed var(--gold-dark);
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    font-size: 1.05rem;
-    line-height: 2;
-  }
-  .speaker {
-    font-weight: 700;
-    color: var(--red-seal);
-    margin-bottom: 0.5rem;
-    font-size: 0.95rem;
-  }
-  .quiz-question {
-    font-size: 1.05rem;
-    margin-top: 1rem;
-    color: var(--ink);
-  }
+  .episode-card { background: var(--paper); border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--shadow), inset 0 0 0 4px var(--paper), inset 0 0 0 5px var(--point-border); padding: 2.5rem; position: relative; transition: box-shadow 0.8s ease; }
+  .episode-story { font-style: italic; color: #333; background: var(--point-bg); border-left: 4px solid var(--point-color); padding: 1.2rem 1.5rem; margin-bottom: 2rem; font-size: 1.05rem; line-height: 2; transition: all 0.8s ease; }
+  .episode-title { font-family: 'Nanum Myeongjo', serif; font-weight: 800; font-size: 2rem; text-align: center; margin-bottom: 0.5rem; letter-spacing: 0.15em; }
+  .episode-number { text-align: center; color: var(--point-color); font-family: 'Song Myung', serif; letter-spacing: 0.5em; margin-bottom: 2rem; font-size: 0.9rem; transition: color 0.8s ease; }
+  .title-divider { width: 80px; height: 2px; background: var(--point-border); margin: 0 auto 2rem; position: relative; }
+  .title-divider::before, .title-divider::after { content: ''; position: absolute; top: 50%; width: 6px; height: 6px; background: var(--point-color); border-radius: 50%; transform: translateY(-50%); transition: background 0.8s ease; }
+  .title-divider::before { left: -10px; } .title-divider::after { right: -10px; }
+  
+  .quiz-content { background: rgba(255,255,255,0.4); border: 1px dashed var(--point-border); padding: 1.5rem; margin-bottom: 2rem; font-size: 1.05rem; line-height: 2; }
+  .speaker { font-weight: 700; color: var(--point-color); margin-bottom: 0.5rem; font-size: 0.95rem; transition: color 0.8s ease; }
+  .quiz-question { font-size: 1.05rem; margin-top: 1rem; font-weight: 700; }
   .action-area { margin-bottom: 2rem; }
 
-  /* 빈칸 */
-  .blank-row {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-  }
-  .blank-label { font-weight: 700; color: var(--gold-dark); min-width: 30px; }
-  .blank-input {
-    flex: 1;
-    min-width: 150px;
-    padding: 0.7rem 1rem;
-    border: 2px solid var(--ink);
-    background: var(--paper);
-    font-family: 'Gowun Batang', serif;
-    font-size: 1rem;
-    color: var(--ink);
-    transition: all 0.3s ease;
-  }
-  .blank-input:focus { outline: none; border-color: var(--red-seal); background: white; }
+  /* 빈칸 & 단답 */
+  .blank-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .blank-label { font-weight: 700; color: var(--point-border); min-width: 30px; }
+  .blank-input, .single-input { flex: 1; padding: 0.8rem 1.2rem; border: 2px solid var(--ink); background: var(--paper); font-family: 'Gowun Batang', serif; font-size: 1.05rem; color: var(--ink); transition: all 0.3s ease; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05); }
+  .single-input { width: 100%; text-align: center; letter-spacing: 0.2em; }
+  .blank-input:focus, .single-input:focus { outline: none; border-color: var(--point-color); background: #fff; box-shadow: 0 0 8px var(--point-bg); }
 
-  /* 카드 */
-  .card-pool {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    padding: 1.2rem;
-    background: rgba(26, 20, 16, 0.04);
-    border: 2px dashed var(--ink);
-    min-height: 90px;
-    margin-bottom: 1rem;
-  }
-  .quiz-card {
-    padding: 0.7rem 1.2rem;
-    background: var(--paper);
-    border: 2px solid var(--ink);
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.2s ease;
-    font-weight: 700;
-    box-shadow: 2px 2px 0 var(--ink);
-  }
-  .quiz-card:hover { background: var(--gold); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
-  .quiz-card.selected { background: var(--red-seal); color: var(--paper); border-color: var(--red-seal); }
-  .quiz-card.placed { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+  /* 퀴즈 카드 공통 */
+  .card-pool { display: flex; flex-wrap: wrap; gap: 0.6rem; padding: 1.2rem; background: rgba(255,255,255,0.3); border: 2px dashed var(--ink); min-height: 90px; margin-bottom: 1rem; }
+  .quiz-card, .match-item, .order-item, .multi-option { padding: 0.8rem 1.2rem; background: var(--paper); border: 2px solid var(--ink); cursor: pointer; user-select: none; transition: all 0.2s ease; font-weight: 700; box-shadow: 3px 3px 0 var(--ink); display: flex; align-items: center; }
+  .quiz-card:hover, .match-item:hover, .order-item:hover, .multi-option:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink); background: var(--point-bg); }
+  .quiz-card:active, .match-item:active, .order-item:active, .multi-option:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+  
+  .quiz-card.selected, .match-item.selected { background: var(--point-color); color: var(--paper); border-color: var(--point-color); }
+  .quiz-card.placed { opacity: 0.4; cursor: not-allowed; pointer-events: none; box-shadow: none; transform: none; }
+  .match-item.matched { background: var(--paper-dark); color: var(--ink); border-style: dashed; cursor: default; box-shadow: none; transform: none; }
 
-  /* 매칭 */
-  .match-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-bottom: 1rem;
-  }
-  .match-column h4 {
-    text-align: center;
-    margin-bottom: 1rem;
-    color: var(--red-seal);
-    letter-spacing: 0.2em;
-  }
-  .match-item {
-    padding: 0.8rem 1rem;
-    background: var(--paper);
-    border: 2px solid var(--ink);
-    margin-bottom: 0.6rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
-    font-weight: 700;
-  }
-  .match-item:hover { background: var(--gold); }
-  .match-item.selected { background: var(--red-seal); color: var(--paper); border-color: var(--red-seal); }
-  .match-item.matched { background: var(--jade); color: var(--paper); border-color: var(--jade); cursor: default; }
-
-  /* 분류 */
-  .classify-zones {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  .classify-zone {
-    border: 2px solid var(--ink);
-    background: rgba(244, 234, 213, 0.5);
-    padding: 1rem;
-    min-height: 130px;
-  }
-  .classify-zone h4 {
-    text-align: center;
-    color: var(--red-seal);
-    margin-bottom: 0.8rem;
-    letter-spacing: 0.15em;
-  }
-  .classify-items { display: flex; flex-wrap: wrap; gap: 0.4rem; min-height: 60px; }
-
-  /* 순서 */
-  .order-list { list-style: none; counter-reset: order-counter; }
-  .order-item {
-    counter-increment: order-counter;
-    padding: 1rem 1.2rem;
-    background: var(--paper);
-    border: 2px solid var(--ink);
-    margin-bottom: 0.6rem;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    font-weight: 700;
-    transition: all 0.2s ease;
-  }
-  .order-item::before {
-    content: counter(order-counter);
-    background: var(--ink);
-    color: var(--paper);
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .order-item:hover { background: rgba(201, 164, 76, 0.2); }
-  .order-arrows { margin-left: auto; display: flex; gap: 0.3rem; }
-  .arrow-btn {
-    width: 30px;
-    height: 30px;
-    border: 1px solid var(--ink);
-    background: var(--paper);
-    cursor: pointer;
-    font-weight: 700;
-    transition: all 0.2s ease;
-  }
-  .arrow-btn:hover { background: var(--gold); }
-  .arrow-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-  /* 단답 */
-  .single-input {
-    width: 100%;
-    padding: 1rem 1.2rem;
-    border: 2px solid var(--ink);
-    background: var(--paper);
-    font-family: 'Gowun Batang', serif;
-    font-size: 1.1rem;
-    text-align: center;
-    color: var(--ink);
-    letter-spacing: 0.2em;
-  }
-  .single-input:focus { outline: none; border-color: var(--red-seal); background: white; }
-
-  /* 다중선택 */
-  .multi-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 0.6rem;
-  }
-  .multi-option {
-    padding: 0.9rem 1rem;
-    background: var(--paper);
-    border: 2px solid var(--ink);
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-  }
-  .multi-option:hover { background: rgba(201, 164, 76, 0.2); }
-  .multi-option.checked { background: var(--jade); color: var(--paper); border-color: var(--jade); }
-  .multi-option .check-box {
-    width: 22px;
-    height: 22px;
-    border: 2px solid var(--ink);
-    background: var(--paper);
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-  }
-  .multi-option.checked .check-box {
-    background: var(--gold);
-    border-color: var(--paper);
-    color: var(--ink);
-  }
+  /* 다중선택 체크박스 */
+  .multi-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.8rem; }
+  .multi-option { gap: 0.7rem; }
+  .multi-option.checked { background: var(--point-color); color: var(--paper); border-color: var(--point-color); box-shadow: 3px 3px 0 var(--ink); }
+  .check-box { width: 22px; height: 22px; border: 2px solid var(--ink); background: var(--paper); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; transition: all 0.2s ease; }
+  .multi-option.checked .check-box { background: var(--paper); border-color: var(--paper); color: var(--point-color); }
   .multi-option.checked .check-box::after { content: '✓'; }
 
-  /* 버튼 */
-  .button-row {
-    display: flex;
-    gap: 1rem;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-top: 2rem;
-  }
-  .btn {
-    padding: 0.9rem 2rem;
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    letter-spacing: 0.2em;
-    border: 2px solid var(--ink);
-  }
-  .btn-check { background: var(--ink); color: var(--paper); }
-  .btn-check:hover { background: var(--red-seal); border-color: var(--red-seal); }
-  .btn-hint { background: transparent; color: var(--ink); border-color: var(--gold-dark); }
-  .btn-hint:hover { background: var(--gold); }
-  .btn-next {
-    background: var(--red-seal);
-    color: var(--paper);
-    border-color: var(--red-seal);
-    margin-left: auto;
-    display: none;
-  }
+  /* 분류 존 */
+  .classify-zones { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+  .classify-zone { border: 2px solid var(--ink); background: rgba(255,255,255,0.4); padding: 1rem; min-height: 130px; transition: background 0.3s ease; }
+  .classify-zone:hover { background: var(--point-bg); }
+  .classify-zone h4 { text-align: center; color: var(--point-color); margin-bottom: 0.8rem; letter-spacing: 0.15em; border-bottom: 1px dashed var(--point-border); padding-bottom: 0.5rem; }
+  .classify-items { display: flex; flex-wrap: wrap; gap: 0.4rem; min-height: 60px; }
+
+  /* 매칭 컨테이너 */
+  .match-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1rem; }
+  .match-column h4 { text-align: center; margin-bottom: 1rem; color: var(--point-color); letter-spacing: 0.2em; border-bottom: 2px solid var(--point-border); padding-bottom: 0.5rem; }
+
+  /* 순서 */
+  .order-list { list-style: none; counter-reset: order-counter; display: flex; flex-direction: column; gap: 0.6rem; }
+  .order-item { gap: 1rem; margin-bottom: 0; }
+  .order-item::before { content: counter(order-counter); background: var(--ink); color: var(--paper); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .order-arrows { margin-left: auto; display: flex; gap: 0.3rem; }
+  .arrow-btn { width: 32px; height: 32px; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; font-weight: 700; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
+  .arrow-btn:hover:not(:disabled) { background: var(--point-color); color: white; }
+  .arrow-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+  /* 버튼 로우 */
+  .button-row { display: flex; gap: 1rem; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 2rem; border-top: 1px dashed var(--point-border); padding-top: 1.5rem; }
+  .btn-check { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn-check:hover { background: var(--point-color); border-color: var(--point-color); }
+  .btn-hint { background: transparent; color: var(--ink); border-color: var(--ink); }
+  .btn-hint:hover { background: var(--ink); color: var(--paper); }
+  .btn-next { background: var(--point-color); color: var(--paper); border-color: var(--point-color); margin-left: auto; display: none; }
   .btn-next.show { display: inline-block; animation: slideInRight 0.5s ease; }
-  .btn-next:hover { background: var(--ink); border-color: var(--ink); }
-
-  .hint-box {
-    background: rgba(201, 164, 76, 0.15);
-    border: 1px dashed var(--gold-dark);
-    padding: 1rem 1.5rem;
-    margin-top: 1.5rem;
-    display: none;
-    animation: slideDown 0.4s ease;
-  }
+  
+  .hint-box { background: var(--point-bg); border: 1px dashed var(--point-border); padding: 1rem 1.5rem; margin-top: 1.5rem; display: none; animation: slideDown 0.4s ease; border-left: 4px solid var(--point-color); }
   .hint-box.show { display: block; }
-  .hint-box strong { color: var(--red-seal); }
+  .hint-box strong { color: var(--point-color); }
 
-  /* 토스트 */
-  .toast {
-    position: fixed;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-100px);
-    background: var(--ink);
-    color: var(--paper);
-    padding: 1.2rem 2rem;
-    border: 2px solid var(--gold);
-    box-shadow: 0 6px 25px var(--shadow);
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 700;
-    font-size: 1.05rem;
-    z-index: 1000;
-    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    max-width: 90%;
-    text-align: center;
-    letter-spacing: 0.1em;
-  }
+  /* 모달 & 토스트 */
+  .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--ink); color: var(--paper); padding: 1.2rem 2rem; border: 2px solid var(--point-border); box-shadow: 0 6px 25px var(--shadow); font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 1.05rem; z-index: 1000; transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); max-width: 90%; text-align: center; letter-spacing: 0.1em; }
   .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast.success { background: var(--jade); border-color: var(--gold); }
-  .toast.error { background: var(--red-seal); border-color: var(--gold); }
-
-  /* 보물 모달 */
-  .treasure-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(26, 20, 16, 0.85);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
-    backdrop-filter: blur(4px);
-  }
+  .toast.success { background: var(--point-color); border-color: var(--paper); }
+  
+  .treasure-modal { position: fixed; inset: 0; background: rgba(26, 20, 16, 0.85); display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(4px); }
   .treasure-modal.show { display: flex; animation: fadeIn 0.4s ease; }
-  .treasure-modal-content {
-    background: var(--paper);
-    padding: 3rem 4rem;
-    text-align: center;
-    border: 3px solid var(--gold);
-    max-width: 500px;
-    width: 90%;
-    position: relative;
-    animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .treasure-icon {
-    font-size: 4rem;
-    color: var(--red-seal);
-    margin-bottom: 1rem;
-    animation: rotate 2s ease-in-out infinite;
-  }
-  @keyframes rotate {
-    0%, 100% { transform: rotate(-5deg); }
-    50% { transform: rotate(5deg); }
-  }
-  .treasure-name {
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 800;
-    font-size: 2rem;
-    color: var(--ink);
-    margin-bottom: 0.5rem;
-    letter-spacing: 0.2em;
-  }
-  .treasure-desc {
-    color: var(--jade);
-    font-style: italic;
-    margin-bottom: 2rem;
-  }
+  .treasure-modal-content { background: var(--paper); padding: 3rem 4rem; text-align: center; border: 4px solid var(--point-color); box-shadow: 0 0 30px var(--point-color); max-width: 500px; width: 90%; position: relative; animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .treasure-icon { font-size: 4rem; color: var(--point-color); margin-bottom: 1rem; animation: rotate 2s ease-in-out infinite; }
+  @keyframes rotate { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+  .treasure-name { font-family: 'Nanum Myeongjo', serif; font-weight: 800; font-size: 2rem; color: var(--ink); margin-bottom: 0.5rem; letter-spacing: 0.2em; border-bottom: 2px solid var(--point-border); padding-bottom: 0.5rem; }
+  .treasure-desc { color: #555; font-style: italic; margin-top: 1rem; margin-bottom: 2rem; line-height: 1.8; }
 
-  /* 엔딩 */
-  .ending-screen {
-    display: none;
-    min-height: 100vh;
-    padding: 3rem 2rem;
-    text-align: center;
-    max-width: 800px;
-    margin: 0 auto;
-  }
+  /* 엔딩 및 기타 */
+  .ending-screen { display: none; min-height: 100vh; padding: 3rem 2rem; text-align: center; max-width: 800px; margin: 0 auto; }
   .ending-screen.active { display: block; animation: fadeIn 1s ease; }
-  .ending-title {
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 800;
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    letter-spacing: 0.2em;
-    color: var(--ink);
-  }
-  .ending-treasures {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin: 3rem 0;
-    flex-wrap: wrap;
-  }
-  .ending-treasure {
-    width: 70px;
-    height: 70px;
-    background: var(--red-seal);
-    border: 3px solid var(--gold);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    color: var(--gold);
-    box-shadow: 0 4px 15px rgba(168, 50, 45, 0.4);
-  }
-  .ending-message {
-    font-size: 1.15rem;
-    line-height: 2.2;
-    color: var(--ink);
-    background: rgba(244, 234, 213, 0.8);
-    padding: 2.5rem;
-    border: 2px solid var(--gold-dark);
-    margin-bottom: 2rem;
-    font-style: italic;
-  }
-  .reflection-area {
-    background: var(--paper);
-    border: 2px solid var(--ink);
-    padding: 2rem;
-    margin-bottom: 2rem;
-    text-align: left;
-  }
-  .reflection-area h3 {
-    font-family: 'Nanum Myeongjo', serif;
-    color: var(--red-seal);
-    margin-bottom: 1rem;
-    letter-spacing: 0.15em;
-  }
-  .reflection-textarea {
-    width: 100%;
-    min-height: 180px;
-    padding: 1rem;
-    border: 2px solid var(--ink);
-    background: var(--paper);
-    font-family: 'Gowun Batang', serif;
-    font-size: 1rem;
-    line-height: 1.8;
-    color: var(--ink);
-    resize: vertical;
-  }
-  .reflection-textarea:focus { outline: none; border-color: var(--red-seal); }
-
-  /* 에러 */
-  .error-screen {
-    display: none;
-    min-height: 100vh;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 2rem;
-  }
+  .ending-title { font-family: 'Nanum Myeongjo', serif; font-weight: 800; font-size: 3rem; margin-bottom: 1rem; letter-spacing: 0.2em; }
+  .ending-treasures { display: flex; justify-content: center; gap: 1rem; margin: 3rem 0; flex-wrap: wrap; }
+  .ending-treasure { width: 70px; height: 70px; background: var(--point-color); border: 3px solid var(--point-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--paper); box-shadow: 0 4px 15px var(--shadow); }
+  .ending-message { font-size: 1.15rem; line-height: 2.2; background: rgba(255,255,255,0.5); padding: 2.5rem; border: 2px dashed var(--point-border); margin-bottom: 2rem; }
+  .reflection-area { background: rgba(255,255,255,0.5); border: 2px solid var(--ink); padding: 2rem; margin-bottom: 2rem; text-align: left; }
+  .reflection-area h3 { font-family: 'Nanum Myeongjo', serif; color: var(--point-color); margin-bottom: 1rem; letter-spacing: 0.15em; border-bottom: 1px solid var(--point-border); padding-bottom: 0.5rem; }
+  .reflection-textarea { width: 100%; min-height: 180px; padding: 1.2rem; border: 2px solid var(--ink); background: var(--paper); font-family: 'Gowun Batang', serif; font-size: 1.05rem; line-height: 1.8; color: var(--ink); resize: vertical; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05); }
+  .reflection-textarea:focus { outline: none; border-color: var(--point-color); background: #fff; }
+  
+  .error-screen { display: none; min-height: 100vh; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2rem; }
   .error-screen.active { display: flex; }
-  .error-screen h2 { color: var(--red-seal); margin-bottom: 1rem; font-size: 1.5rem; }
-  .error-screen p { color: var(--ink); margin-bottom: 1rem; max-width: 500px; }
+  .error-screen h2 { color: var(--point-color); margin-bottom: 1rem; font-size: 1.5rem; }
 
   /* 애니메이션 */
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -668,7 +199,6 @@
   @keyframes slideInRight { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
   @keyframes slideDown { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 200px; } }
 
-  /* 반응형 */
   @media (max-width: 600px) {
     .episode-card { padding: 1.5rem; }
     .episode-title { font-size: 1.5rem; }
@@ -712,12 +242,12 @@
 
 <div class="ending-screen" id="endingScreen">
   <h1 class="ending-title" id="endingTitle">天 命 完 遂</h1>
-  <p style="color: var(--gold-dark); letter-spacing: 0.5em; margin-bottom: 2rem;" id="endingSubtitle">천 명 완 수</p>
+  <p style="color: var(--point-border); letter-spacing: 0.5em; margin-bottom: 2rem;" id="endingSubtitle">천 명 완 수</p>
   <div class="ending-treasures" id="endingTreasures"></div>
   <div class="ending-message" id="endingMessage"></div>
   <div class="reflection-area">
     <h3>✦ 방탈출 소감 작성 ✦</h3>
-    <p style="color: var(--jade); margin-bottom: 1rem;" id="reflectionPrompt"></p>
+    <p style="color: var(--point-color); margin-bottom: 1rem;" id="reflectionPrompt"></p>
     <textarea class="reflection-textarea" id="reflectionInput" placeholder="이곳에 소감을 적어주세요..."></textarea>
   </div>
   <button class="btn btn-check" onclick="window.finishGame()">기록을 봉인하다</button>
@@ -809,7 +339,7 @@ function initIntro() {
   (gameSettings.introStory || []).forEach((p, i) => {
     const pEl = document.createElement('p');
     if (i === (gameSettings.introStory.length - 1)) {
-      pEl.style.color = 'var(--red-seal)';
+      pEl.style.color = 'var(--point-color)';
       pEl.style.fontWeight = '700';
       pEl.style.marginTop = '1.5rem';
     }
@@ -844,9 +374,24 @@ function updateProgress() {
   });
 }
 
+// 텍스트 분석하여 국가 테마를 반환하는 함수
+function detectNation(ep) {
+  const textToSearch = (ep.title + " " + ep.story + " " + ep.subtitle + " " + ep.dialog + " " + ep.speaker).toLowerCase();
+  
+  if (textToSearch.includes('신라')) return 'theme-silla';
+  if (textToSearch.includes('발해')) return 'theme-balhae';
+  if (textToSearch.includes('고려')) return 'theme-goryeo';
+  
+  return ''; 
+}
+
 function renderEpisode() {
   const ep = episodes[currentEpisode];
   const card = document.getElementById('episodeCard');
+
+  // 현재 에피소드의 텍스트를 분석하여 국가별 테마 적용
+  const nationTheme = detectNation(ep);
+  document.body.className = nationTheme; 
 
   let actionHTML = '';
   switch(ep.type) {
@@ -921,15 +466,15 @@ function renderSingleInput(ep) {
 function renderKingMatch(ep) {
   return `
     <div style="margin-bottom: 1rem;">
-      <h4 style="text-align:center; color: var(--red-seal); margin-bottom: 0.5rem; letter-spacing: 0.15em;">왕 (시대순으로 배치)</h4>
+      <h4 style="text-align:center; color: var(--point-color); margin-bottom: 0.5rem; letter-spacing: 0.15em;">왕 (시대순으로 배치)</h4>
       <div class="card-pool" id="kingZone"></div>
     </div>
     <div>
-      <h4 style="text-align:center; color: var(--red-seal); margin-bottom: 0.5rem; letter-spacing: 0.15em;">아래 업적 카드를 위 왕 카드 옆에 차례로 배치</h4>
+      <h4 style="text-align:center; color: var(--point-color); margin-bottom: 0.5rem; letter-spacing: 0.15em;">아래 업적 카드를 위 왕 카드 옆에 차례로 배치</h4>
       <div class="card-pool" id="achievementZone"></div>
     </div>
-    <div style="margin-top: 1rem; padding: 1rem; background: rgba(244,234,213,0.5); border: 1px solid var(--gold-dark);">
-      <p style="text-align:center; color: var(--jade);">현재 배치:</p>
+    <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.4); border: 1px solid var(--point-border);">
+      <p style="text-align:center; color: var(--point-color);">현재 배치:</p>
       <div id="kingMatchResult" style="margin-top: 0.5rem;"></div>
     </div>
   `;
@@ -985,7 +530,7 @@ function updateKingMatchResult() {
   let html = '';
   kingMatchData.kingOrder.forEach((king, i) => {
     const ach = kingMatchData.achievementOrder[i];
-    html += `<div style="padding: 0.5rem; background: white; margin-bottom: 0.3rem; border-left: 3px solid var(--red-seal);">
+    html += `<div style="padding: 0.5rem; background: white; margin-bottom: 0.3rem; border-left: 3px solid var(--point-color);">
       <strong>${i+1}. ${king.name}</strong> — ${ach ? ach.text : '<span style="color: #999;">(업적 카드를 배치하세요)</span>'}
     </div>`;
   });
@@ -1004,7 +549,7 @@ window.resetKingMatch = function() {
 function renderClassify(ep) {
   return `
     <div style="margin-bottom: 1rem;">
-      <h4 style="text-align:center; color: var(--red-seal); letter-spacing: 0.15em;">아래 카드를 클릭한 뒤, 해당하는 영역을 누르시오</h4>
+      <h4 style="text-align:center; color: var(--point-color); letter-spacing: 0.15em;">아래 카드를 클릭한 뒤, 해당하는 영역을 누르시오</h4>
     </div>
     <div class="card-pool" id="classifyPool"></div>
     <div class="classify-zones" id="classifyZones"></div>
@@ -1182,7 +727,7 @@ function selectRight(idx, el) {
 function updateMatchResult() {
   const ep = episodes[currentEpisode];
   const resultEl = document.getElementById('matchResult');
-  let html = '<div style="padding: 1rem; background: rgba(244,234,213,0.5); border: 1px solid var(--gold-dark);"><p style="color: var(--jade); margin-bottom: 0.5rem;">현재 짝:</p>';
+  let html = '<div style="padding: 1rem; background: rgba(255,255,255,0.4); border: 1px solid var(--point-border);"><p style="color: var(--point-color); margin-bottom: 0.5rem;">현재 짝:</p>';
   Object.keys(pairMatchData.pairs).forEach(leftIdx => {
     const rightIdx = pairMatchData.pairs[leftIdx];
     html += `<div style="padding: 0.4rem; background: white; margin-bottom: 0.3rem; font-size: 0.9rem;">
@@ -1207,13 +752,13 @@ window.resetPairMatch = function() {
 function renderFinalQuest(ep) {
   return `
     <div style="margin-bottom: 1.5rem;">
-      <h4 style="color: var(--red-seal); margin-bottom: 0.5rem;">▣ 1단계: 카드 분류</h4>
-      <p style="color: var(--jade); margin-bottom: 0.8rem; font-size: 0.95rem;">아래 카드를 클릭한 뒤, 해당하는 영역을 누르시오.</p>
+      <h4 style="color: var(--point-color); margin-bottom: 0.5rem;">▣ 1단계: 카드 분류</h4>
+      <p style="color: #555; margin-bottom: 0.8rem; font-size: 0.95rem;">아래 카드를 클릭한 뒤, 해당하는 영역을 누르시오.</p>
     </div>
     <div class="card-pool" id="classifyPool"></div>
     <div class="classify-zones" id="classifyZones"></div>
     <div style="margin-top: 2rem;">
-      <h4 style="color: var(--red-seal); margin-bottom: 0.5rem;">▣ 2단계: ${ep.finalQuestion}</h4>
+      <h4 style="color: var(--point-color); margin-bottom: 0.5rem;">▣ 2단계: ${ep.finalQuestion}</h4>
       <input type="text" class="single-input" id="finalInput" placeholder="답을 입력하시오" maxlength="10">
     </div>
   `;
@@ -1377,7 +922,7 @@ function showEnding() {
     const pEl = document.createElement('p');
     if (i > 0) pEl.style.marginTop = '1rem';
     if (i === (gameSettings.endingMessage.length - 1)) {
-      pEl.style.color = 'var(--red-seal)';
+      pEl.style.color = 'var(--point-color)';
       pEl.style.fontWeight = '700';
       pEl.style.marginTop = '1.5rem';
     }
@@ -1414,13 +959,13 @@ window.finishGame = function() {
     document.getElementById('endingScreen').innerHTML = `
       <div style="padding: 4rem 2rem; text-align: center;">
         <h1 class="ending-title">完</h1>
-        <p style="color: var(--gold-dark); letter-spacing: 1em; margin-top: 1rem;">완</p>
+        <p style="color: var(--point-border); letter-spacing: 1em; margin-top: 1rem;">완</p>
         <div style="margin: 3rem 0; font-size: 1.2rem; line-height: 2;">
           <p>그대는 진정 천 년의 기억을 이은 자라.</p>
           <p style="margin-top: 1rem;">그대의 소감은 영원히 기록되었도다.</p>
         </div>
-        <div style="background: rgba(244,234,213,0.5); padding: 2rem; border: 2px solid var(--gold-dark); text-align: left;">
-          <h3 style="color: var(--red-seal); margin-bottom: 1rem;">✦ 그대의 기록 ✦</h3>
+        <div style="background: rgba(255,255,255,0.4); padding: 2rem; border: 2px solid var(--point-border); text-align: left;">
+          <h3 style="color: var(--point-color); margin-bottom: 1rem;">✦ 그대의 기록 ✦</h3>
           <p style="font-style: italic; line-height: 1.8;">${reflection.replace(/\n/g, '<br>')}</p>
         </div>
         <button class="btn btn-check" style="margin-top: 2rem;" onclick="location.reload()">다시 시작하다</button>
