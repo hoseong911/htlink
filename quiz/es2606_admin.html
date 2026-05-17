@@ -16,18 +16,68 @@
     --gold: #c9a44c;
     --gold-dark: #8b6f2a;
     --jade: #4a6b5c;
-    --shadow: rgba(26, 20, 16, 0.15);
+    --shadow: rgba(26, 20, 16, 0.25);
     --bg-admin: #f5f5f0;
   }
+  
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  
   body {
     font-family: 'Gowun Batang', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--bg-admin);
+    background: var(--paper);
     color: var(--ink);
     min-height: 100vh;
     line-height: 1.6;
+    /* 은은한 텍스처와 글래스모피즘 배경 */
+    background-image:
+      radial-gradient(circle at 15% 30%, rgba(168, 50, 45, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 85% 70%, rgba(201, 164, 76, 0.08) 0%, transparent 40%),
+      repeating-linear-gradient(45deg, transparent 0px, transparent 2px, rgba(26, 20, 16, 0.02) 2px, rgba(26, 20, 16, 0.02) 4px);
   }
 
+  /* 버튼 공통 입체 효과 */
+  .btn {
+    padding: 0.8rem 1.5rem;
+    font-family: 'Nanum Myeongjo', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.1em;
+    border: 2px solid var(--ink);
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .btn:hover { background: var(--paper-dark); transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink); }
+  .btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--ink); }
+  
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--red-seal); border-color: var(--red-seal); color: white; }
+  .btn-full { width: 100%; margin-top: 1rem; }
+  .btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; box-shadow: 2px 2px 0 var(--ink); }
+  .btn-sm:hover { box-shadow: 4px 4px 0 var(--ink); }
+
+  /* 입력창 공통 디자인 */
+  .form-input, .field-input, .field-textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--ink);
+    background: rgba(255, 255, 255, 0.6);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);
+  }
+  .form-input:focus, .field-input:focus, .field-textarea:focus {
+    outline: none;
+    border-color: var(--red-seal);
+    background: white;
+    box-shadow: 0 0 8px rgba(168, 50, 45, 0.15);
+  }
+  .field-textarea { min-height: 80px; resize: vertical; line-height: 1.7; }
+
+  /* 로그인 화면 */
   .login-screen {
     min-height: 100vh;
     display: flex;
@@ -35,95 +85,34 @@
     justify-content: center;
     align-items: center;
     padding: 2rem;
-    background: linear-gradient(135deg, var(--paper) 0%, var(--paper-dark) 100%);
   }
   .login-screen.hidden { display: none; }
   .login-box {
-    background: white;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
     padding: 3rem;
     border: 2px solid var(--ink);
-    box-shadow: 0 10px 40px var(--shadow);
+    box-shadow: 8px 8px 0 var(--shadow), inset 0 0 0 4px rgba(255,255,255,0.3), inset 0 0 0 5px var(--gold-dark);
     max-width: 420px;
     width: 100%;
     text-align: center;
   }
-  .login-title {
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 800;
-    font-size: 1.8rem;
-    color: var(--ink);
-    margin-bottom: 0.5rem;
-    letter-spacing: 0.2em;
-  }
+  .login-title { font-family: 'Nanum Myeongjo', serif; font-weight: 800; font-size: 1.8rem; color: var(--ink); margin-bottom: 0.5rem; letter-spacing: 0.2em; text-shadow: 1px 1px 2px var(--shadow); }
   .login-subtitle { color: var(--jade); font-style: italic; margin-bottom: 2rem; font-size: 0.95rem; }
-  .login-seal {
-    width: 80px;
-    height: 80px;
-    background: var(--red-seal);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 800;
-    font-size: 1rem;
-    margin: 0 auto 2rem;
-    box-shadow: 0 4px 15px rgba(168, 50, 45, 0.4);
-  }
+  .login-seal { width: 80px; height: 80px; background: var(--red-seal); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Nanum Myeongjo', serif; font-weight: 800; font-size: 1rem; margin: 0 auto 2rem; box-shadow: 0 6px 15px rgba(168, 50, 45, 0.4); border: 2px solid var(--paper); }
   .form-group { margin-bottom: 1.2rem; text-align: left; }
-  .form-label {
-    display: block;
-    font-weight: 700;
-    margin-bottom: 0.4rem;
-    color: var(--ink);
-    font-size: 0.9rem;
-  }
-  .form-input {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    border: 2px solid #ddd;
-    background: var(--paper);
-    font-family: inherit;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-  }
-  .form-input:focus { outline: none; border-color: var(--red-seal); background: white; }
+  .form-label { display: block; font-weight: 700; margin-bottom: 0.4rem; color: var(--ink); font-size: 0.9rem; }
+  
+  .login-error { background: #fee; border-left: 4px solid var(--red-seal); padding: 0.8rem 1rem; margin-top: 1rem; color: var(--red-seal); font-size: 0.9rem; display: none; font-weight: 700; }
+  .login-error.show { display: block; animation: fadeIn 0.3s ease; }
 
-  .btn {
-    padding: 0.8rem 1.5rem;
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    letter-spacing: 0.1em;
-    border: 2px solid var(--ink);
-    background: var(--paper);
-    color: var(--ink);
-  }
-  .btn:hover { background: var(--gold); }
-  .btn-primary { background: var(--ink); color: var(--paper); }
-  .btn-primary:hover { background: var(--red-seal); border-color: var(--red-seal); }
-  .btn-full { width: 100%; margin-top: 1rem; }
-  .btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
-
-  .login-error {
-    background: #fee;
-    border-left: 4px solid var(--red-seal);
-    padding: 0.8rem 1rem;
-    margin-top: 1rem;
-    color: var(--red-seal);
-    font-size: 0.9rem;
-    display: none;
-  }
-  .login-error.show { display: block; }
-
+  /* 메인 화면 */
   .main-screen { display: none; min-height: 100vh; }
-  .main-screen.active { display: block; }
+  .main-screen.active { display: block; animation: fadeIn 0.8s ease; }
 
   .main-header {
-    background: var(--ink);
+    background: rgba(26, 20, 16, 0.95);
+    backdrop-filter: blur(10px);
     color: var(--paper);
     padding: 1rem 1.5rem;
     display: flex;
@@ -131,53 +120,46 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
-    box-shadow: 0 2px 10px var(--shadow);
+    box-shadow: 0 4px 15px var(--shadow);
+    border-bottom: 2px solid var(--gold);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
-  .header-title {
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 800;
-    font-size: 1.3rem;
-    letter-spacing: 0.15em;
-  }
-  .header-actions { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
-  .user-email { color: var(--gold); font-size: 0.85rem; }
+  .header-title { font-family: 'Nanum Myeongjo', serif; font-weight: 800; font-size: 1.3rem; letter-spacing: 0.15em; }
+  .header-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .user-email { color: var(--gold); font-size: 0.85rem; font-weight: 700; }
 
   .main-tabs {
-    background: white;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
     border-bottom: 2px solid var(--ink);
     display: flex;
     overflow-x: auto;
     padding: 0 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
   }
-  .tab-btn {
-    background: transparent;
-    border: none;
-    padding: 1rem 1.5rem;
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-    color: var(--ink);
-    border-bottom: 3px solid transparent;
-    letter-spacing: 0.1em;
-    white-space: nowrap;
-    transition: all 0.2s ease;
-  }
-  .tab-btn:hover { background: var(--paper); }
-  .tab-btn.active { color: var(--red-seal); border-bottom-color: var(--red-seal); }
+  .tab-btn { background: transparent; border: none; padding: 1rem 1.5rem; font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 0.95rem; cursor: pointer; color: var(--ink); border-bottom: 3px solid transparent; letter-spacing: 0.1em; white-space: nowrap; transition: all 0.2s ease; }
+  .tab-btn:hover { background: rgba(201, 164, 76, 0.1); }
+  .tab-btn.active { color: var(--red-seal); border-bottom-color: var(--red-seal); background: rgba(255,255,255,0.5); }
 
-  .main-content { padding: 2rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+  .main-content { padding: 2rem 1.5rem; max-width: 1100px; margin: 0 auto; padding-bottom: 6rem; }
 
-  .episode-item {
-    background: white;
+  /* 관리 카드 공통 (에피소드, 설정, 미리보기) */
+  .episode-item, .settings-section, .preview-episode, .preview-controls-bar {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(4px);
     border: 2px solid var(--ink);
-    margin-bottom: 1rem;
-    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 5px 5px 0 var(--shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
-  .episode-item-header {
+  .episode-item:hover { box-shadow: 7px 7px 0 var(--shadow); }
+  
+  .episode-item-header, .preview-ep-header {
     background: var(--ink);
     color: var(--paper);
-    padding: 1rem 1.5rem;
+    padding: 1.2rem 1.5rem;
     cursor: pointer;
     display: flex;
     justify-content: space-between;
@@ -185,227 +167,87 @@
     gap: 1rem;
     transition: background 0.3s ease;
   }
-  .episode-item-header:hover { background: var(--red-seal); }
+  .episode-item-header:hover, .preview-ep-header:hover { background: var(--red-seal); }
   .episode-item-info { flex: 1; min-width: 0; }
-  .episode-num { color: var(--gold); font-size: 0.8rem; letter-spacing: 0.2em; margin-bottom: 0.2rem; }
-  .episode-name {
-    font-family: 'Nanum Myeongjo', serif;
-    font-weight: 700;
-    font-size: 1.1rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .episode-toggle { color: var(--gold); font-size: 1.3rem; transition: transform 0.3s ease; flex-shrink: 0; }
+  .episode-num { color: var(--gold); font-size: 0.8rem; letter-spacing: 0.2em; margin-bottom: 0.3rem; font-weight: 700; }
+  .episode-name { font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 1.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .episode-toggle, .prev-toggle { color: var(--gold); font-size: 1.3rem; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); flex-shrink: 0; }
   .episode-item.expanded .episode-toggle { transform: rotate(180deg); }
-  .episode-item-body { display: none; padding: 1.5rem; }
-  .episode-item.expanded .episode-item-body { display: block; animation: slideDown 0.4s ease; }
+  .episode-item-body, .preview-ep-body { display: none; padding: 2rem 1.5rem; background: rgba(255,255,255,0.3); }
+  .episode-item.expanded .episode-item-body, .preview-episode.expanded .preview-ep-body { display: block; animation: slideDown 0.4s ease; }
 
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  /* 폼 요소 상세 */
+  .field-group { margin-bottom: 1.5rem; }
+  .field-label { display: block; font-weight: 700; color: var(--red-seal); margin-bottom: 0.5rem; font-size: 0.95rem; letter-spacing: 0.05em; }
+  .field-hint { color: #666; font-size: 0.85rem; margin-bottom: 0.5rem; font-style: italic; background: rgba(201, 164, 76, 0.1); display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; }
+  
+  .field-tag { display: inline-block; background: var(--ink); color: var(--paper); padding: 0.3rem 0.8rem; font-size: 0.8rem; font-weight: 700; margin-right: 0.4rem; margin-bottom: 0.4rem; border-radius: 20px; letter-spacing: 0.05em; box-shadow: 2px 2px 0 var(--shadow); }
 
-  .field-group { margin-bottom: 1.2rem; }
-  .field-label {
-    display: block;
-    font-weight: 700;
-    color: var(--red-seal);
-    margin-bottom: 0.4rem;
-    font-size: 0.9rem;
-    letter-spacing: 0.05em;
-  }
-  .field-hint { color: #888; font-size: 0.8rem; margin-bottom: 0.4rem; font-style: italic; }
-  .field-input, .field-textarea {
-    width: 100%;
-    padding: 0.7rem 1rem;
-    border: 1px solid #ccc;
-    background: var(--paper);
-    font-family: inherit;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-  }
-  .field-input:focus, .field-textarea:focus {
-    outline: none;
-    border-color: var(--red-seal);
-    background: white;
-    box-shadow: 0 0 0 3px rgba(168, 50, 45, 0.1);
-  }
-  .field-textarea { min-height: 80px; resize: vertical; line-height: 1.7; }
-
-  .field-tag {
-    display: inline-block;
-    background: var(--paper-dark);
-    border: 1px solid var(--gold-dark);
-    padding: 0.2rem 0.7rem;
-    font-size: 0.8rem;
-    color: var(--ink);
-    margin-right: 0.3rem;
-    margin-bottom: 0.3rem;
-  }
-
-  .array-item {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .array-item-num {
-    background: var(--ink);
-    color: var(--paper);
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
+  .array-item { display: flex; gap: 0.6rem; margin-bottom: 0.6rem; align-items: center; flex-wrap: wrap; }
+  .array-item-num { background: var(--gold-dark); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; box-shadow: inset 1px 1px 3px rgba(0,0,0,0.2); }
   .array-item-input { flex: 1; min-width: 200px; }
 
-  .save-bar {
-    position: sticky;
-    bottom: 0;
-    background: white;
-    border-top: 2px solid var(--ink);
-    padding: 1rem 1.5rem;
-    display: flex;
-    gap: 0.8rem;
-    justify-content: flex-end;
-    box-shadow: 0 -4px 15px var(--shadow);
-    z-index: 50;
-    flex-wrap: wrap;
-  }
-  .save-indicator { color: var(--jade); font-size: 0.9rem; align-self: center; margin-right: auto; }
+  /* 설정 화면 */
+  .settings-section { padding: 2rem; background: rgba(255,255,255,0.6); }
+  .settings-section h3 { font-family: 'Nanum Myeongjo', serif; color: var(--ink); margin-bottom: 1.5rem; letter-spacing: 0.1em; border-bottom: 2px dashed var(--gold-dark); padding-bottom: 0.8rem; font-size: 1.3rem; }
 
-  .settings-section {
-    background: white;
-    border: 2px solid var(--ink);
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-  }
-  .settings-section h3 {
-    font-family: 'Nanum Myeongjo', serif;
-    color: var(--red-seal);
-    margin-bottom: 1rem;
-    letter-spacing: 0.1em;
-    border-bottom: 1px solid var(--gold-dark);
-    padding-bottom: 0.5rem;
-  }
-
-  .preview-controls-bar {
-    background: white;
-    border: 2px solid var(--ink);
-    padding: 1rem;
-    margin-bottom: 1rem;
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .preview-episode {
-    background: white;
-    border: 2px solid var(--ink);
-    margin-bottom: 1rem;
-    overflow: hidden;
-  }
-  .preview-ep-header {
-    background: var(--ink);
-    color: var(--paper);
-    padding: 1rem 1.5rem;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-  }
-  .preview-ep-header:hover { background: var(--red-seal); }
-  .preview-ep-body { display: none; padding: 1.5rem; }
-  .preview-episode.expanded .preview-ep-body { display: block; animation: slideDown 0.4s ease; }
-
-  .preview-section { margin-bottom: 1.2rem; }
-  .preview-section-label {
-    display: inline-block;
-    background: var(--red-seal);
-    color: white;
-    padding: 0.25rem 0.8rem;
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.5rem;
-  }
+  /* 미리보기 화면 */
+  .preview-controls-bar { padding: 1.2rem; display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; background: rgba(255,255,255,0.8); border: 2px solid var(--ink); }
+  .preview-section { margin-bottom: 1.5rem; }
+  .preview-section-label { display: inline-block; background: var(--ink); color: white; padding: 0.3rem 1rem; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.1em; margin-bottom: 0.6rem; box-shadow: 2px 2px 0 var(--shadow); }
   .preview-section-label.answer { background: var(--jade); }
   .preview-section-label.hint { background: var(--gold-dark); }
-  .preview-section-label.treasure { background: var(--ink); color: var(--gold); }
-  .preview-section-content {
-    background: var(--paper);
-    border-left: 3px solid var(--gold-dark);
-    padding: 0.8rem 1rem;
-    line-height: 1.8;
-  }
-  .preview-section-content.story { font-style: italic; color: var(--jade); }
-  .preview-section-content.answer {
-    border-left-color: var(--jade);
-    background: rgba(74, 107, 92, 0.08);
-    font-weight: 700;
-  }
+  .preview-section-label.treasure { background: var(--red-seal); color: var(--paper); }
+  .preview-section-content { background: rgba(255,255,255,0.7); border-left: 4px solid var(--gold-dark); padding: 1rem 1.2rem; line-height: 1.8; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.03); }
+  .preview-section-content.story { font-style: italic; color: var(--jade); background: rgba(74, 107, 92, 0.05); }
+  .preview-section-content.answer { border-left-color: var(--jade); background: rgba(74, 107, 92, 0.1); font-weight: 700; color: var(--ink); }
 
-  .toast {
+  /* 하단 저장 바 */
+  .save-bar {
     position: fixed;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-100px);
-    background: var(--ink);
-    color: var(--paper);
-    padding: 1rem 1.8rem;
-    border: 2px solid var(--gold);
-    box-shadow: 0 6px 25px var(--shadow);
-    font-weight: 700;
-    z-index: 1000;
-    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    max-width: 90%;
-    text-align: center;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-top: 2px solid var(--ink);
+    padding: 1rem 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    box-shadow: 0 -4px 20px var(--shadow);
+    z-index: 50;
+    flex-wrap: wrap;
+    align-items: center;
   }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-  .toast.success { background: var(--jade); border-color: var(--gold); }
-  .toast.error { background: var(--red-seal); border-color: var(--gold); }
+  .save-indicator { color: var(--jade); font-size: 0.95rem; font-weight: 700; align-self: center; margin-right: auto; }
 
-  .loading { text-align: center; padding: 4rem 2rem; color: var(--jade); }
-  .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid var(--paper-dark);
-    border-top-color: var(--red-seal);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem;
-  }
+  /* 토스트 & 유틸 */
+  .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--ink); color: var(--paper); padding: 1.2rem 2rem; border: 2px solid var(--gold); box-shadow: 0 6px 25px var(--shadow); font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 1.05rem; z-index: 1000; transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); max-width: 90%; text-align: center; letter-spacing: 0.1em; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--jade); border-color: var(--paper); }
+  .toast.error { background: var(--red-seal); border-color: var(--paper); }
+
+  .loading { text-align: center; padding: 4rem 2rem; color: var(--red-seal); font-weight: 700; letter-spacing: 0.1em; }
+  .loading-spinner { width: 50px; height: 50px; border: 4px solid rgba(168, 50, 45, 0.2); border-top-color: var(--red-seal); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .empty-state { text-align: center; padding: 3rem 2rem; color: #888; }
+  .empty-state { text-align: center; padding: 4rem 2rem; color: #888; font-style: italic; background: rgba(255,255,255,0.5); border: 2px dashed var(--ink); }
 
-  .info-banner {
-    background: #fff8e1;
-    border-left: 4px solid var(--gold);
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-    font-size: 0.9rem;
-  }
+  .info-banner { background: rgba(255, 248, 225, 0.8); border-left: 4px solid var(--gold); padding: 1.2rem 1.5rem; margin-bottom: 2rem; font-size: 0.95rem; box-shadow: 3px 3px 0 rgba(0,0,0,0.05); }
   .info-banner strong { color: var(--red-seal); }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
   @media (max-width: 600px) {
     .login-box { padding: 2rem 1.5rem; }
-    .main-content { padding: 1rem; }
+    .main-content { padding: 1rem; padding-bottom: 6rem; }
     .main-header { padding: 0.8rem 1rem; }
     .header-title { font-size: 1.1rem; }
-    .header-actions { width: 100%; justify-content: space-between; }
-    .save-bar { flex-direction: column-reverse; }
+    .header-actions { width: 100%; justify-content: space-between; margin-top: 0.5rem; }
+    .save-bar { flex-direction: column-reverse; padding: 1rem; }
     .save-bar .btn { width: 100%; }
-    .save-indicator { text-align: center; margin-right: 0; }
+    .save-indicator { text-align: center; margin-right: 0; margin-bottom: 0.5rem; }
+    .episode-item-body, .preview-ep-body { padding: 1.5rem 1rem; }
   }
 </style>
 </head>
@@ -724,7 +566,7 @@ function renderTypeSpecificFields(ep, idx) {
         <div class="array-item">
           <span class="array-item-num">${i+1}</span>
           <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="options" data-arr-idx="${i}" value="${escapeHTML(opt)}">
-          <label style="display:flex; align-items:center; gap:0.3rem; padding:0 0.5rem; font-size:0.85rem;">
+          <label style="display:flex; align-items:center; gap:0.3rem; padding:0 0.5rem; font-size:0.85rem; cursor:pointer;">
             <input type="checkbox" data-ep="${idx}" data-field="correctAnswers" data-arr-idx="${i}" ${(ep.correctAnswers || []).includes(i) ? 'checked' : ''}>
             정답
           </label>
@@ -769,13 +611,13 @@ function renderTypeSpecificFields(ep, idx) {
       <label class="field-label">📂 분류 영역 (이름 + 정답 카드 번호)</label>
       <div class="field-hint">정답 카드 번호는 쉼표로 구분 (예: 1, 4)</div>
       ${(ep.zones || []).map((zone, zi) => `
-        <div style="background: var(--paper); padding: 0.8rem; margin-bottom: 0.5rem; border: 1px solid var(--gold-dark);">
+        <div style="background: rgba(255,255,255,0.7); padding: 1rem; margin-bottom: 0.8rem; border: 1px dashed var(--gold-dark); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.03);">
           <div class="array-item">
-            <span style="font-weight: 700; min-width: 60px;">영역 ${zi+1}:</span>
+            <span style="font-weight: 700; min-width: 60px; color: var(--ink);">영역 ${zi+1}:</span>
             <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="zoneName" data-arr-idx="${zi}" value="${escapeHTML(zone.name)}" placeholder="영역 이름">
           </div>
-          <div class="array-item" style="margin-top: 0.4rem;">
-            <span style="font-size: 0.85rem; min-width: 60px;">정답:</span>
+          <div class="array-item" style="margin-top: 0.5rem;">
+            <span style="font-size: 0.85rem; min-width: 60px; font-weight: 700; color: var(--jade);">정답:</span>
             <input type="text" class="field-input array-item-input" data-ep="${idx}" data-field="zoneCorrect" data-arr-idx="${zi}" value="${(zone.correct || []).map(c => c+1).join(', ')}" placeholder="예: 1, 4">
           </div>
         </div>
@@ -827,10 +669,10 @@ function renderTypeSpecificFields(ep, idx) {
       ${(ep.leftItems || []).map((item, i) => {
         const rightIdx = ep.correctPairs ? ep.correctPairs[i] : 0;
         return `<div class="array-item">
-          <span style="min-width: 100px; font-weight: 700;">${escapeHTML(item)}</span>
-          <span style="margin: 0 0.5rem;">↔</span>
+          <span style="min-width: 100px; font-weight: 700; background: var(--paper-dark); padding: 0.3rem 0.6rem; border: 1px solid var(--ink);">${escapeHTML(item)}</span>
+          <span style="margin: 0 0.5rem; font-weight: 700; color: var(--red-seal);">↔</span>
           <input type="number" min="1" max="${(ep.rightItems || []).length}" class="field-input" style="max-width: 80px;" data-ep="${idx}" data-field="pairRight" data-arr-idx="${i}" value="${rightIdx + 1}">
-          <span style="font-size: 0.85rem; color: #888; margin-left: 0.5rem;">번 카드</span>
+          <span style="font-size: 0.85rem; color: #666; margin-left: 0.5rem; font-weight: 700;">번 카드</span>
         </div>`;
       }).join('')}
     </div>`;
@@ -904,8 +746,8 @@ function renderPreview() {
       <div class="preview-episode" id="prev-ep-${idx}">
         <div class="preview-ep-header" onclick="window.togglePreviewEp(${idx})">
           <div style="flex:1; min-width:0;">
-            <div style="color: var(--gold); font-size: 0.8rem; letter-spacing: 0.2em; margin-bottom: 0.2rem;">${ep.subtitle || ''}</div>
-            <div style="font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 1.1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ep.title || ''}</div>
+            <div style="color: var(--gold); font-size: 0.8rem; letter-spacing: 0.2em; margin-bottom: 0.2rem; font-weight: 700;">${ep.subtitle || ''}</div>
+            <div style="font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 1.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ep.title || ''}</div>
           </div>
           <div style="color: var(--gold); font-size: 1.3rem; transition: transform 0.3s ease;" class="prev-toggle">▼</div>
         </div>
@@ -952,7 +794,7 @@ function renderPreviewBody(ep) {
     <div class="preview-section">
       <span class="preview-section-label treasure">✦ 보물</span>
       <div class="preview-section-content">
-        <strong>${ep.treasureName || ''}</strong><br>
+        <strong style="color: var(--red-seal); font-size: 1.1rem;">${ep.treasureName || ''}</strong><br>
         <span style="color: var(--jade); font-style: italic;">${ep.treasureDesc || ''}</span>
       </div>
     </div>
@@ -962,56 +804,56 @@ function renderPreviewBody(ep) {
 function renderPreviewQuestionDetail(ep) {
   let extra = '';
   if (ep.type === 'kingMatch') {
-    extra = `<div style="margin-top: 0.6rem;">
-      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 왕 카드:</strong>
-      <div style="margin-top: 0.3rem;">${(ep.kings || []).map(k => `<span class="field-tag">${k}</span>`).join('')}</div>
+    extra = `<div style="margin-top: 0.8rem;">
+      <strong style="color: var(--red-seal); font-size: 0.95rem;">▶ 왕 카드:</strong>
+      <div style="margin-top: 0.4rem;">${(ep.kings || []).map(k => `<span class="field-tag">${k}</span>`).join('')}</div>
     </div>
-    <div style="margin-top: 0.6rem;">
-      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 업적 카드:</strong>
-      <div style="margin-top: 0.3rem;">
-        ${(ep.achievements || []).map((a, i) => `<div style="padding: 0.3rem 0.6rem; background: white; margin-bottom: 0.2rem; font-size: 0.9rem;">${i+1}) ${a}</div>`).join('')}
+    <div style="margin-top: 0.8rem;">
+      <strong style="color: var(--red-seal); font-size: 0.95rem;">▶ 업적 카드:</strong>
+      <div style="margin-top: 0.4rem;">
+        ${(ep.achievements || []).map((a, i) => `<div style="padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.7); margin-bottom: 0.3rem; font-size: 0.9rem; border-left: 3px solid var(--gold);">${i+1}) ${a}</div>`).join('')}
       </div>
     </div>`;
   } else if (ep.type === 'multiSelect') {
-    extra = `<div style="margin-top: 0.6rem;">
-      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 선택지:</strong>
-      <div style="margin-top: 0.3rem;">
+    extra = `<div style="margin-top: 0.8rem;">
+      <strong style="color: var(--red-seal); font-size: 0.95rem;">▶ 선택지:</strong>
+      <div style="margin-top: 0.4rem;">
         ${(ep.options || []).map((opt, i) => {
           const isCorrect = (ep.correctAnswers || []).includes(i);
-          return `<div style="padding: 0.3rem 0.6rem; background: ${isCorrect ? 'rgba(74,107,92,0.15)' : 'white'}; margin-bottom: 0.2rem; font-size: 0.9rem; border-left: 3px solid ${isCorrect ? 'var(--jade)' : '#ccc'};">${isCorrect ? '✓ ' : '✗ '}${opt}</div>`;
+          return `<div style="padding: 0.4rem 0.8rem; background: ${isCorrect ? 'rgba(74,107,92,0.15)' : 'rgba(255,255,255,0.7)'}; margin-bottom: 0.3rem; font-size: 0.9rem; border-left: 3px solid ${isCorrect ? 'var(--jade)' : '#ccc'};">${isCorrect ? '✓ ' : '✗ '}${opt}</div>`;
         }).join('')}
       </div>
     </div>`;
   } else if (ep.type === 'classify' || ep.type === 'finalQuest') {
-    extra = `<div style="margin-top: 0.6rem;">
-      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 분류 카드:</strong>
-      <div style="margin-top: 0.3rem;">${(ep.items || []).map(item => `<span class="field-tag">${item}</span>`).join('')}</div>
+    extra = `<div style="margin-top: 0.8rem;">
+      <strong style="color: var(--red-seal); font-size: 0.95rem;">▶ 분류 카드:</strong>
+      <div style="margin-top: 0.4rem;">${(ep.items || []).map(item => `<span class="field-tag">${item}</span>`).join('')}</div>
     </div>
-    <div style="margin-top: 0.6rem;">
-      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 분류 영역:</strong>
-      <div style="margin-top: 0.3rem;">${(ep.zones || []).map(z => `<span class="field-tag">${z.name}</span>`).join('')}</div>
+    <div style="margin-top: 0.8rem;">
+      <strong style="color: var(--red-seal); font-size: 0.95rem;">▶ 분류 영역:</strong>
+      <div style="margin-top: 0.4rem;">${(ep.zones || []).map(z => `<span class="field-tag">${z.name}</span>`).join('')}</div>
     </div>`;
     if (ep.type === 'finalQuest') {
-      extra += `<div style="margin-top: 0.6rem;">
-        <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 2단계 추가 질문:</strong>
-        <div class="preview-section-content" style="margin-top: 0.3rem;">${ep.finalQuestion || ''}</div>
+      extra += `<div style="margin-top: 0.8rem;">
+        <strong style="color: var(--red-seal); font-size: 0.95rem;">▶ 2단계 추가 질문:</strong>
+        <div class="preview-section-content" style="margin-top: 0.4rem;">${ep.finalQuestion || ''}</div>
       </div>`;
     }
   } else if (ep.type === 'order') {
-    extra = `<div style="margin-top: 0.6rem;">
-      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 배열할 사건들 (무작위로 학생에게 노출):</strong>
-      <div style="margin-top: 0.3rem;">
-        ${(ep.items || []).map(item => `<div style="padding: 0.3rem 0.6rem; background: white; margin-bottom: 0.2rem; font-size: 0.9rem;">${item}</div>`).join('')}
+    extra = `<div style="margin-top: 0.8rem;">
+      <strong style="color: var(--red-seal); font-size: 0.95rem;">▶ 배열할 사건들 (무작위로 학생에게 노출):</strong>
+      <div style="margin-top: 0.4rem;">
+        ${(ep.items || []).map(item => `<div style="padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.7); margin-bottom: 0.3rem; font-size: 0.9rem; border-left: 3px solid var(--gold);">${item}</div>`).join('')}
       </div>
     </div>`;
   } else if (ep.type === 'pairMatch') {
-    extra = `<div style="margin-top: 0.6rem;">
-      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 왼쪽:</strong>
-      <div style="margin-top: 0.3rem;">${(ep.leftItems || []).map(item => `<span class="field-tag">${item}</span>`).join('')}</div>
+    extra = `<div style="margin-top: 0.8rem;">
+      <strong style="color: var(--red-seal); font-size: 0.95rem;">▶ 왼쪽:</strong>
+      <div style="margin-top: 0.4rem;">${(ep.leftItems || []).map(item => `<span class="field-tag">${item}</span>`).join('')}</div>
     </div>
-    <div style="margin-top: 0.6rem;">
-      <strong style="color: var(--red-seal); font-size: 0.9rem;">▶ 오른쪽:</strong>
-      <div style="margin-top: 0.3rem;">${(ep.rightItems || []).map(item => `<span class="field-tag">${item}</span>`).join('')}</div>
+    <div style="margin-top: 0.8rem;">
+      <strong style="color: var(--red-seal); font-size: 0.95rem;">▶ 오른쪽:</strong>
+      <div style="margin-top: 0.4rem;">${(ep.rightItems || []).map(item => `<span class="field-tag">${item}</span>`).join('')}</div>
     </div>`;
   }
   return extra;
@@ -1020,30 +862,30 @@ function renderPreviewQuestionDetail(ep) {
 function renderPreviewAnswer(ep) {
   switch(ep.type) {
     case 'fillBlanks':
-      return (ep.answers || []).map((a, i) => `<strong>${['①','②','③','④','⑤'][i]}</strong> ${a}`).join(' · ');
+      return (ep.answers || []).map((a, i) => `<strong>${['①','②','③','④','⑤'][i]}</strong> ${a}`).join(' &nbsp;·&nbsp; ');
     case 'kingMatch':
       return (ep.kings || []).map((k, i) => {
         const achIdx = (ep.correctOrder || [])[i];
         const ach = (ep.achievements || [])[achIdx];
-        return `<div style="padding: 0.3rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${i+1}. ${k}</strong> — ${ach || ''}</div>`;
+        return `<div style="padding: 0.4rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${i+1}. ${k}</strong> &nbsp;—&nbsp; ${ach || ''}</div>`;
       }).join('');
     case 'multiSelect':
-      return '정답: ' + (ep.correctAnswers || []).map(i => `<strong>${(ep.options || [])[i]}</strong>`).join(', ');
+      return '정답: ' + (ep.correctAnswers || []).map(i => `<strong style="color: var(--red-seal);">${(ep.options || [])[i]}</strong>`).join(', ');
     case 'classify':
-      return (ep.zones || []).map(z => `<div style="padding: 0.3rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${z.name}:</strong> ${(z.correct || []).map(i => (ep.items || [])[i]).join(', ')}</div>`).join('');
+      return (ep.zones || []).map(z => `<div style="padding: 0.4rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${z.name}:</strong> <span style="color: var(--ink);">${(z.correct || []).map(i => (ep.items || [])[i]).join(', ')}</span></div>`).join('');
     case 'singleInput':
-      return `비밀번호: <strong style="font-size: 1.2rem; letter-spacing: 0.3em;">${ep.answer || ''}</strong>`;
+      return `비밀번호: <strong style="font-size: 1.3rem; letter-spacing: 0.3em; color: var(--red-seal);">${ep.answer || ''}</strong>`;
     case 'order':
-      return (ep.correctOrder || []).map((origIdx, newIdx) => `<div style="padding: 0.3rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${newIdx+1}.</strong> ${(ep.items || [])[origIdx] || ''}</div>`).join('');
+      return (ep.correctOrder || []).map((origIdx, newIdx) => `<div style="padding: 0.4rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${newIdx+1}.</strong> ${(ep.items || [])[origIdx] || ''}</div>`).join('');
     case 'pairMatch':
       return Object.keys(ep.correctPairs || {}).map(leftIdx => {
         const rightIdx = ep.correctPairs[leftIdx];
-        return `<div style="padding: 0.3rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${(ep.leftItems || [])[leftIdx]}</strong> ↔ ${(ep.rightItems || [])[rightIdx]}</div>`;
+        return `<div style="padding: 0.4rem 0; border-bottom: 1px dashed var(--gold-dark);"><strong>${(ep.leftItems || [])[leftIdx]}</strong> &nbsp;↔&nbsp; ${(ep.rightItems || [])[rightIdx]}</div>`;
       }).join('');
     case 'finalQuest':
-      let html = '<strong>1단계 분류:</strong><br>';
-      html += (ep.zones || []).map(z => `<div style="padding: 0.3rem 0;"><strong>${z.name}:</strong> ${(z.correct || []).map(i => (ep.items || [])[i]).join(', ')}</div>`).join('');
-      html += `<div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--gold-dark);"><strong>2단계 답:</strong> <span style="font-size: 1.1rem;">${ep.finalAnswer || ''}</span></div>`;
+      let html = '<strong style="color: var(--jade);">1단계 분류:</strong><br>';
+      html += (ep.zones || []).map(z => `<div style="padding: 0.4rem 0;"><strong>${z.name}:</strong> ${(z.correct || []).map(i => (ep.items || [])[i]).join(', ')}</div>`).join('');
+      html += `<div style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 2px dashed var(--gold-dark);"><strong style="color: var(--red-seal);">2단계 답:</strong> <span style="font-size: 1.2rem; font-weight: 700;">${ep.finalAnswer || ''}</span></div>`;
       return html;
     default:
       return '—';
