@@ -308,7 +308,7 @@
             <!-- LECTURE -->
             <div id="atab-lecture">
                 <div class="select-row">
-                    <select id="answer-lecture-select" onchange="renderAnswerLecture()">
+                    <select id="answer-lecture-select" onchange="saveUIState(); renderAnswerLecture()">
                         <option value="">강의를 선택하세요</option>
                     </select>
                 </div>
@@ -328,7 +328,7 @@
             <!-- CLASS -->
             <div id="atab-class" class="hidden">
                 <div class="select-row">
-                    <select id="class-select" onchange="renderAnswerClass()">
+                    <select id="class-select" onchange="saveUIState(); renderAnswerClass()">
                         <option value="1">1반</option>
                         <option value="2">2반</option>
                         <option value="3">3반</option>
@@ -338,7 +338,7 @@
                     </select>
                 </div>
                 <div class="select-row">
-                    <select id="class-lecture-select" onchange="renderAnswerClass()">
+                    <select id="class-lecture-select" onchange="saveUIState(); renderAnswerClass()">
                         <option value="">강의를 선택하세요</option>
                     </select>
                 </div>
@@ -350,7 +350,7 @@
             <!-- PICK -->
             <div id="atab-pick" class="hidden">
                 <div class="select-row">
-                    <select id="pick-lecture-select" onchange="renderPickTab()">
+                    <select id="pick-lecture-select" onchange="saveUIState(); renderPickTab()">
                         <option value="">강의를 선택하세요</option>
                     </select>
                 </div>
@@ -451,8 +451,10 @@
     const rtdb = firebase.database();
 
     /* ── 상태 ── */
-    const SESSION_KEY = 'sc_admin_session';
-    let adminPassword    = null; // Firebase에서 불러온 비밀번호
+    const SESSION_KEY  = 'sc_admin_session';
+    const UI_STATE_KEY = 'sc_admin_ui_state'; // ★ 탭 상태 저장 키
+
+    let adminPassword    = null;
     let activeLectures   = [];
     let allSubmissions   = [];
     let allStudents      = [];
@@ -460,17 +462,56 @@
     let submissionsReady = false;
     let studentsReady    = false;
 
-    let answerSort       = 'recent'; // LECTURE 탭 정렬
-    let activityData     = { absent: [], short: [], cheat: [] }; // 활동미흡 모달 데이터
-    let activityTab      = 'absent';
+    let answerSort   = 'recent';
+    let activityData = { absent: [], short: [], cheat: [] };
+    let activityTab  = 'absent';
 
-    let lectureUnsub     = null;
-    let submissionUnsub  = null;
-    let studentsUnsub    = null;
+    let lectureUnsub    = null;
+    let submissionUnsub = null;
+    let studentsCallback = null; // ★ RTDB 콜백을 변수로 보관
+
+    /* ══════════════════════════════════════
+       ★ UI 상태 저장 / 복원
+    ══════════════════════════════════════ */
+    function saveUIState() {
+        const state = {
+            mainTab:           getCurrentMainTab(),
+            qSubTab:           getCurrentQSubTab(),
+            aSubTab:           getCurrentASubTab(),
+            answerLectureId:   document.getElementById('answer-lecture-select').value,
+            classNum:          document.getElementById('class-select').value,
+            classLectureId:    document.getElementById('class-lecture-select').value,
+            pickLectureId:     document.getElementById('pick-lecture-select').value,
+        };
+        sessionStorage.setItem(UI_STATE_KEY, JSON.stringify(state));
+    }
+
+    function loadUIState() {
+        try {
+            const raw = sessionStorage.getItem(UI_STATE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch(e) { return null; }
+    }
+
+    function getCurrentMainTab() {
+        for (const t of ['question','answer','archive','setting']) {
+            if (document.getElementById(`tab-btn-${t}`).classList.contains('active')) return t;
+        }
+        return 'question';
+    }
+    function getCurrentQSubTab() {
+        return document.getElementById('qtab-btn-new').classList.contains('active') ? 'new' : 'list';
+    }
+    function getCurrentASubTab() {
+        for (const t of ['lecture','class','pick']) {
+            if (document.getElementById(`atab-btn-${t}`).classList.contains('active')) return t;
+        }
+        return 'lecture';
+    }
 
     /* ── 세션 ── */
     function saveSession()  { sessionStorage.setItem(SESSION_KEY, '1'); }
-    function clearSession() { sessionStorage.removeItem(SESSION_KEY); }
+    function clearSession() { sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(UI_STATE_KEY); }
     function hasSession()   { return sessionStorage.getItem(SESSION_KEY) === '1'; }
 
     /* ── 비밀번호 로드 ── */
@@ -480,7 +521,7 @@
             if (snap.exists && snap.data().password) {
                 adminPassword = snap.data().password;
             } else {
-                adminPassword = 'ghtjd12!@'; // 기본값
+                adminPassword = 'ghtjd12!@';
             }
         } catch(e) {
             adminPassword = 'ghtjd12!@';
@@ -494,8 +535,8 @@
         await loadPassword();
         if (hasSession()) {
             hide('screen-login'); show('screen-admin');
-            startListeners();
-            switchTab('question');
+            await startListeners();
+            restoreUIState(); // ★ 데이터 로드 후 탭 상태 복원
         }
     });
 
@@ -505,8 +546,8 @@
         if (pw === adminPassword) {
             saveSession();
             hide('screen-login'); show('screen-admin');
-            startListeners();
-            switchTab('question');
+            await startListeners();
+            switchTab('question'); // 첫 로그인은 항상 question
         } else {
             show('pw-error');
             document.getElementById('admin-pw').value = '';
@@ -522,69 +563,103 @@
         hide('pw-error');
     }
 
-    /* ── 리스너 ── */
-    async function startListeners() {
-        // ① 강의 즉시 로드 (get) → 스피너 없이 바로 표시
-        try {
-            const snap = await db.collection("lectures").orderBy("createdAt","asc").get();
-            activeLectures = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-            lecturesReady  = true;
-            renderLectureAdmin();
-            populateAllSelects();
-            renderArchiveAdmin();
-        } catch(e) {}
+    /* ══════════════════════════════════════
+       ★ 리스너 — onSnapshot만 사용 (get() 제거)
+    ══════════════════════════════════════ */
+    function startListeners() {
+        return new Promise(resolve => {
+            let lecDone = false, subDone = false;
 
-        // ② 제출 즉시 로드
-        try {
-            const snap = await db.collection("submissions").orderBy("createdAt","desc").get();
-            allSubmissions   = snap.docs.map(d => ({ subId: d.id, ...d.data() }));
-            submissionsReady = true;
-            renderLectureAdmin();
-            renderAnswerLecture();
-            renderAnswerClass();
-            renderPickTab();
-        } catch(e) {}
+            // ① 강의 onSnapshot (첫 콜백에서 즉시 현재 데이터 옴)
+            lectureUnsub = db.collection("lectures").orderBy("createdAt","asc").onSnapshot(snap => {
+                activeLectures = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+                lecturesReady  = true;
+                renderLectureAdmin();
+                populateAllSelects();
+                renderArchiveAdmin();
+                renderAnswerLecture();
+                renderAnswerClass();
+                renderPickTab();
+                if (!lecDone) { lecDone = true; if (subDone) resolve(); }
+            }, err => { if (!lecDone) { lecDone = true; if (subDone) resolve(); } });
 
-        // ③ 이후 실시간 업데이트는 onSnapshot이 담당
-        lectureUnsub = db.collection("lectures").orderBy("createdAt","asc").onSnapshot(snap => {
-            activeLectures = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-            lecturesReady  = true;
-            renderLectureAdmin();
-            populateAllSelects();
-            renderArchiveAdmin();
-            renderAnswerLecture();
-            renderAnswerClass();
-            renderPickTab();
-        });
-        submissionUnsub = db.collection("submissions").orderBy("createdAt","desc").onSnapshot(snap => {
-            allSubmissions   = snap.docs.map(d => ({ subId: d.id, ...d.data() }));
-            submissionsReady = true;
-            renderLectureAdmin();
-            renderAnswerLecture();
-            renderAnswerClass();
-            renderPickTab();
-        });
-        studentsUnsub = rtdb.ref('students').on('value', snap => {
-            const data = snap.val();
-            allStudents = [];
-            if (data) {
-                Object.entries(data).forEach(([key, val]) => {
-                    const sid   = String(val.studentId || key);
-                    const sname = val.name || val.studentName || val.realName || '';
-                    if (sid && sname) allStudents.push({ studentId: sid, studentName: sname });
-                });
-            }
-            allStudents.sort((a, b) => a.studentId.localeCompare(b.studentId));
-            studentsReady = true;
+            // ② 제출 onSnapshot
+            submissionUnsub = db.collection("submissions").orderBy("createdAt","desc").onSnapshot(snap => {
+                allSubmissions   = snap.docs.map(d => ({ subId: d.id, ...d.data() }));
+                submissionsReady = true;
+                renderLectureAdmin();
+                renderAnswerLecture();
+                renderAnswerClass();
+                renderPickTab();
+                if (!subDone) { subDone = true; if (lecDone) resolve(); }
+            }, err => { if (!subDone) { subDone = true; if (lecDone) resolve(); } });
+
+            // ③ RTDB students — 콜백을 변수에 보관해야 off() 가능
+            studentsCallback = snap => {
+                const data = snap.val();
+                allStudents = [];
+                if (data) {
+                    Object.entries(data).forEach(([key, val]) => {
+                        const sid   = String(val.studentId || key);
+                        const sname = val.name || val.studentName || val.realName || '';
+                        if (sid && sname) allStudents.push({ studentId: sid, studentName: sname });
+                    });
+                }
+                allStudents.sort((a, b) => a.studentId.localeCompare(b.studentId));
+                studentsReady = true;
+            };
+            rtdb.ref('students').on('value', studentsCallback);
         });
     }
 
     function stopListeners() {
-        if (lectureUnsub) lectureUnsub();
-        if (submissionUnsub) submissionUnsub();
-        if (studentsUnsub) rtdb.ref('students').off('value', studentsUnsub);
+        if (lectureUnsub)    { lectureUnsub();    lectureUnsub    = null; }
+        if (submissionUnsub) { submissionUnsub(); submissionUnsub = null; }
+        // ★ 저장된 콜백 함수로 정확히 해제
+        if (studentsCallback) { rtdb.ref('students').off('value', studentsCallback); studentsCallback = null; }
         lecturesReady = submissionsReady = studentsReady = false;
         activeLectures = allSubmissions = allStudents = [];
+    }
+
+    /* ══════════════════════════════════════
+       ★ 탭 상태 복원
+    ══════════════════════════════════════ */
+    function restoreUIState() {
+        const state = loadUIState();
+        if (!state) { switchTab('question'); return; }
+
+        // 메인 탭
+        switchTab(state.mainTab || 'question');
+
+        // QUESTION 서브탭
+        if (state.mainTab === 'question') {
+            switchQTab(state.qSubTab || 'list');
+        }
+
+        // ANSWER 서브탭 & 셀렉트 값
+        if (state.mainTab === 'answer') {
+            switchATab(state.aSubTab || 'lecture');
+
+            if (state.answerLectureId) {
+                const sel = document.getElementById('answer-lecture-select');
+                if (sel) sel.value = state.answerLectureId;
+                renderAnswerLecture();
+            }
+            if (state.classNum) {
+                const sel = document.getElementById('class-select');
+                if (sel) sel.value = state.classNum;
+            }
+            if (state.classLectureId) {
+                const sel = document.getElementById('class-lecture-select');
+                if (sel) sel.value = state.classLectureId;
+                renderAnswerClass();
+            }
+            if (state.pickLectureId) {
+                const sel = document.getElementById('pick-lecture-select');
+                if (sel) sel.value = state.pickLectureId;
+                renderPickTab();
+            }
+        }
     }
 
     /* ── 학번 → 반 ── */
@@ -600,6 +675,7 @@
             document.getElementById(`tab-btn-${t}`).classList.toggle('active', t === tab);
             document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
         });
+        saveUIState(); // ★ 탭 바꿀 때마다 저장
     }
     function switchQTab(tab) {
         ['list','new'].forEach(t => {
@@ -607,12 +683,14 @@
             document.getElementById(`qtab-${t}`).classList.toggle('hidden', t !== tab);
         });
         if (tab === 'list') renderLectureAdmin();
+        saveUIState();
     }
     function switchATab(tab) {
         ['lecture','class','pick'].forEach(t => {
             document.getElementById(`atab-btn-${t}`).classList.toggle('active', t === tab);
             document.getElementById(`atab-${t}`).classList.toggle('hidden', t !== tab);
         });
+        saveUIState();
     }
 
     /* ── 셀렉트 채우기 ── */
@@ -621,8 +699,7 @@
         selects.forEach(id => {
             const sel = document.getElementById(id);
             const cur = sel.value;
-            const placeholder = id === 'class-lecture-select' ? '강의를 선택하세요' : '강의를 선택하세요';
-            sel.innerHTML = `<option value="">${placeholder}</option>`;
+            sel.innerHTML = `<option value="">강의를 선택하세요</option>`;
             activeLectures.forEach(l => {
                 sel.innerHTML += `<option value="${l.docId}">${l.title}</option>`;
             });
@@ -664,7 +741,7 @@
                 <div id="view-${lec.docId}">
                     <div class="lec-actions">
                         <label class="toggle-switch" title="${isOpen ? '공개 중' : '비공개'}" style="width:44px; height:24px; flex-shrink:0;">
-                            <input type="checkbox" ${isOpen ? 'checked' : ''} onchange="toggleOpen('${lec.docId}', this.checked, '${lec.docId}')">
+                            <input type="checkbox" ${isOpen ? 'checked' : ''} onchange="toggleOpen('${lec.docId}', this.checked)">
                             <span class="slider" id="toggle-slider-${lec.docId}"></span>
                         </label>
                         <button class="btn-emoji" title="수정" onclick="toggleEdit('${lec.docId}', true)">✏️</button>
@@ -701,8 +778,7 @@
         document.getElementById(`edit-${docId}`).classList.toggle('hidden', !open);
     }
     function toggleMore(docId) {
-        const el = document.getElementById(`more-${docId}`);
-        el.classList.toggle('hidden');
+        document.getElementById(`more-${docId}`).classList.toggle('hidden');
     }
     function saveLecture(docId) {
         const title     = document.getElementById(`edit-title-${docId}`).value.trim();
@@ -837,7 +913,6 @@
         }
 
         const clsNum = parseInt(cls, 10);
-        // 해당 반 학생 필터
         const classStudents = studentsReady
             ? allStudents.filter(s => classNumFromId(s.studentId) === clsNum)
             : [];
@@ -847,17 +922,11 @@
         const submittedIds = new Set(classSubs.map(s => String(s.id)));
         const picked = classSubs.filter(s => s.isPicked).length;
 
-        // 통계 계산
         const absentList = classStudents.filter(s => !submittedIds.has(String(s.studentId)));
         const shortList  = classSubs.filter(s => (s.textLength || 0) < 50);
         const cheatList  = classSubs.filter(s => (s.cheatCount || 0) >= 3);
 
-        // 현황 저장 (활동미흡 모달용)
-        activityData = {
-            absent: absentList,
-            short:  shortList,
-            cheat:  cheatList
-        };
+        activityData = { absent: absentList, short: shortList, cheat: cheatList };
 
         statsEl.classList.remove('hidden');
         statsEl.innerHTML = `
@@ -982,7 +1051,6 @@
         }
         db.collection("lectures").doc(docId).update({ isArchived: value });
     }
-    function toggleArchive(docId, current) { /* legacy - unused */ }
 
     /* ══════════════════════════════════════
        SETTING 탭
@@ -1015,10 +1083,10 @@
     }
 
     async function changePassword() {
-        const cur    = document.getElementById('setting-pw-current').value;
-        const nw     = document.getElementById('setting-pw-new').value;
-        const conf   = document.getElementById('setting-pw-confirm').value;
-        const msgEl  = document.getElementById('setting-pw-msg');
+        const cur   = document.getElementById('setting-pw-current').value;
+        const nw    = document.getElementById('setting-pw-new').value;
+        const conf  = document.getElementById('setting-pw-confirm').value;
+        const msgEl = document.getElementById('setting-pw-msg');
 
         if (!adminPassword) await loadPassword();
         if (cur !== adminPassword) { msgEl.style.color = 'var(--text-error)'; msgEl.textContent = '❌ 현재 비밀번호가 틀렸습니다.'; return; }
