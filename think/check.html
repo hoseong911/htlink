@@ -71,7 +71,6 @@
         textarea { border-radius: 12px; resize: vertical; line-height: 1.7; min-height: 180px; }
         input:focus, textarea:focus { outline: 2px solid var(--brand-green); box-shadow: none; }
 
-        /* 이름 확인 메시지 */
         .verify-msg { font-size: 12px; font-weight: 700; margin-top: 6px; min-height: 18px; }
         .verify-msg.ok  { color: var(--brand-green); }
         .verify-msg.err { color: var(--text-error); }
@@ -113,12 +112,6 @@
         .lecture-list-btn:hover { background: var(--bg-card-hover); }
         .lecture-list-btn .lec-icon { color: var(--brand-green); font-size: 18px; }
         .lecture-list-btn .lec-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; font-weight: 500; }
-        /* 제출 완료 강의 버튼 스타일 */
-        .lecture-list-btn.submitted {
-            border: 1px solid rgba(30,215,96,0.3);
-            background: rgba(30,215,96,0.06);
-        }
-        .lecture-list-btn.submitted .lec-meta { color: var(--brand-green); }
 
         /* ── 로딩 스피너 ── */
         .loading-msg {
@@ -156,26 +149,6 @@
             background: rgba(243,114,127,0.1); border-radius: 8px;
         }
 
-        /* ── 이전 답변 미리보기 배너 ── */
-        .prev-answer-banner {
-            background: rgba(30,215,96,0.08);
-            border: 1px solid rgba(30,215,96,0.25);
-            border-radius: 10px;
-            padding: 14px 18px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-        .prev-answer-banner .banner-label {
-            font-size: 11px; font-weight: 800; letter-spacing: 1px;
-            color: var(--brand-green); margin-bottom: 6px; text-transform: uppercase;
-        }
-        .prev-answer-banner .banner-text {
-            color: var(--text-muted);
-            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
         /* ── 아카이브 ── */
         .archive-header { margin-bottom: 24px; }
         .archive-header h2 { font-size: 22px; font-weight: 900; color: var(--brand-green); }
@@ -210,41 +183,6 @@
             border-radius: 500px; transition: all 0.15s;
         }
         .archive-ext-link:hover { color: var(--text-base); border-color: var(--text-base); }
-
-        /* ── 커스텀 모달 (덮어쓰기 확인) ── */
-        .modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 9999; padding: 24px;
-        }
-        .modal-box {
-            background: var(--bg-surface); border-radius: 16px;
-            padding: 32px 28px; max-width: 420px; width: 100%;
-            box-shadow: var(--shadow-heavy);
-            animation: modal-in 0.2s ease;
-        }
-        @keyframes modal-in { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-icon { font-size: 36px; text-align: center; margin-bottom: 16px; }
-        .modal-title { font-size: 18px; font-weight: 900; text-align: center; margin-bottom: 10px; }
-        .modal-desc { font-size: 14px; color: var(--text-muted); text-align: center; line-height: 1.6; margin-bottom: 8px; }
-        .modal-prev {
-            background: var(--bg-interactive); border-radius: 8px;
-            padding: 12px 16px; font-size: 13px; color: var(--text-muted);
-            line-height: 1.6; margin: 16px 0 24px;
-            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-        }
-        .modal-actions { display: flex; gap: 10px; }
-        .modal-actions .btn-cancel {
-            flex: 1; background: var(--bg-interactive); color: var(--text-muted);
-            padding: 13px; border-radius: 500px; font-size: 14px; font-weight: 700;
-        }
-        .modal-actions .btn-cancel:hover { color: var(--text-base); }
-        .modal-actions .btn-overwrite {
-            flex: 1.5; background: var(--brand-green); color: #000;
-            padding: 13px; border-radius: 500px; font-size: 14px; font-weight: 800;
-        }
-        .modal-actions .btn-overwrite:hover { background: var(--brand-green-hover); }
 
         /* ── 푸터 ── */
         .admin-footer { text-align: center; margin-top: 48px; }
@@ -312,7 +250,7 @@
             <button id="tab-btn-archive" onclick="switchTab('archive')">ARCHIVE</button>
         </div>
 
-        <!-- ── QUESTION 탭 (답변 작성) ── -->
+        <!-- ── QUESTION 탭 ── -->
         <div id="tab-question">
             <div id="area-lecture-list">
                 <p style="font-size:13px; color:var(--text-muted); margin-bottom:18px; padding:0 4px;">답변할 강의를 선택하세요</p>
@@ -326,18 +264,13 @@
                         <div class="question-box" id="writing-question"></div>
                         <div class="reference-box hidden" id="writing-reference"></div>
                     </div>
-                    <!-- 이전 답변 미리보기 (재작성 시만 표시) -->
-                    <div class="prev-answer-banner hidden" id="prev-answer-banner">
-                        <div class="banner-label">✏️ 이전에 제출한 답변</div>
-                        <div class="banner-text" id="prev-answer-text"></div>
-                    </div>
                     <div class="form-group">
                         <label>나의 생각</label>
                         <textarea id="answer-text" rows="8" placeholder="본인의 생각을 이유와 함께 작성해 봅시다."></textarea>
                         <div class="char-count">글자 수 (공백 제외): <span id="count-display">0</span>자</div>
                     </div>
                     <div id="cheat-warning" class="cheat-warning hidden">⚠️ 다른 화면으로 이동한 기록이 있습니다. 직접 작성해주세요!</div>
-                    <button class="btn-primary" style="margin-top:16px;" id="submit-btn" onclick="submitAnswer()">제출하기</button>
+                    <button class="btn-primary" style="margin-top:16px;" onclick="submitAnswer()">제출하기</button>
                 </div>
             </div>
         </div>
@@ -364,20 +297,6 @@
     </div>
 </div>
 
-<!-- ══ 덮어쓰기 확인 모달 ══ -->
-<div class="modal-overlay hidden" id="overwrite-modal">
-    <div class="modal-box">
-        <div class="modal-icon">📝</div>
-        <div class="modal-title">이미 제출한 답변이 있어요</div>
-        <div class="modal-desc">이전에 작성한 내용이 있습니다.<br>새로 작성한 내용으로 덮어쓸까요?</div>
-        <div class="modal-prev" id="modal-prev-text"></div>
-        <div class="modal-actions">
-            <button class="btn-cancel" onclick="closeOverwriteModal()">취소</button>
-            <button class="btn-overwrite" onclick="confirmOverwrite()">덮어쓰기</button>
-        </div>
-    </div>
-</div>
-
 <script>
     /* ── Firebase 초기화 ── */
     const firebaseConfig = {
@@ -393,6 +312,28 @@
     const db   = firebase.firestore();
     const rtdb = firebase.database();
 
+    /* ════════════════════════════════════════
+       ★ Firestore 연결 안정성 개선
+       모바일/학교 네트워크에서 WebChannel 핸드셰이크 실패로
+       강의 로딩이 멈추는 현상 방지
+       ════════════════════════════════════════ */
+    try {
+        db.settings({
+            experimentalAutoDetectLongPolling: true,
+            merge: true
+        });
+    } catch(e) { console.warn('Firestore settings 적용 실패:', e); }
+
+    /* IndexedDB 영속 캐시 — 두 번째 접속부터 즉시 표시 */
+    db.enablePersistence({ synchronizeTabs: true })
+      .catch(err => {
+          if (err.code === 'failed-precondition') {
+              console.warn('다른 탭에서 이미 열려있어 캐시를 사용할 수 없습니다.');
+          } else if (err.code === 'unimplemented') {
+              console.warn('이 브라우저는 영속 캐시를 지원하지 않습니다.');
+          }
+      });
+
     /* ── 상태 ── */
     let activeLectures   = [];
     let allSubmissions   = [];
@@ -402,15 +343,23 @@
     let cheatCount       = 0;
     let lecturesReady    = false;
     let submissionsReady = false;
-    let pendingNewSub    = null;   // 덮어쓰기 대기 중인 새 제출 데이터
 
-    /* ── 학생 명단 (Realtime DB) ── */
     let studentMap       = {};
     let studentMapLoaded = false;
 
-    async function loadStudentMap() {
-        try {
-            const snap = await rtdb.ref('students').get();
+    // ★ 리스너 참조 보관 (중복 등록 방지)
+    let lectureUnsub     = null;
+    let submissionUnsub  = null;
+    let studentsCallback = null; // ★ RTDB 콜백 보관
+
+    /* ════════════════════════════════════════
+       ★ 학생 명단 로드 — onValue 한 번만 (get 제거)
+       onValue는 첫 호출 시 즉시 현재값을 줌
+    ════════════════════════════════════════ */
+    function loadStudentMap() {
+        if (studentsCallback) return; // 이미 등록됨 → 중복 방지
+
+        studentsCallback = snap => {
             const data = snap.val();
             studentMap = {};
             if (data) {
@@ -420,28 +369,28 @@
                     if (sid && sname) studentMap[sid] = sname;
                 });
             }
-        } catch(e) {
-            console.warn('학생 명단 로드 실패:', e);
-        }
-        studentMapLoaded = true;
+            studentMapLoaded = true;
+            // 명단 로드 완료 후 로그인 버튼 상태 갱신
+            updateLoginBtn();
+        };
+        rtdb.ref('students').on('value', studentsCallback);
     }
 
     /* ── 학번 입력 핸들러 ── */
-    let idTimer = null;
+    let idTimer      = null;
     let verifiedName = null;
 
     function onIdInput(el) {
         const val = el.value.replace(/\D/g,'');
         el.value = val;
 
-        const idMsg    = document.getElementById('id-msg');
-        const nameEl   = document.getElementById('student-name');
-        const nameMsg  = document.getElementById('name-msg');
+        const idMsg   = document.getElementById('id-msg');
+        const nameEl  = document.getElementById('student-name');
+        const nameMsg = document.getElementById('name-msg');
 
         verifiedName = null;
         nameEl.disabled = true;
         nameEl.value = '';
-        nameEl.classList.remove('valid','invalid');
         nameMsg.textContent = '';
         nameMsg.className = 'verify-msg';
         updateLoginBtn();
@@ -456,41 +405,59 @@
         idMsg.className = 'verify-msg';
 
         clearTimeout(idTimer);
-        idTimer = setTimeout(async () => {
-            if (!studentMapLoaded) await loadStudentMap();
-
-            if (Object.keys(studentMap).length === 0) {
-                idMsg.textContent = '학번 형식 확인 완료';
-                idMsg.className = 'verify-msg ok';
-                nameEl.disabled = false;
-                nameEl.placeholder = '이름을 입력하세요';
-                updateLoginBtn();
+        idTimer = setTimeout(() => {
+            // 명단이 아직 로드 중이면 잠깐 더 기다림
+            if (!studentMapLoaded) {
+                idMsg.textContent = '명단 로드 중… 잠시만요';
+                idMsg.className = 'verify-msg';
+                const wait = setInterval(() => {
+                    if (studentMapLoaded) {
+                        clearInterval(wait);
+                        checkStudentId(val);
+                    }
+                }, 200);
                 return;
             }
-
-            if (studentMap[val] !== undefined) {
-                verifiedName = studentMap[val];
-                idMsg.textContent = '명단 확인 완료';
-                idMsg.className = 'verify-msg ok';
-                nameEl.value = verifiedName;
-                nameEl.disabled = false;
-                nameMsg.textContent = `${verifiedName} 학생으로 확인되었습니다`;
-                nameMsg.className = 'verify-msg ok';
-            } else {
-                idMsg.textContent = '명단에 없는 학번입니다. 선생님께 문의하세요.';
-                idMsg.className = 'verify-msg err';
-                nameEl.disabled = true;
-            }
-            updateLoginBtn();
+            checkStudentId(val);
         }, 400);
     }
 
+    function checkStudentId(val) {
+        const idMsg   = document.getElementById('id-msg');
+        const nameEl  = document.getElementById('student-name');
+        const nameMsg = document.getElementById('name-msg');
+
+        // 명단이 비어있으면 (관리자가 아직 등록 안 한 경우) 통과
+        if (Object.keys(studentMap).length === 0) {
+            idMsg.textContent = '학번 형식 확인 완료';
+            idMsg.className = 'verify-msg ok';
+            nameEl.disabled = false;
+            nameEl.placeholder = '이름을 입력하세요';
+            updateLoginBtn();
+            return;
+        }
+
+        if (studentMap[val] !== undefined) {
+            verifiedName = studentMap[val];
+            idMsg.textContent = '명단 확인 완료';
+            idMsg.className = 'verify-msg ok';
+            nameEl.value = verifiedName;
+            nameEl.disabled = false;
+            nameMsg.textContent = `${verifiedName} 학생으로 확인되었습니다`;
+            nameMsg.className = 'verify-msg ok';
+        } else {
+            idMsg.textContent = '명단에 없는 학번입니다. 선생님께 문의하세요.';
+            idMsg.className = 'verify-msg err';
+            nameEl.disabled = true;
+        }
+        updateLoginBtn();
+    }
+
     function onNameInput(el) {
-        const val = el.value.trim();
+        const val     = el.value.trim();
         const nameMsg = document.getElementById('name-msg');
 
         if (!verifiedName) {
-            nameMsg.textContent = '';
             updateLoginBtn();
             return;
         }
@@ -536,7 +503,17 @@
     }
 
     function logout() {
-        currentUser = null;
+        // ★ 리스너 정리
+        if (lectureUnsub)    { lectureUnsub();    lectureUnsub    = null; }
+        if (submissionUnsub) { submissionUnsub(); submissionUnsub = null; }
+        // RTDB는 로그아웃해도 계속 써야 하므로 해제하지 않음 (학번 검증에 필요)
+
+        currentUser      = null;
+        activeLectures   = [];
+        allSubmissions   = [];
+        lecturesReady    = false;
+        submissionsReady = false;
+
         localStorage.removeItem('sc_user');
         ['student-id','student-name','verify-phrase'].forEach(i => document.getElementById(i).value = '');
         document.getElementById('student-name').disabled = true;
@@ -555,47 +532,43 @@
     }
 
     /* ════════════════════════════════════════
-       데이터 초기 로드
+       ★ 데이터 로드 — onSnapshot만 사용 (get 제거)
+       onSnapshot 첫 호출 시 즉시 현재 데이터를 전달하므로
+       get()을 앞에 따로 호출할 필요 없음
     ════════════════════════════════════════ */
-    let lectureUnsub    = null;
-    let submissionUnsub = null;
+    function initData() {
+        // 기존 리스너가 있으면 먼저 해제 (재로그인 시 중복 방지)
+        if (lectureUnsub)    { lectureUnsub();    lectureUnsub    = null; }
+        if (submissionUnsub) { submissionUnsub(); submissionUnsub = null; }
 
-    async function initData() {
-        try {
-            const snap = await db.collection("lectures").orderBy("createdAt","asc").get();
-            activeLectures = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-            lecturesReady  = true;
-            renderLectureList();
-            renderArchiveList();
-        } catch(e) {}
+        lecturesReady    = false;
+        submissionsReady = false;
 
-        try {
-            const snap = await db.collection("submissions").orderBy("createdAt","desc").get();
-            allSubmissions   = snap.docs.map(d => ({ subId: d.id, ...d.data() }));
-            submissionsReady = true;
-            renderLectureList();
-        } catch(e) {}
+        // ① 강의 onSnapshot
+        lectureUnsub = db.collection("lectures")
+            .orderBy("createdAt", "asc")
+            .onSnapshot(snap => {
+                activeLectures = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+                lecturesReady  = true;
+                renderLectureList();
+                renderArchiveList();
+            }, err => console.warn('lectures 리스너 오류:', err));
 
-        if (lectureUnsub) lectureUnsub();
-        lectureUnsub = db.collection("lectures").orderBy("createdAt","asc").onSnapshot(snap => {
-            activeLectures = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-            lecturesReady  = true;
-            renderLectureList();
-            renderArchiveList();
-        });
-
-        if (submissionUnsub) submissionUnsub();
-        submissionUnsub = db.collection("submissions").orderBy("createdAt","desc").onSnapshot(snap => {
-            allSubmissions   = snap.docs.map(d => ({ subId: d.id, ...d.data() }));
-            submissionsReady = true;
-            renderLectureList();
-        });
+        // ② 제출 onSnapshot
+        submissionUnsub = db.collection("submissions")
+            .orderBy("createdAt", "desc")
+            .onSnapshot(snap => {
+                allSubmissions   = snap.docs.map(d => ({ subId: d.id, ...d.data() }));
+                submissionsReady = true;
+                renderLectureList();
+            }, err => console.warn('submissions 리스너 오류:', err));
     }
 
     /* ════════════════════════════════════════
        페이지 로드 시 세션 복원
     ════════════════════════════════════════ */
-    window.addEventListener('load', async () => {
+    window.addEventListener('load', () => {
+        // ★ 학생 명단 즉시 시작 (onValue — 비동기 대기 불필요)
         loadStudentMap();
 
         const saved = localStorage.getItem('sc_user');
@@ -649,19 +622,19 @@
                 s => s.lectureDocId === lec.docId && s.id === currentUser.id
             );
             const btn = document.createElement('button');
-            btn.className = `lecture-list-btn${alreadySubmitted ? ' submitted' : ''}`;
+            btn.className = 'lecture-list-btn';
             btn.innerHTML = `
                 <span class="lec-icon">${alreadySubmitted ? '✅' : '📝'}</span>
                 <div>
                     <div>${lec.title}</div>
-                    <div class="lec-meta">${alreadySubmitted ? '✅ 답변 완료 — 수정하려면 클릭' : '답변 대기 중'}</div>
+                    <div class="lec-meta">${alreadySubmitted ? '제출 완료' : '답변 대기 중'}</div>
                 </div>`;
             btn.onclick = () => openWriting(lec);
             el.appendChild(btn);
         });
     }
 
-    /* ── 작성 화면 열기 ── */
+    /* ── 작성 화면 ── */
     function openWriting(lec) {
         currentLecture = lec;
         document.getElementById('writing-lecture-title').textContent = lec.title;
@@ -669,27 +642,10 @@
         const refEl = document.getElementById('writing-reference');
         if (lec.reference) { refEl.textContent = lec.reference; refEl.classList.remove('hidden'); }
         else { refEl.classList.add('hidden'); }
-
         document.getElementById('answer-text').value = '';
         document.getElementById('count-display').textContent = '0';
         cheatCount = 0;
         document.getElementById('cheat-warning').classList.add('hidden');
-
-        // 이전 제출 답변 배너 처리
-        const prevSub = allSubmissions.find(
-            s => s.lectureDocId === lec.docId && s.id === currentUser.id
-        );
-        const bannerEl   = document.getElementById('prev-answer-banner');
-        const bannerText = document.getElementById('prev-answer-text');
-        if (prevSub) {
-            bannerText.textContent = prevSub.text;
-            bannerEl.classList.remove('hidden');
-            document.getElementById('submit-btn').textContent = '다시 제출하기';
-        } else {
-            bannerEl.classList.add('hidden');
-            document.getElementById('submit-btn').textContent = '제출하기';
-        }
-
         startTime = Date.now();
         hide('area-lecture-list'); show('area-writing');
     }
@@ -708,9 +664,7 @@
         }
     });
 
-    /* ════════════════════════════════════════
-       제출 로직 (덮어쓰기 확인 포함)
-    ════════════════════════════════════════ */
+    /* ── 제출 ── */
     function submitAnswer() {
         const text = document.getElementById('answer-text').value.trim();
         if (!text) { alert("내용을 작성해주세요!"); return; }
@@ -729,74 +683,16 @@
             createdAt:    Date.now()
         };
 
-        // 이미 제출한 답변이 있는지 확인
-        const existingSub = allSubmissions.find(
-            s => s.lectureDocId === currentLecture.docId && s.id === currentUser.id
-        );
-
-        if (existingSub) {
-            // 기존 답변 있음 → 덮어쓰기 모달 표시
-            pendingNewSub = { newSub, existingSubId: existingSub.subId };
-            document.getElementById('modal-prev-text').textContent = existingSub.text;
-            show('overwrite-modal');
-        } else {
-            // 첫 제출
-            doAddSubmission(newSub);
-        }
-    }
-
-    function closeOverwriteModal() {
-        hide('overwrite-modal');
-        pendingNewSub = null;
-    }
-
-    function confirmOverwrite() {
-        if (!pendingNewSub) return;
-        hide('overwrite-modal');
-        doUpdateSubmission(pendingNewSub.existingSubId, pendingNewSub.newSub);
-        pendingNewSub = null;
-    }
-
-    /* 신규 제출 */
-    function doAddSubmission(newSub) {
         // 낙관적 업데이트
         allSubmissions = [{ subId: '__pending__', ...newSub }, ...allSubmissions];
         renderLectureList();
 
         db.collection("submissions").add(newSub)
-            .then(() => {
-                alert("제출이 완료되었습니다!");
-                cancelWriting();
-            })
+            .then(() => { alert("제출이 완료되었습니다!"); cancelWriting(); })
             .catch(() => {
                 allSubmissions = allSubmissions.filter(s => s.subId !== '__pending__');
                 renderLectureList();
                 alert("제출 중 오류가 발생했습니다. 다시 시도해주세요.");
-            });
-    }
-
-    /* 덮어쓰기 제출 (기존 문서 업데이트) */
-    function doUpdateSubmission(existingSubId, newSub) {
-        // 낙관적 업데이트: 로컬에서 기존 항목 교체
-        allSubmissions = allSubmissions.map(s =>
-            s.subId === existingSubId ? { ...s, ...newSub } : s
-        );
-        renderLectureList();
-
-        db.collection("submissions").doc(existingSubId).update({
-            text:       newSub.text,
-            textLength: newSub.textLength,
-            duration:   newSub.duration,
-            cheatCount: newSub.cheatCount,
-            createdAt:  newSub.createdAt,
-            verify:     newSub.verify,
-        })
-            .then(() => {
-                alert("답변이 수정되었습니다!");
-                cancelWriting();
-            })
-            .catch(() => {
-                alert("수정 중 오류가 발생했습니다. 다시 시도해주세요.");
             });
     }
 
