@@ -510,6 +510,28 @@
     const rtdb = firebase.database();
 
     /* ════════════════════════════════════════
+       ★ Firestore 연결 안정성 개선
+       1) auto-detect long-polling: WebChannel 핸드셰이크 실패 시 자동 폴백
+       2) 영속 캐시: 두 번째 접속부터 즉시 표시 + 백그라운드 동기화
+       ════════════════════════════════════════ */
+    try {
+        db.settings({
+            experimentalAutoDetectLongPolling: true,
+            merge: true
+        });
+    } catch(e) { console.warn('Firestore settings 적용 실패:', e); }
+
+    /* IndexedDB 영속 캐시 (실패해도 동작에는 지장 없음) */
+    db.enablePersistence({ synchronizeTabs: true })
+      .catch(err => {
+          if (err.code === 'failed-precondition') {
+              console.warn('다른 탭에서 이미 열려있어 캐시를 사용할 수 없습니다.');
+          } else if (err.code === 'unimplemented') {
+              console.warn('이 브라우저는 영속 캐시를 지원하지 않습니다.');
+          }
+      });
+
+    /* ════════════════════════════════════════
        상태
     ════════════════════════════════════════ */
     const SESSION_KEY  = 'sc_admin_session';
