@@ -297,6 +297,18 @@
     </div>
 </div>
 
+<!-- ★ 덮어쓰기 확인 모달 -->
+<div id="confirm-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;justify-content:center;align-items:flex-start;padding-top:80px;z-index:9999;backdrop-filter:blur(10px);overflow-y:auto;">
+    <div style="background:var(--bg-surface);padding:28px 24px;border-radius:16px;width:90%;max-width:420px;box-shadow:rgba(0,0,0,0.5) 0px 8px 24px;border:1px solid var(--border-gray);margin:auto;">
+        <h3 id="confirm-title" style="font-size:17px;font-weight:800;color:var(--brand-green);margin-bottom:14px;"></h3>
+        <p id="confirm-desc" style="font-size:14px;color:var(--text-muted);margin-bottom:22px;line-height:1.6;"></p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+            <button class="btn-outline btn-sm" onclick="closeConfirmModal()">취소</button>
+            <button class="btn-primary btn-sm" id="confirm-ok" style="width:auto;padding:10px 28px;">확인</button>
+        </div>
+    </div>
+</div>
+
 <script>
     /* ── Firebase 초기화 ── */
     const firebaseConfig = {
@@ -313,26 +325,16 @@
     const rtdb = firebase.database();
 
     /* ════════════════════════════════════════
-       ★ Firestore 연결 안정성 개선
-       모바일/학교 네트워크에서 WebChannel 핸드셰이크 실패로
-       강의 로딩이 멈추는 현상 방지
+       ★ Firestore 연결 안정성 — 모바일 최적화
+       1) long-polling 강제: 모바일 캐리어/학교망에서 WebChannel 차단 회피
+       2) 타임아웃 감시견(아래 startWatchdog): 7초 응답 없으면 자동 재연결
        ════════════════════════════════════════ */
     try {
         db.settings({
-            experimentalAutoDetectLongPolling: true,
+            experimentalForceLongPolling: true,
             merge: true
         });
     } catch(e) { console.warn('Firestore settings 적용 실패:', e); }
-
-    /* IndexedDB 영속 캐시 — 두 번째 접속부터 즉시 표시 */
-    db.enablePersistence({ synchronizeTabs: true })
-      .catch(err => {
-          if (err.code === 'failed-precondition') {
-              console.warn('다른 탭에서 이미 열려있어 캐시를 사용할 수 없습니다.');
-          } else if (err.code === 'unimplemented') {
-              console.warn('이 브라우저는 영속 캐시를 지원하지 않습니다.');
-          }
-      });
 
     /* ── 상태 ── */
     let activeLectures   = [];
@@ -532,37 +534,82 @@
     }
 
     /* ════════════════════════════════════════
-       ★ 데이터 로드 — onSnapshot만 사용 (get 제거)
-       onSnapshot 첫 호출 시 즉시 현재 데이터를 전달하므로
-       get()을 앞에 따로 호출할 필요 없음
+       ★ 데이터 로드 — onSnapshot + 타임아웃 감시견
+       7초 안에 데이터가 안 오면 자동 재연결 (모바일 hang 방지)
     ════════════════════════════════════════ */
+    let retryCount    = 0;
+    let watchdogTimer = null;
+
     function initData() {
-        // 기존 리스너가 있으면 먼저 해제 (재로그인 시 중복 방지)
         if (lectureUnsub)    { lectureUnsub();    lectureUnsub    = null; }
         if (submissionUnsub) { submissionUnsub(); submissionUnsub = null; }
+        if (watchdogTimer)   { clearTimeout(watchdogTimer); watchdogTimer = null; }
 
         lecturesReady    = false;
         submissionsReady = false;
 
-        // ① 강의 onSnapshot
+        let lecGot = false, subGot = false;
+
+        /* ★ 감시견: 7초 안에 응답 없으면 자동 재연결 */
+        const startWatchdog = () => {
+            if (watchdogTimer) clearTimeout(watchdogTimer);
+            watchdogTimer = setTimeout(() => {
+                if (!lecGot || !subGot) {
+                    retryCount++;
+                    console.warn(`[Firestore] 응답 지연 — 재연결 ${retryCount}회`);
+                    if (retryCount <= 3) {
+                        const el = document.getElementById('student-lecture-list');
+                        if (el && !lecGot) {
+                            el.innerHTML = `<div class="loading-msg"><div class="spinner"></div><span>연결 재시도 중… (${retryCount}/3)</span></div>`;
+                        }
+                        initData(); /* 재귀 재시도 */
+                    } else {
+                        const el = document.getElementById('student-lecture-list');
+                        if (el) {
+                            el.innerHTML = `<div class="empty-msg" style="color:var(--text-error);">
+                                ⚠️ 네트워크 연결이 불안정합니다<br>
+                                <span style="font-size:12px;">와이파이/데이터 상태를 확인해주세요.</span><br>
+                                <button class="btn-outline btn-sm" style="margin-top:14px;" onclick="retryCount=0; initData()">다시 시도</button>
+                            </div>`;
+                        }
+                    }
+                }
+            }, 7000);
+        };
+        startWatchdog();
+
+        /* ① 강의 */
         lectureUnsub = db.collection("lectures")
             .orderBy("createdAt", "asc")
             .onSnapshot(snap => {
+                lecGot = true;
+                retryCount = 0;
+                if (lecGot && subGot && watchdogTimer) { clearTimeout(watchdogTimer); watchdogTimer = null; }
                 activeLectures = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
                 lecturesReady  = true;
                 renderLectureList();
                 renderArchiveList();
-            }, err => console.warn('lectures 리스너 오류:', err));
+            }, err => console.warn('lectures 오류:', err));
 
-        // ② 제출 onSnapshot
+        /* ② 제출 */
         submissionUnsub = db.collection("submissions")
             .orderBy("createdAt", "desc")
             .onSnapshot(snap => {
+                subGot = true;
+                if (lecGot && subGot && watchdogTimer) { clearTimeout(watchdogTimer); watchdogTimer = null; }
                 allSubmissions   = snap.docs.map(d => ({ subId: d.id, ...d.data() }));
                 submissionsReady = true;
                 renderLectureList();
-            }, err => console.warn('submissions 리스너 오류:', err));
+            }, err => console.warn('submissions 오류:', err));
     }
+
+    /* ★ 페이지 가시성 변경 시 — 백그라운드에서 돌아오면 연결 체크 */
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && currentUser && (!lecturesReady || !submissionsReady)) {
+            console.log('포그라운드 복귀 — 데이터 재요청');
+            initData();
+        }
+    });
 
     /* ════════════════════════════════════════
        페이지 로드 시 세션 복원
@@ -604,7 +651,8 @@
         if (!currentUser) return;
         const el = document.getElementById('student-lecture-list');
 
-        if (!lecturesReady) {
+        /* ★ submissions까지 도착해야 정확한 "제출 완료" 표시 가능 */
+        if (!lecturesReady || !submissionsReady) {
             el.innerHTML = `<div class="loading-msg"><div class="spinner"></div><span>강의 목록 불러오는 중…</span></div>`;
             return;
         }
@@ -618,8 +666,10 @@
         }
 
         openLectures.forEach(lec => {
+            /* ★ 학번 비교 시 공백/형 변환 안전 처리 */
+            const myId = String(currentUser.id).trim();
             const alreadySubmitted = allSubmissions.some(
-                s => s.lectureDocId === lec.docId && s.id === currentUser.id
+                s => s.lectureDocId === lec.docId && String(s.id).trim() === myId
             );
             const btn = document.createElement('button');
             btn.className = 'lecture-list-btn';
@@ -627,7 +677,7 @@
                 <span class="lec-icon">${alreadySubmitted ? '✅' : '📝'}</span>
                 <div>
                     <div>${lec.title}</div>
-                    <div class="lec-meta">${alreadySubmitted ? '제출 완료' : '답변 대기 중'}</div>
+                    <div class="lec-meta">${alreadySubmitted ? '제출 완료 (다시 작성 시 덮어쓰기)' : '답변 대기 중'}</div>
                 </div>`;
             btn.onclick = () => openWriting(lec);
             el.appendChild(btn);
@@ -642,10 +692,32 @@
         const refEl = document.getElementById('writing-reference');
         if (lec.reference) { refEl.textContent = lec.reference; refEl.classList.remove('hidden'); }
         else { refEl.classList.add('hidden'); }
-        document.getElementById('answer-text').value = '';
-        document.getElementById('count-display').textContent = '0';
+
+        /* ★ 기존 제출 답변 있으면 미리 보여줌 (덮어쓰기 시 참고용) */
+        const myId = String(currentUser.id).trim();
+        const existing = allSubmissions.find(
+            s => s.lectureDocId === lec.docId && String(s.id).trim() === myId
+        );
+        if (existing) {
+            document.getElementById('answer-text').value = existing.text || '';
+            document.getElementById('count-display').textContent = (existing.text || '').replace(/\s/g,'').length;
+            /* 안내 메시지 표시 */
+            const warn = document.getElementById('cheat-warning');
+            warn.textContent = '⚠️ 이미 제출한 답변입니다. 수정 후 제출하면 덮어쓰기 됩니다.';
+            warn.style.color = '#f0a500';
+            warn.style.background = 'rgba(240,165,0,0.1)';
+            warn.classList.remove('hidden');
+        } else {
+            document.getElementById('answer-text').value = '';
+            document.getElementById('count-display').textContent = '0';
+            const warn = document.getElementById('cheat-warning');
+            warn.style.color = '';
+            warn.style.background = '';
+            warn.textContent = '⚠️ 다른 화면으로 이동한 기록이 있습니다. 직접 작성해주세요!';
+            warn.classList.add('hidden');
+        }
+
         cheatCount = 0;
-        document.getElementById('cheat-warning').classList.add('hidden');
         startTime = Date.now();
         hide('area-lecture-list'); show('area-writing');
     }
@@ -664,15 +736,45 @@
         }
     });
 
-    /* ── 제출 ── */
+    /* ── 확인 모달 ── */
+    function openConfirmModal(title, desc, onOk) {
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-desc').innerHTML = desc;
+        document.getElementById('confirm-ok').onclick = () => { closeConfirmModal(); onOk(); };
+        document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+    function closeConfirmModal() { document.getElementById('confirm-modal').classList.add('hidden'); }
+
+    /* ── 제출 (중복 제출 방지 — 기존 답변이 있으면 update로 덮어쓰기) ── */
     function submitAnswer() {
         const text = document.getElementById('answer-text').value.trim();
         if (!text) { alert("내용을 작성해주세요!"); return; }
 
-        const newSub = {
+        /* ★ 기존 제출 답변 확인 */
+        const myId = String(currentUser.id).trim();
+        const existing = allSubmissions.find(
+            s => s.lectureDocId === currentLecture.docId
+              && String(s.id).trim() === myId
+              && s.subId !== '__pending__'
+        );
+
+        if (existing) {
+            /* 이미 제출함 → 덮어쓰기 확인 */
+            openConfirmModal(
+                '⚠️ 덮어쓰기 확인',
+                `<b>${currentLecture.title}</b> 강의에 이미 답변을 제출하셨습니다.<br><br>새 답변으로 <span style="color:var(--text-error);font-weight:800;">덮어쓰기</span> 하시겠습니까?<br><span style="font-size:12px;">(기존 답변은 사라집니다)</span>`,
+                () => doSubmit(text, existing.subId)
+            );
+        } else {
+            doSubmit(text, null);
+        }
+    }
+
+    function doSubmit(text, existingSubId) {
+        const subData = {
             lectureDocId: currentLecture.docId,
             lectureTitle: currentLecture.title,
-            id:           currentUser.id,
+            id:           String(currentUser.id).trim(),
             name:         currentUser.name,
             verify:       currentUser.verify,
             text,
@@ -683,17 +785,24 @@
             createdAt:    Date.now()
         };
 
-        // 낙관적 업데이트
-        allSubmissions = [{ subId: '__pending__', ...newSub }, ...allSubmissions];
-        renderLectureList();
+        if (existingSubId) {
+            /* ★ 덮어쓰기 — update */
+            db.collection("submissions").doc(existingSubId).set(subData)
+                .then(() => { alert("답변이 수정되었습니다!"); cancelWriting(); })
+                .catch(() => alert("수정 중 오류가 발생했습니다. 다시 시도해주세요."));
+        } else {
+            /* 신규 — add (낙관적 업데이트) */
+            allSubmissions = [{ subId: '__pending__', ...subData }, ...allSubmissions];
+            renderLectureList();
 
-        db.collection("submissions").add(newSub)
-            .then(() => { alert("제출이 완료되었습니다!"); cancelWriting(); })
-            .catch(() => {
-                allSubmissions = allSubmissions.filter(s => s.subId !== '__pending__');
-                renderLectureList();
-                alert("제출 중 오류가 발생했습니다. 다시 시도해주세요.");
-            });
+            db.collection("submissions").add(subData)
+                .then(() => { alert("제출이 완료되었습니다!"); cancelWriting(); })
+                .catch(() => {
+                    allSubmissions = allSubmissions.filter(s => s.subId !== '__pending__');
+                    renderLectureList();
+                    alert("제출 중 오류가 발생했습니다. 다시 시도해주세요.");
+                });
+        }
     }
 
     /* ── 아카이브 ── */
