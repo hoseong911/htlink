@@ -58,7 +58,11 @@ table{width:100%;border-collapse:collapse;table-layout:auto}
 thead th{background:rgba(79,110,247,0.07);font-size:11px;font-weight:600;padding:6px 7px;border-bottom:.5px solid rgba(0,0,0,0.09);border-right:.5px solid rgba(0,0,0,0.06);text-align:center;white-space:nowrap;color:#555}
 thead th:last-child{border-right:none}
 thead th.h-topic{text-align:left}
-thead th.h-cls{width:86px}
+thead th.h-cls{width:96px}
+.cell-wrap{position:relative}
+.cell-more{position:absolute;right:-2px;top:50%;transform:translateY(-50%);width:16px;height:16px;border:none;background:rgba(0,0,0,0.06);border-radius:3px;font-size:11px;color:#888;cursor:pointer;opacity:0;transition:opacity .12s;padding:0;line-height:1;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.cell-wrap:hover .cell-more{opacity:1}
+.cell-more:hover{background:var(--accent);color:#fff}
 thead th.h-num{width:34px}
 thead th.h-type{width:48px}
 thead th.h-del{width:28px}
@@ -159,9 +163,9 @@ tbody tr.dragging{opacity:.35}
 .holiday-item button{font-size:11px;color:#dc2626;background:transparent;border:none;cursor:pointer;padding:2px 4px}
 
 /* type popup */
-.type-popup{position:fixed;background:#fff;border:.5px solid rgba(0,0,0,0.12);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.13);padding:.5rem;z-index:500;min-width:110px}
-.type-popup button{display:block;width:100%;text-align:left;padding:5px 10px;font-size:12px;border:none;background:transparent;cursor:pointer;border-radius:6px;font-family:inherit;color:#333}
-.type-popup button:hover{background:rgba(79,110,247,0.08)}
+.type-popup,.cell-menu{position:fixed;background:#fff;border:.5px solid rgba(0,0,0,0.12);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.13);padding:.5rem;z-index:500;min-width:160px}
+.type-popup button,.cell-menu button{display:block;width:100%;text-align:left;padding:5px 10px;font-size:12px;border:none;background:transparent;cursor:pointer;border-radius:6px;font-family:inherit;color:#333}
+.type-popup button:hover,.cell-menu button:hover{background:rgba(79,110,247,0.08)}
 
 /* modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.32);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:999;padding:1rem}
@@ -233,6 +237,7 @@ tbody tr.dragging{opacity:.35}
   "absences":{"history":{},"social":{}},
   "overrides":{"history":{},"social":{}},
   "extraHolidays":[],
+  "classOffsets":{"history":{"1":0,"2":0,"3":0,"4":0,"5":0,"6":0},"social":{"5":0,"6":0}},
   "schedules":{
     "1":{"days":[1,3],"periods":[5,3]},
     "2":{"days":[2,3],"periods":[2,5]},
@@ -295,6 +300,7 @@ function loadState(){
   if(!base.absences)base.absences={history:{},social:{}};
   if(!base.overrides)base.overrides={history:{},social:{}};
   if(!base.socialSchedules)base.socialSchedules={5:{days:[1,5],periods:[1,5]},6:{days:[4,5],periods:[4,2]}};
+  if(!base.classOffsets)base.classOffsets={history:{1:0,2:0,3:0,4:0,5:0,6:0},social:{5:0,6:0}};
   return base;
 }
 
@@ -313,7 +319,7 @@ function schedSave(){
         lessons:S.lessons,absences:S.absences,overrides:S.overrides,
         extraHolidays:S.extraHolidays,schedules:S.schedules,
         socialSchedules:S.socialSchedules,year:S.year,sem:S.sem,
-        holidays:S.holidays
+        holidays:S.holidays,classOffsets:S.classOffsets
       }));
       const b=document.getElementById('save-badge');
       if(b){b.textContent='저장됨 ✓';b.style.color='#16a34a';}
@@ -349,6 +355,49 @@ function setStatus(msg,st){
 function classesForSub(sub){return sub==='social'?CC_SOCIAL:CC_HISTORY;}
 function schedForSub(sub,cls){return sub==='social'?S.socialSchedules[cls]:S.schedules[cls];}
 
+function getEntry(sub,cls,idx){
+  // shiftPoints에 있는 인덱스마다 빈 칸이 들어감
+  // 예: shiftPoints=[3,7]이면 idx 3, 7은 빈 칸, 나머지는 차례로 매핑
+  const points=getShiftPoints(sub,cls);
+  // idx 이전에 있는 shift point 개수만큼 빼서 원본 인덱스 계산
+  let shiftCount=0;
+  for(const p of points){
+    if(p===idx)return null;  // 빈 칸
+    if(p<idx)shiftCount++;
+  }
+  const origIdx=idx-shiftCount;
+  const dates=S.classDates[sub]?.[cls]||[];
+  return dates[origIdx]||null;
+}
+
+function getShiftPoints(sub,cls){
+  const v=S.classOffsets?.[sub]?.[cls];
+  if(Array.isArray(v))return v.slice().sort((a,b)=>a-b);
+  if(typeof v==='number'&&v>0)return Array.from({length:v},(_,i)=>i);  // 마이그레이션
+  return [];
+}
+
+function addShiftPoint(sub,cls,fromIdx){
+  if(!S.classOffsets)S.classOffsets={};
+  if(!S.classOffsets[sub])S.classOffsets[sub]={};
+  const cur=getShiftPoints(sub,cls);
+  cur.push(fromIdx);
+  S.classOffsets[sub][cls]=cur.sort((a,b)=>a-b);
+}
+
+function removeShiftPoint(sub,cls,fromIdx){
+  if(!S.classOffsets?.[sub]?.[cls])return;
+  const cur=getShiftPoints(sub,cls);
+  // fromIdx 이상인 가장 가까운 shift point 제거
+  let removeAt=-1;
+  for(let i=0;i<cur.length;i++){
+    if(cur[i]>=fromIdx){removeAt=i;break;}
+  }
+  if(removeAt===-1&&cur.length>0)removeAt=cur.length-1;  // 없으면 마지막 거 제거
+  if(removeAt>=0)cur.splice(removeAt,1);
+  S.classOffsets[sub][cls]=cur;
+}
+
 function generateDates(sub,cls){
   const yr=parseInt(S.year||'2025');
   const start=S.sem===1?new Date(yr,2,1):new Date(yr,8,1);
@@ -381,7 +430,8 @@ function generateAll(){
 function maxLessons(sub){
   let mx=0;
   classesForSub(sub).forEach(c=>{
-    const n=(S.classDates[sub][c]||[]).length;
+    const points=getShiftPoints(sub,c);
+    const n=(S.classDates[sub][c]||[]).length+points.length;
     if(n>mx)mx=n;
   });
   return mx;
@@ -399,18 +449,24 @@ function initLessons(){
 function uid(){return Math.random().toString(36).slice(2,8);}
 
 function isTodayCol(sub,cls){
-  return(S.classDates[sub][cls]||[]).some((e,idx)=>{
+  const off=S.classOffsets?.[sub]?.[cls]||0;
+  const dates=S.classDates[sub]?.[cls]||[];
+  const totalLen=dates.length+off;
+  for(let idx=0;idx<totalLen;idx++){
+    const e=getEntry(sub,cls,idx);
+    if(!e)continue;
     const ov=(S.overrides[sub]||{})[`${cls}_${idx}`];
     const ds=ov?.date||e.date;
-    return ds===S.today&&!(S.absences[sub]||{})[`${cls}_${idx}`];
-  });
+    if(ds===S.today&&!(S.absences[sub]||{})[`${cls}_${idx}`])return true;
+  }
+  return false;
 }
 
 // per-cell done: this specific class's date for this lesson has passed
 function isCellDone(sub,cls,idx){
   const key=`${cls}_${idx}`;
   const ov=(S.overrides[sub]||{})[key];
-  const e=(S.classDates[sub][cls]||[])[idx];
+  const e=getEntry(sub,cls,idx);
   const ds=ov?.date||e?.date||'';
   const ab=(S.absences[sub]||{})[key];
   if(ab)return true; // 결강도 done으로
@@ -422,7 +478,7 @@ function isTodayRow(sub,idx){
   return classesForSub(sub).some(c=>{
     const key=`${c}_${idx}`;
     const ov=(S.overrides[sub]||{})[key];
-    const e=(S.classDates[sub][c]||[])[idx];
+    const e=getEntry(sub,c,idx);
     const ds=ov?.date||e?.date||'';
     const ab=(S.absences[sub]||{})[key];
     return !ab&&ds===S.today;
@@ -447,7 +503,8 @@ function render(sub){
   classes.forEach(c=>{
     const sc=schedForSub(sub,c);
     const tc=isTodayCol(sub,c)?'today-col':'';
-    h+=`<th class="h-cls ${tc}">${c}반<br><span style="font-weight:400;opacity:.6">${DAYS[sc.days[0]]}·${DAYS[sc.days[1]]}</span></th>`;
+    const shiftCount=getShiftPoints(sub,c).length;
+    h+=`<th class="h-cls ${tc}">${c}반${shiftCount?` <span style='color:var(--accent);font-size:10px;font-weight:400'>+${shiftCount}</span>`:''}<br><span style="font-weight:400;opacity:.6">${DAYS[sc.days[0]]}·${DAYS[sc.days[1]]}</span></th>`;
   });
   h+=`<th class="h-drag" style="width:24px"></th><th class="h-del" style="width:28px"></th></tr></thead><tbody>`;
 
@@ -473,7 +530,7 @@ function render(sub){
       const key=`${c}_${i}`;
       const ov=(S.overrides[sub]||{})[key];
       const absent=(S.absences[sub]||{})[key];
-      const entry=(S.classDates[sub][c]||[])[i];
+      const entry=getEntry(sub,c,i);
       const ds=ov?.date||entry?.date||'';
       const period=ov?.period??entry?.period??'';
       const isManual=!!ov&&ov.date!==(entry?.date||'');
@@ -487,10 +544,13 @@ function render(sub){
       else{dateDisp=dispDate(ds);dateCls=isManual?'manual':'';}
 
       h+=`<td class="h-cls-cell ${tc}">
-        <div class="cell-info${cellDone?' cell-done':''}" onclick="startEdit(this,'${sub}',${c},${i})" id="ci-${sub}-${c}-${i}">
-          ${isToday?'<span class="today-dot"></span>':''}
-          <span class="cell-date ${dateCls}">${dateDisp}</span>
-          ${!absent&&period?`<span class="cell-period">${period}교시</span>`:''}
+        <div class="cell-wrap">
+          <div class="cell-info${cellDone?' cell-done':''}" onclick="startEdit(this,'${sub}',${c},${i})" id="ci-${sub}-${c}-${i}">
+            ${isToday?'<span class="today-dot"></span>':''}
+            <span class="cell-date ${dateCls}">${dateDisp}</span>
+            ${!absent&&period?`<span class="cell-period">${period}교시</span>`:''}
+          </div>
+          <button class="cell-more" onclick="showCellMenu(event,'${sub}',${c},${i})" title="이 위치 미루기/당기기">⋯</button>
         </div>
         <div class="cell-edit" id="ce-${sub}-${c}-${i}">
           <div class="cell-edit-row">
@@ -794,18 +854,23 @@ async function fetchAll(){
     }
   }catch(e){}
   try{
-    // 반별로 나눠서 요청 (나이스 API 1000건 제한 우회)
+    // 월별로 나눠 요청 (반별X월별로 잘게 쪼개서 1000건 제한 회피)
     let rows=[];
+    const months=S.sem===1?['03','04','05','06','07','08']:['09','10','11','12','01','02'];
     for(let cls=1;cls<=6;cls++){
-      for(let page=1;page<=3;page++){
-        const r=await fetch(`https://open.neis.go.kr/hub/misTimetable?KEY=${key}&Type=json&pIndex=${page}&pSize=1000&ATPT_OFCDC_SC_CODE=${SCHOOL.atpt}&SD_SCHUL_CODE=${SCHOOL.code}&AY=${S.year}&SEM=${S.sem}&GRADE=${SCHOOL.grade}&CLASS_NM=${cls}`);
+      for(const m of months){
+        const yr=(S.sem===2&&['01','02'].includes(m))?(parseInt(S.year)+1):S.year;
+        const from=yr+m+'01';
+        const to=yr+m+'31';
+        const r=await fetch(`https://open.neis.go.kr/hub/misTimetable?KEY=${key}&Type=json&pIndex=1&pSize=1000&ATPT_OFCDC_SC_CODE=${SCHOOL.atpt}&SD_SCHUL_CODE=${SCHOOL.code}&AY=${S.year}&SEM=${S.sem}&GRADE=${SCHOOL.grade}&CLASS_NM=${cls}&ALL_TI_YMD>=${from}&ALL_TI_YMD<=${to}`);
         const d=await r.json();
-        if(!d.misTimetable)break;
-        const batch=d.misTimetable[1]?.row||[];
-        rows=rows.concat(batch);
-        if(batch.length<1000)break;
+        if(d.misTimetable){
+          const batch=d.misTimetable[1]?.row||[];
+          rows=rows.concat(batch);
+        }
       }
     }
+    console.log(`[시간표] 총 ${rows.length}건 수신`);
     if(rows.length>0){
       const skipDates={};
       rows.forEach(r=>{
@@ -830,14 +895,41 @@ async function fetchAll(){
           }
         }
       });
-      generateAll();
+      // API 데이터로 직접 수업 일정 구성 (요일 기반 생성 X)
+      // 반별로 그날 가르치는 과목 모음 → 역사/사회 수업한 날만 추출
+      const classDays={};  // {cls: [{date, period, subject}]}
+      rows.forEach(r=>{
+        const cls=parseInt(r.CLASS_NM);
+        const dateStr=r.ALL_TI_YMD||'';
+        const subj=(r.ITRT_CNTNT||'').trim();
+        const period=parseInt(r.PERIO)||0;
+        if(!cls||!dateStr||!subj||!period)return;
+        if(SKIP_SUBJ.some(s=>subj.includes(s)))return;  // 창체/휴업 스킵
+        if(!classDays[cls])classDays[cls]={};
+        if(!classDays[cls][dateStr])classDays[cls][dateStr]={};
+        classDays[cls][dateStr][period]=subj;
+      });
+
+      // 역사/사회 수업한 날만 classDates에 저장
       ['history','social'].forEach(sub=>{
+        const subjectName=sub==='history'?'역사':'사회';
         classesForSub(sub).forEach(c=>{
-          if(skipDates[c]&&S.classDates[sub][c]){
-            S.classDates[sub][c]=S.classDates[sub][c].filter(e=>!skipDates[c].has(e.date));
+          const dates=[];
+          if(classDays[c]){
+            Object.keys(classDays[c]).sort().forEach(dateStr=>{
+              const periods=classDays[c][dateStr];
+              for(const p in periods){
+                if(periods[p].includes(subjectName)){
+                  dates.push({date:dateStr,period:parseInt(p)});
+                  break;  // 같은 날 같은 과목이 여러 교시면 첫 교시만
+                }
+              }
+            });
           }
+          S.classDates[sub][c]=dates;
         });
       });
+      initLessons();
       ok++;
     }
   }catch(e){}
@@ -865,7 +957,7 @@ async function fetchAll(){
 function dataToSave(){
   return{lessons:S.lessons,absences:S.absences,overrides:S.overrides,
     extraHolidays:S.extraHolidays,schedules:S.schedules,socialSchedules:S.socialSchedules,
-    year:S.year,sem:S.sem,holidays:S.holidays};
+    year:S.year,sem:S.sem,holidays:S.holidays,classOffsets:S.classOffsets};
 }
 
 function showExport(){
@@ -1108,6 +1200,38 @@ async function showDebug(){
     }
   }catch(e){html=`<div style="font-size:11px;color:#dc2626">오류: ${e.message}</div>`;}
   el.innerHTML=html;
+}
+
+// ── shift from specific cell ──
+let currentCellMenu=null;
+function showCellMenu(e,sub,cls,idx){
+  e.stopPropagation();
+  closeCellMenu();
+  const menu=document.createElement('div');
+  menu.className='cell-menu';
+  const points=getShiftPoints(sub,cls);
+  const isShiftedHere=points.includes(idx);
+
+  const insertBtn=document.createElement('button');
+  insertBtn.innerHTML='⬇ 여기서부터 한 칸 미루기';
+  insertBtn.onclick=()=>{addShiftPoint(sub,cls,idx);closeCellMenu();schedSave();render(sub);};
+
+  const removeBtn=document.createElement('button');
+  removeBtn.innerHTML='⬆ 한 칸 당기기';
+  removeBtn.onclick=()=>{removeShiftPoint(sub,cls,idx);closeCellMenu();schedSave();render(sub);};
+
+  menu.appendChild(insertBtn);
+  if(points.length>0)menu.appendChild(removeBtn);
+
+  const rect=e.currentTarget.getBoundingClientRect();
+  menu.style.left=Math.min(rect.left,window.innerWidth-180)+'px';
+  menu.style.top=(rect.bottom+4)+'px';
+  document.body.appendChild(menu);
+  currentCellMenu=menu;
+  setTimeout(()=>document.addEventListener('click',closeCellMenu,{once:true}),0);
+}
+function closeCellMenu(){
+  if(currentCellMenu){currentCellMenu.remove();currentCellMenu=null;}
 }
 
 // ── init ──
