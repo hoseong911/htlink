@@ -798,20 +798,46 @@
                 renderPickTab();
             }, err => console.warn('submissions 오류:', err));
 
-        /* ③ RTDB 학생 명단 — 중복 등록 방지 */
+        /* ③ RTDB 학생 명단 — localStorage 캐시 + 비동기 업데이트
+           모바일 WebSocket 첫 연결이 느려서 인원수 '-' 표시되는 문제 해결 */
+
+        /* (1) localStorage 캐시 즉시 로드 — 첫 렌더부터 인원수 표시 */
+        try {
+            const cached = localStorage.getItem('sc_students_cache');
+            if (cached) {
+                const arr = JSON.parse(cached);
+                if (Array.isArray(arr) && arr.length) {
+                    allStudents  = arr;
+                    studentsReady = true;
+                    renderAnswerLecture();
+                    renderAnswerClass();
+                }
+            }
+        } catch(e) {}
+
+        /* (2) RTDB에서 최신 데이터 받아 캐시 갱신 */
         if (!studentsCallback) {
             studentsCallback = snap => {
                 const data = snap.val();
-                allStudents = [];
+                const newList = [];
                 if (data) {
                     Object.entries(data).forEach(([key, val]) => {
                         const sid   = String(val.studentId || key);
                         const sname = val.name || val.studentName || val.realName || '';
-                        if (sid && sname) allStudents.push({ studentId: sid, studentName: sname });
+                        if (sid && sname) newList.push({ studentId: sid, studentName: sname });
                     });
                 }
-                allStudents.sort((a,b) => a.studentId.localeCompare(b.studentId));
+                newList.sort((a,b) => a.studentId.localeCompare(b.studentId));
+                allStudents  = newList;
                 studentsReady = true;
+
+                /* localStorage 캐시 저장 */
+                try {
+                    localStorage.setItem('sc_students_cache', JSON.stringify(newList));
+                } catch(e) {}
+
+                renderAnswerLecture();
+                renderAnswerClass();
             };
             rtdb.ref('students').on('value', studentsCallback);
         }
