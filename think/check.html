@@ -355,24 +355,46 @@
     let studentsCallback = null; // ★ RTDB 콜백 보관
 
     /* ════════════════════════════════════════
-       ★ 학생 명단 로드 — onValue 한 번만 (get 제거)
-       onValue는 첫 호출 시 즉시 현재값을 줌
+       ★ 학생 명단 로드 — localStorage 캐시 + 비동기 업데이트
+       모바일 WebSocket 첫 연결 지연 문제 해결
+       (1) 캐시 즉시 사용 → 로그인 검증 0.01초
+       (2) 백그라운드에서 RTDB 최신값 받아 캐시 갱신
     ════════════════════════════════════════ */
     function loadStudentMap() {
-        if (studentsCallback) return; // 이미 등록됨 → 중복 방지
+        /* (1) localStorage 캐시 즉시 로드 */
+        try {
+            const cached = localStorage.getItem('sc_students_cache_map');
+            if (cached) {
+                const obj = JSON.parse(cached);
+                if (obj && typeof obj === 'object' && Object.keys(obj).length) {
+                    studentMap = obj;
+                    studentMapLoaded = true;
+                    updateLoginBtn();
+                }
+            }
+        } catch(e) {}
+
+        /* (2) RTDB에서 최신 데이터 받아 캐시 갱신 */
+        if (studentsCallback) return; // 중복 등록 방지
 
         studentsCallback = snap => {
             const data = snap.val();
-            studentMap = {};
+            const newMap = {};
             if (data) {
                 Object.values(data).forEach(s => {
                     const sid   = String(s.studentId || s.id || '');
                     const sname = s.name || s.studentName || s.realName || '';
-                    if (sid && sname) studentMap[sid] = sname;
+                    if (sid && sname) newMap[sid] = sname;
                 });
             }
+            studentMap = newMap;
             studentMapLoaded = true;
-            // 명단 로드 완료 후 로그인 버튼 상태 갱신
+
+            /* localStorage 캐시 저장 */
+            try {
+                localStorage.setItem('sc_students_cache_map', JSON.stringify(newMap));
+            } catch(e) {}
+
             updateLoginBtn();
         };
         rtdb.ref('students').on('value', studentsCallback);
