@@ -355,11 +355,12 @@
     let studentsCallback = null; // ★ RTDB 콜백 보관
 
     /* ════════════════════════════════════════
-       ★ 학생 명단 로드 — localStorage 캐시 + 비동기 업데이트
-       모바일 WebSocket 첫 연결 지연 문제 해결
-       (1) 캐시 즉시 사용 → 로그인 검증 0.01초
-       (2) 백그라운드에서 RTDB 최신값 받아 캐시 갱신
+       ★ 학생 명단 로드 — once + 캐시 + 5초 타임아웃 재시도
+       실시간 구독(on) 대신 1회 조회(once)로 변경
+       → WebSocket 지속 연결 불필요, 모바일에서 훨씬 빠름
     ════════════════════════════════════════ */
+    let studentsLoading = false;
+
     function loadStudentMap() {
         /* (1) localStorage 캐시 즉시 로드 */
         try {
@@ -374,30 +375,53 @@
             }
         } catch(e) {}
 
-        /* (2) RTDB에서 최신 데이터 받아 캐시 갱신 */
-        if (studentsCallback) return; // 중복 등록 방지
+        /* (2) once로 1회 조회 — 5초 타임아웃 + 자동 재시도 */
+        if (studentsLoading) return;
+        studentsLoading = true;
 
-        studentsCallback = snap => {
-            const data = snap.val();
-            const newMap = {};
-            if (data) {
-                Object.values(data).forEach(s => {
-                    const sid   = String(s.studentId || s.id || '');
-                    const sname = s.name || s.studentName || s.realName || '';
-                    if (sid && sname) newMap[sid] = sname;
+        let studentsRetry = 0;
+        const fetchStudents = () => {
+            let resolved = false;
+            const timeoutId = setTimeout(() => {
+                if (!resolved) {
+                    studentsRetry++;
+                    if (studentsRetry <= 3) {
+                        console.warn(`[RTDB students] 응답 지연 — 재시도 ${studentsRetry}회`);
+                        fetchStudents();
+                    } else {
+                        console.warn('[RTDB students] 3회 재시도 실패 — 캐시본 사용');
+                        studentsLoading = false;
+                    }
+                }
+            }, 5000);
+
+            rtdb.ref('students').once('value')
+                .then(snap => {
+                    resolved = true;
+                    clearTimeout(timeoutId);
+                    studentsLoading = false;
+                    const data = snap.val();
+                    const newMap = {};
+                    if (data) {
+                        Object.values(data).forEach(s => {
+                            const sid   = String(s.studentId || s.id || '');
+                            const sname = s.name || s.studentName || s.realName || '';
+                            if (sid && sname) newMap[sid] = sname;
+                        });
+                    }
+                    studentMap = newMap;
+                    studentMapLoaded = true;
+                    try { localStorage.setItem('sc_students_cache_map', JSON.stringify(newMap)); } catch(e) {}
+                    updateLoginBtn();
+                })
+                .catch(err => {
+                    resolved = true;
+                    clearTimeout(timeoutId);
+                    studentsLoading = false;
+                    console.warn('[RTDB students] 조회 실패:', err);
                 });
-            }
-            studentMap = newMap;
-            studentMapLoaded = true;
-
-            /* localStorage 캐시 저장 */
-            try {
-                localStorage.setItem('sc_students_cache_map', JSON.stringify(newMap));
-            } catch(e) {}
-
-            updateLoginBtn();
         };
-        rtdb.ref('students').on('value', studentsCallback);
+        fetchStudents();
     }
 
     /* ── 학번 입력 핸들러 ── */
