@@ -688,6 +688,7 @@
   const studentsRef  = ref(db, 'students');
   const settingsRef  = ref(db, 'goryeo_settings');
   const gradesRef    = ref(db, 'goryeo_grades'); // { [postId]: 'pass'|'fail' }
+  const aiCacheRef   = ref(db, 'goryeo_ai_cache'); // { [classNum]: [{postId, reason}] }
 
   const ADMIN_PW_HASH = "57765044de4726b8a55db8c3846a7b6a038a2beaff40c0cc5113744ad8b62694";
 
@@ -707,6 +708,7 @@
 
   // AI 분석 캐시 (반별): { [classNum]: [{postId, reason, ...}] }
   let aiReviewCache = {};
+  let aiReviewTimestamps = {}; // { [classNum]: timestamp }
   let aiAnalyzing   = false;
 
   /* ── SHA256 ── */
@@ -715,18 +717,126 @@
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
   }
 
+  /* ════════════════════════════════════════
+     세션 / UI 상태 저장
+  ════════════════════════════════════════ */
+  const SESSION_KEY  = 'blind_ryeo_admin_session';
+  const UI_STATE_KEY = 'blind_ryeo_admin_ui';
+
+  function saveSession()  { sessionStorage.setItem(SESSION_KEY, '1'); }
+  function clearSession() {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(UI_STATE_KEY);
+  }
+  function hasSession() { return sessionStorage.getItem(SESSION_KEY) === '1'; }
+
+  function saveUIState() {
+    const state = {
+      mainTab: getCurrentMainTab(),
+      feedFilter, feedSort, feedPickOnly,
+      classTab, classSort
+    };
+    try { sessionStorage.setItem(UI_STATE_KEY, JSON.stringify(state)); }
+    catch(e) {}
+  }
+  function loadUIState() {
+    try {
+      const r = sessionStorage.getItem(UI_STATE_KEY);
+      return r ? JSON.parse(r) : null;
+    } catch(e) { return null; }
+  }
+  function getCurrentMainTab() {
+    for (const n of ['feed','class','setting']) {
+      if (document.getElementById(`panel-${n}`).classList.contains('active')) return n;
+    }
+    return 'feed';
+  }
+
+  /* UI 상태를 화면에 적용 */
+  function applyUIState(state) {
+    if (!state) return;
+
+    // 메인 탭
+    if (state.mainTab) {
+      ['feed','class','setting'].forEach(n => {
+        document.getElementById(`panel-${n}`).classList.toggle('active', n === state.mainTab);
+      });
+      document.querySelectorAll('.main-tab').forEach((el, i) => {
+        const names = ['feed','class','setting'];
+        el.classList.toggle('active', names[i] === state.mainTab);
+      });
+    }
+
+    // FEED 필터/정렬/PICK
+    if (state.feedFilter) {
+      feedFilter = state.feedFilter;
+      document.querySelectorAll('#panel-feed .sub-tab').forEach(el => {
+        el.classList.toggle('active',
+          (el.textContent.trim() === '전체' && state.feedFilter === 'all') ||
+          (el.textContent.trim() === '중앙' && state.feedFilter === 'central') ||
+          (el.textContent.trim() === '지방' && state.feedFilter === 'local') ||
+          (el.textContent.trim() === '군사' && state.feedFilter === 'military') ||
+          (el.textContent.trim() === '교육' && state.feedFilter === 'edu')
+        );
+      });
+    }
+    if (state.feedSort) {
+      feedSort = state.feedSort;
+      document.getElementById('feedSortNewest').classList.toggle('active', feedSort === 'newest');
+      document.getElementById('feedSortPopular').classList.toggle('active', feedSort === 'popular');
+    }
+    if (state.feedPickOnly) {
+      feedPickOnly = true;
+      const btn = document.getElementById('feedPickBtn');
+      btn.style.background = '#fff8e1';
+      btn.style.color = '#b8860b';
+      btn.style.borderColor = '#ffe082';
+    }
+
+    // CLASS 반/정렬
+    if (state.classTab) {
+      classTab = state.classTab;
+      document.querySelectorAll('#classSubTabs .sub-tab').forEach((el, i) => {
+        el.classList.toggle('active', (i + 1) === classTab);
+      });
+    }
+    if (state.classSort) {
+      classSort = state.classSort;
+      document.getElementById('classSortNewest').classList.toggle('active', classSort === 'newest');
+      document.getElementById('classSortId').classList.toggle('active', classSort === 'id');
+    }
+  }
+
   /* ── 로그인 ── */
   window.tryLogin = async () => {
     const hash = await sha256(document.getElementById('adminPw').value);
     if (hash === ADMIN_PW_HASH) {
+      saveSession();
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('adminApp').style.display = 'block';
+      // UI 상태 복원
+      const saved = loadUIState();
+      if (saved) applyUIState(saved);
       startListeners();
     } else {
       document.getElementById('loginErr').style.display = 'block';
     }
   };
-  window.logoutAdmin = () => location.reload();
+  window.logoutAdmin = () => {
+    clearSession();
+    location.reload();
+  };
+
+  /* 페이지 로드 시 세션 있으면 자동 진입 */
+  window.addEventListener('load', () => {
+    if (hasSession()) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminApp').style.display = 'block';
+      const saved = loadUIState();
+      if (saved) applyUIState(saved);
+      startListeners();
+    }
+  });
 
   document.getElementById('adminPw').addEventListener('keydown', e => {
     if (e.key === 'Enter') window.tryLogin();
@@ -777,6 +887,25 @@
       claudeApiKey = data.claudeApiKey || '';
       updateApiKeyDisplay();
     });
+
+    // AI 채점 캐시 (Firebase 영구 저장)
+    onValue(aiCacheRef, snap => {
+      const data = snap.val() || {};
+      aiReviewCache = {};
+      aiReviewTimestamps = {};
+      Object.entries(data).forEach(([key, val]) => {
+        if (key.endsWith('_ts')) {
+          const cls = parseInt(key.replace('_ts',''), 10);
+          aiReviewTimestamps[cls] = val;
+        } else {
+          aiReviewCache[parseInt(key, 10)] = Array.isArray(val) ? val : [];
+        }
+      });
+      // 모달이 열려 있고 review 탭이면 다시 렌더링
+      if (document.getElementById('gradeModal').classList.contains('show') && gradeTabState === 'review') {
+        renderGradeModalBody();
+      }
+    });
   }
 
   function renderAll() {
@@ -791,6 +920,7 @@
     });
     document.querySelectorAll('.main-tab').forEach(el => el.classList.remove('active'));
     btn.classList.add('active');
+    saveUIState();
   };
 
   /* ════════ FEED 패널 ════════ */
@@ -798,12 +928,14 @@
     feedFilter = filter;
     document.querySelectorAll('#panel-feed .sub-tab').forEach(el => el.classList.remove('active'));
     btn.classList.add('active');
+    saveUIState();
     renderFeed();
   };
   window.setFeedSort = (sort) => {
     feedSort = sort;
     document.getElementById('feedSortNewest').classList.toggle('active', sort === 'newest');
     document.getElementById('feedSortPopular').classList.toggle('active', sort === 'popular');
+    saveUIState();
     renderFeed();
   };
   window.toggleFeedPick = () => {
@@ -812,6 +944,7 @@
     btn.style.background  = feedPickOnly ? '#fff8e1' : '#fff';
     btn.style.color       = feedPickOnly ? '#b8860b' : '';
     btn.style.borderColor = feedPickOnly ? '#ffe082' : '';
+    saveUIState();
     renderFeed();
   };
 
@@ -852,12 +985,14 @@
     classTab = num;
     document.querySelectorAll('#classSubTabs .sub-tab').forEach(el => el.classList.remove('active'));
     btn.classList.add('active');
+    saveUIState();
     renderClass();
   };
   window.setClassSort = (sort) => {
     classSort = sort;
     document.getElementById('classSortNewest').classList.toggle('active', sort === 'newest');
     document.getElementById('classSortId').classList.toggle('active', sort === 'id');
+    saveUIState();
     renderClass();
   };
 
@@ -1048,6 +1183,7 @@
       openConfirm('정말 삭제하시겠습니까?', '이 작업은 취소할 수 없습니다.', () => {
         remove(postsRef);
         remove(gradesRef);
+        remove(aiCacheRef);
       });
     });
   };
@@ -1298,9 +1434,12 @@
 
     body.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-        <span style="font-size:12px; color:var(--muted); font-weight:700;">
-          🤖 AI가 ${visible.length}건을 미흡 후보로 분류했습니다
-        </span>
+        <div>
+          <div style="font-size:12px; color:var(--muted); font-weight:700;">
+            🤖 AI가 ${visible.length}건을 미흡 후보로 분류했습니다
+          </div>
+          ${aiReviewTimestamps[classTab] ? `<div style="font-size:10px; color:var(--muted); margin-top:3px;">채점 시각: ${formatTime(aiReviewTimestamps[classTab])}</div>` : ''}
+        </div>
         <button class="btn-ai" style="padding:7px 14px; font-size:12px;" onclick="runAiReview()">🔄 재분석</button>
       </div>` +
       visible.map(item => {
@@ -1367,25 +1506,67 @@
     }));
 
     const prompt = `당신은 중학교 역사 수업의 보조 교사입니다.
-학생들은 "고려 시대 관료/군인/학생" 역할을 맡아 자신이 선택한 통치기구의 입장에서 익명 SNS 게시글을 작성하는 활동을 했습니다.
+학생들은 "고려 시대 관료/군인/학생" 역할을 맡아, 자신이 선택한 통치기구의 입장에서 익명 SNS 게시글을 작성하는 활동을 했습니다.
 
-각 게시글이 다음 세 기준을 만족하는지 판단하세요:
-1. **역할 일치**: 자신이 선택한 통치기구(기관)의 실제 역할/업무에 맞는 내용을 썼는가?
-   - 예: 어사대 → 감찰, 비리 적발 / 중추원 → 기밀, 군사 / 상서성 → 행정 실무 / 국자감 → 교육
-2. **시대 맥락**: 고려 시대 관료의 시각에 어울리는가? (현대 용어/현대인 시각이 노골적이면 감점)
-3. **성의**: 너무 짧거나, 의미 없는 반복("ㅋㅋㅋ", "aaa")이거나, 주제와 무관하지 않은가?
+# 교과서 기준 (고려 중앙·지방·군사·교육 제도)
 
-세 기준 중 하나라도 명백히 어긋나면 "미흡"으로 분류하세요.
-애매하면 "통과"로 두세요. (학생 입장에서 너그럽게 판단)
+## 중앙 정치 제도 (2성 6부, 성종 때 정비)
+- **중서문하성**: 국가 정책을 심의·결정
+- **상서성**: 6부를 두어 정책을 집행
+- **중추원**: 군사 기밀, 왕명 출납 담당
+- **어사대**: 관리의 비리 감찰
+- **삼사**: 국가 재정의 출납과 회계
+- **도병마사**: (중서문하성·중추원 고위 관료로 구성) 국방·군사 문제 논의
+- **식목도감**: (중서문하성·중추원 고위 관료로 구성) 제도와 시행 규칙 제정
 
-게시글 목록:
+## 지방 행정 제도 (경기·5도·양계)
+- **경기**: 수도 개경과 그 주변 지역
+- **5도**: 일반 행정 구역, **안찰사** 파견, 도 아래 주·군·현 설치
+- **양계**: 국경 지역, **병마사** 파견
+- **12목**: 성종 때 주요 지역에 설치하고 지방관 파견
+- **주현/속현**: 군·현은 지방관이 파견된 주현과 파견되지 않은 속현으로 구분, 속현이 더 많았음
+- **향·부곡·소**: 특수 행정 구역. 거주민은 군현민보다 세금 부담이 크고 차별받음
+- **향리**: 속현·특수 행정 구역의 실질적 행정 업무 담당
+
+## 군사 제도
+- **2군**: 중앙군. 왕 호위 임무
+- **6위**: 중앙군. 수도·국경 방어 및 치안
+- **주현군**: 5도의 군사·치안 업무, 여러 공사에 동원
+- **주진군**: 양계의 국경 방어
+
+## 교육 제도
+- **국자감**: 성종이 개경에 설치한 최고 교육 기관
+- **태조**: 개경·서경에 학교 설립
+- **지방**: 경학박사·의학박사 파견, 향교를 세워 유학 교육
+
+# 채점 기준 (세 가지 종합 판단)
+
+1. **역할 일치 (가장 중요)**: 학생이 선택한 기관의 실제 역할·업무에 맞는 내용인가?
+   - 예: 어사대를 골랐는데 군사 작전 얘기 → 미흡
+   - 예: 국자감을 골랐는데 세금 징수 얘기 → 미흡
+   - 예: 주진군을 골랐는데 개경 치안 얘기 → 미흡 (주진군은 양계 국경 방어)
+   - 예: 안찰사를 골랐는데 양계 얘기 → 미흡 (안찰사는 5도 담당)
+
+2. **시대 맥락**: 고려 시대 관료/군인/학생의 시각에 어울리는가?
+   - 현대 용어가 노골적이거나(예: 컴퓨터, 스마트폰, 회사 직급) 현대인의 시각이 강하면 감점
+   - 단, SNS 활동 특성상 "형들", "야근", "회의" 같은 친근한 표현은 허용
+
+3. **성의**: 너무 짧거나, 의미 없는 반복("ㅋㅋㅋ", "aaa", "asdf")이거나, 주제와 완전 무관한가?
+
+# 판정 규칙
+- 세 기준 중 하나라도 **명백히** 어긋나면 "미흡"으로 분류
+- 애매하거나 부분적으로 맞으면 "통과" (학생에게 너그럽게 판단)
+- 기관명이 교과서에 없는 기관이면 무리하게 미흡 처리하지 말 것
+
+# 게시글 목록
 ${JSON.stringify(postsForAi, null, 2)}
 
-응답은 반드시 아래 JSON 형식으로만, 다른 설명 없이 출력하세요.
-미흡으로 판단된 게시글만 배열에 포함합니다. 모두 통과면 빈 배열 [] 을 반환하세요.
+# 응답 형식
+반드시 아래 JSON 배열 형식으로만, 다른 설명 없이 출력하세요.
+미흡으로 판단된 게시글만 포함합니다. 모두 통과면 빈 배열 [] 을 반환하세요.
 
 [
-  {"postId": "게시글의 postId", "reason": "미흡 사유 (30자 이내 한국어)"}
+  {"postId": "게시글의 postId", "reason": "미흡 사유 (30자 이내 한국어, 어느 기준에 어긋났는지 구체적으로)"}
 ]`;
 
     try {
@@ -1420,9 +1601,20 @@ ${JSON.stringify(postsForAi, null, 2)}
       }
       const result = JSON.parse(clean);
 
-      aiReviewCache[classTab] = Array.isArray(result) ? result : [];
+      const resultArr = Array.isArray(result) ? result : [];
+      // 메모리 캐시 즉시 업데이트
+      aiReviewCache[classTab] = resultArr;
+      // Firebase에 영구 저장 (타임스탬프 포함)
+      try {
+        await update(aiCacheRef, {
+          [classTab]: resultArr,
+          [`${classTab}_ts`]: Date.now()
+        });
+      } catch(e) {
+        console.warn('AI 캐시 저장 실패:', e);
+      }
       aiAnalyzing = false;
-      showToast(`AI 채점 완료: ${aiReviewCache[classTab].length}건 미흡 후보`);
+      showToast(`AI 채점 완료: ${resultArr.length}건 미흡 후보`);
       renderGradeModalBody();
     } catch(e) {
       aiAnalyzing = false;
@@ -1481,6 +1673,16 @@ ${JSON.stringify(postsForAi, null, 2)}
   /* ── 유틸 ── */
   function esc(s) {
     const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+  }
+  function formatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const now = new Date();
+    const sameDay = d.toDateString() === now.toDateString();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    if (sameDay) return `오늘 ${hh}:${mm}`;
+    return `${d.getMonth()+1}.${d.getDate()}. ${hh}:${mm}`;
   }
 </script>
 </body>
