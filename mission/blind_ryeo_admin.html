@@ -123,18 +123,30 @@
     }
     .sort-btn.active { color: #fff; background: var(--accent); }
 
-    /* 통계 칩 */
+    /* ★ 통계 칩 — 3×2 그리드 */
     .stat-chips {
-      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
     }
     .stat-chip {
       background: #fff; border: 1px solid var(--border); border-radius: 10px;
-      padding: 12px 16px; text-align: center; min-width: 80px; flex: 1;
+      padding: 12px 8px; text-align: center;
     }
-    .stat-num { font-size: 22px; font-weight: 900; color: var(--accent); display: block; margin-bottom: 2px; }
+    .stat-chip-btn {
+      cursor: pointer; transition: 0.12s;
+    }
+    .stat-chip-btn:hover {
+      background: var(--surface); border-color: var(--accent);
+    }
+    .stat-num { font-size: 20px; font-weight: 900; color: var(--accent); display: block; margin-bottom: 2px; }
     .stat-num.red { color: var(--danger); }
     .stat-num.yellow { color: #f0a500; }
-    .stat-lbl { font-size: 11px; color: var(--muted); }
+    .stat-num.green { color: var(--ok); }
+    .stat-num.gray { color: var(--muted); }
+    .stat-num.emoji { font-size: 18px; line-height: 1.4; }
+    .stat-lbl { font-size: 10px; color: var(--muted); white-space: nowrap; }
 
     /* 반 선택 */
     .class-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -147,7 +159,7 @@
     .class-chip:hover { border-color: var(--accent); color: var(--accent); }
     .class-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    /* ── 게시글 카드 (웹앱과 동일한 디자인) ── */
+    /* ── 게시글 카드 ── */
     .post-card {
       background: #fff; margin-bottom: 1px; padding: 16px 16px 12px;
       border-bottom: 1px solid var(--border);
@@ -171,6 +183,14 @@
     .cat-dot.military { background: #e24a4a; }
     .cat-dot.edu      { background: #9b4ae2; }
     .edited-tag { font-size: 10px; color: var(--muted); }
+
+    /* AI 판정 배지 */
+    .grade-badge {
+      font-size: 10px; font-weight: 800; border-radius: 4px;
+      padding: 2px 6px; margin-left: 2px;
+    }
+    .grade-badge.pass { background: #e8f9f3; color: #1a9a6a; border: 1px solid #b3eed4; }
+    .grade-badge.fail { background: #fff0f0; color: #c0392b; border: 1px solid #fcc; }
 
     .post-body {
       font-size: 14px; color: #444; line-height: 1.6; margin: 6px 0 10px;
@@ -205,7 +225,7 @@
     }
     .btn-del:hover { background: #ffe0e0; }
 
-    /* 카드 래퍼 (둥근 카드로 묶기) */
+    /* 카드 래퍼 */
     .feed-wrap {
       background: #fff; border: 1px solid var(--border); border-radius: 14px;
       overflow: hidden; margin-bottom: 16px;
@@ -266,6 +286,21 @@
     .btn-danger-outline:hover { background: rgba(255,71,87,0.08); }
     .btn-sm { padding: 7px 14px; font-size: 12px; }
 
+    /* AI 분석 버튼 */
+    .btn-ai {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: #fff; padding: 11px 22px; border-radius: 500px;
+      font-size: 13px; font-weight: 800; border: none; cursor: pointer;
+      font-family: 'Pretendard', sans-serif;
+      transition: 0.15s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-ai:hover { opacity: 0.88; transform: scale(1.02); }
+    .btn-ai:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .ai-status {
+      font-size: 12px; color: var(--muted); font-weight: 700;
+      margin-top: 10px; min-height: 18px;
+    }
+
     /* 위험 구역 */
     .danger-section {
       background: #fff5f5; border: 1px solid #fcc; border-radius: 14px;
@@ -292,16 +327,16 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* 활동 미흡 모달 */
+    /* 모달 공통 */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.5);
       z-index: 500; display: none; align-items: flex-end; justify-content: center;
     }
     .modal-overlay.show { display: flex; }
     .modal-sheet {
-      background: #fff; width: 100%; max-width: 480px;
+      background: #fff; width: 100%; max-width: 540px;
       border-radius: 16px 16px 0 0; padding: 0 0 40px;
-      max-height: 90vh; overflow-y: auto;
+      max-height: 92vh; overflow-y: auto;
     }
     .modal-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 16px auto 0; }
     .modal-header {
@@ -309,6 +344,9 @@
       padding: 16px 20px; border-bottom: 1px solid var(--border);
     }
     .modal-header h3 { font-size: 15px; font-weight: 800; }
+    .modal-header .header-sub {
+      font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 3px;
+    }
     .modal-close {
       background: none; border: none; cursor: pointer; font-size: 18px; color: var(--muted);
       padding: 4px 8px; font-family: 'Pretendard', sans-serif;
@@ -324,13 +362,66 @@
     .modal-tab:hover { color: var(--text); }
     .modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
     .modal-body { padding: 16px 20px; }
+
+    /* 칩 */
     .activity-chip {
       display: inline-block; padding: 5px 12px; border-radius: 500px;
       font-size: 12px; font-weight: 700; margin: 3px;
     }
     .chip-absent { background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.25); color: var(--danger); }
-    .chip-short  { background: rgba(240,165,0,0.1);  border: 1px solid rgba(240,165,0,0.3);  color: #c07000; }
+    .chip-pass { background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.3); color: var(--ok); }
     .chip-ok { color: var(--ok); font-size: 14px; font-weight: 700; padding: 16px 0; display: block; text-align: center; }
+
+    /* AI 리뷰 카드 (참고 코드 review-card 패턴) */
+    .review-card {
+      background: var(--surface); border-radius: 10px; padding: 14px 16px;
+      margin-bottom: 10px; border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .review-card-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px; gap: 8px; flex-wrap: wrap;
+    }
+    .review-card-name {
+      font-size: 14px; font-weight: 800; word-break: break-all;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .review-card-org {
+      font-size: 11px; color: var(--sub); font-weight: 700;
+      background: #fff; border: 1px solid var(--border); border-radius: 4px;
+      padding: 1px 6px;
+    }
+    .review-card-reason {
+      font-size: 11px; font-weight: 700; color: #7c3aed;
+      background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3);
+      padding: 3px 10px; border-radius: 500px; white-space: nowrap;
+    }
+    .review-card-text {
+      font-size: 13px; line-height: 1.65; color: var(--sub); margin-bottom: 10px;
+      word-break: break-word; overflow-wrap: anywhere;
+      background: #fff; padding: 8px 12px; border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .review-card-meta {
+      font-size: 11px; color: var(--muted); margin-bottom: 10px;
+      word-break: break-word; line-height: 1.5;
+    }
+
+    /* 통과/미흡 토글 */
+    .grade-toggle-wrap {
+      display: flex; align-items: center; gap: 0;
+      border: 1px solid var(--border); border-radius: 500px;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .grade-toggle-btn {
+      background: #fff; color: var(--muted);
+      padding: 6px 14px; font-size: 12px; font-weight: 800;
+      cursor: pointer; transition: all 0.15s; border: none;
+      font-family: 'Pretendard', sans-serif;
+    }
+    .grade-toggle-btn.pass.active { background: var(--ok); color: #fff; }
+    .grade-toggle-btn.fail.active { background: var(--danger); color: #fff; }
+    .grade-toggle-btn:hover:not(.active) { color: var(--text); }
 
     /* 일반 확인 모달 */
     .confirm-overlay {
@@ -349,7 +440,7 @@
     .btn-gray:hover { border-color: var(--border-dark); }
 
     /* pw 메시지 */
-    #pwMsg { font-size: 13px; font-weight: 700; margin-top: 10px; min-height: 20px; }
+    #pwMsg, #apiKeyMsg { font-size: 13px; font-weight: 700; margin-top: 10px; min-height: 20px; }
   </style>
 </head>
 <body>
@@ -434,19 +525,17 @@
 
     <div class="content">
 
-      <!-- 통계 칩 -->
+      <!-- ★ 통계 칩 — 3×2 그리드 -->
       <div class="stat-chips" id="classStats">
         <div class="stat-chip"><span class="stat-num" id="stTotal">-</span><div class="stat-lbl">총 인원</div></div>
         <div class="stat-chip"><span class="stat-num" id="stSubmit">-</span><div class="stat-lbl">제출</div></div>
         <div class="stat-chip"><span class="stat-num red" id="stMissing">-</span><div class="stat-lbl">미제출</div></div>
-      </div>
-
-      <!-- 활동 미흡 버튼 -->
-      <div style="text-align:right; margin-bottom:12px;">
-        <button class="btn btn-sm" onclick="openActivityModal()"
-          style="background:var(--surface); border:1px solid var(--border); color:var(--sub);">
-          📋 미제출 명단
-        </button>
+        <div class="stat-chip"><span class="stat-num green" id="stPass">-</span><div class="stat-lbl">통과</div></div>
+        <div class="stat-chip"><span class="stat-num yellow" id="stFail">-</span><div class="stat-lbl">미흡</div></div>
+        <div class="stat-chip stat-chip-btn" onclick="openGradeModalWithLoad()">
+          <span class="stat-num emoji">📋</span>
+          <div class="stat-lbl">미흡 명단</div>
+        </div>
       </div>
 
       <!-- 정렬 -->
@@ -497,8 +586,26 @@
           <button class="btn btn-primary btn-sm" onclick="exportCSV()">다운로드</button>
         </div>
         <div style="font-size:11px; color:var(--muted); line-height:1.7;">
-          포함 항목: 학번 · 이름 · 닉네임 · 기관명 · 기관유형 · 게시글 내용 · 좋아요 수 · 작성시간 · PICK 여부
+          포함 항목: 학번 · 이름 · 닉네임 · 기관명 · 기관유형 · 게시글 내용 · 좋아요 수 · 작성시간 · PICK 여부 · AI 채점
         </div>
+      </div>
+
+      <!-- ★ Claude API 키 -->
+      <div class="setting-section">
+        <h3>🤖 Claude API 키</h3>
+        <p>AI 채점 기능을 사용하려면 Anthropic API 키가 필요합니다. Firebase에 저장되어 모든 관리자가 공유합니다.</p>
+        <div class="form-group">
+          <label class="form-label">현재 등록된 키</label>
+          <div id="apiKeyDisplay" style="font-size:13px; color:var(--sub); padding:8px 12px; background:var(--surface); border-radius:6px; font-family:monospace;">로드 중…</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">새 API 키 입력</label>
+          <input type="password" class="form-input" id="newApiKey" placeholder="sk-ant-...">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveApiKey()">키 저장</button>
+        <button class="btn btn-sm" style="background:var(--surface); border:1px solid var(--border); color:var(--sub); margin-left:6px;"
+          onclick="deleteApiKey()">키 삭제</button>
+        <div id="apiKeyMsg"></div>
       </div>
 
       <!-- 비밀번호 변경 -->
@@ -529,19 +636,22 @@
 
 </div>
 
-<!-- ── 활동 미흡 모달 ── -->
-<div class="modal-overlay" id="activityModal">
+<!-- ── 채점 결과 모달 ── -->
+<div class="modal-overlay" id="gradeModal">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-header">
-      <h3>활동 현황</h3>
-      <button class="modal-close" onclick="closeActivityModal()">✕</button>
+      <div>
+        <h3>📊 채점 결과</h3>
+        <div class="header-sub" id="gradeSummaryText"></div>
+      </div>
+      <button class="modal-close" onclick="closeGradeModal()">✕</button>
     </div>
     <div class="modal-tabs">
-      <button class="modal-tab active" onclick="switchActivityTab('absent', this)">⚠️ 미제출</button>
-      <button class="modal-tab" onclick="switchActivityTab('submitted', this)">✅ 제출</button>
+      <button class="modal-tab active" onclick="switchGradeTab('absent', this)">⚠️ 미제출</button>
+      <button class="modal-tab" onclick="switchGradeTab('review', this)">🤖 미흡 후보</button>
     </div>
-    <div class="modal-body" id="activityModalBody"></div>
+    <div class="modal-body" id="gradeModalBody"></div>
   </div>
 </div>
 
@@ -574,22 +684,30 @@
 
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
-  const postsRef    = ref(db, 'goryeo_v2');
-  const studentsRef = ref(db, 'students');
+  const postsRef     = ref(db, 'goryeo_v2');
+  const studentsRef  = ref(db, 'students');
+  const settingsRef  = ref(db, 'goryeo_settings');
+  const gradesRef    = ref(db, 'goryeo_grades'); // { [postId]: 'pass'|'fail' }
 
   const ADMIN_PW_HASH = "57765044de4726b8a55db8c3846a7b6a038a2beaff40c0cc5113744ad8b62694";
 
   /* ── 상태 ── */
   let allPosts    = [];
-  let studentMap  = {}; // studentId → name
-  let studentList = []; // [{studentId, name}]
+  let studentMap  = {};
+  let studentList = [];
+  let allGrades   = {}; // { postId: 'pass'|'fail' }
+  let claudeApiKey = '';
 
   let feedFilter    = 'all';
   let feedSort      = 'newest';
   let feedPickOnly  = false;
   let classTab      = 1;
-  let classSort     = 'newest'; // 'newest' | 'id'
-  let activityTabState = 'absent';
+  let classSort     = 'newest';
+  let gradeTabState = 'absent';
+
+  // AI 분석 캐시 (반별): { [classNum]: [{postId, reason, ...}] }
+  let aiReviewCache = {};
+  let aiAnalyzing   = false;
 
   /* ── SHA256 ── */
   async function sha256(str) {
@@ -642,6 +760,23 @@
       renderAll();
       window.updateExportPreview();
     });
+
+    // 채점 결과
+    onValue(gradesRef, snap => {
+      allGrades = snap.val() || {};
+      renderAll();
+      if (document.getElementById('gradeModal').classList.contains('show')) {
+        renderGradeModalBody();
+        updateGradeSummary();
+      }
+    });
+
+    // 설정 (API 키)
+    onValue(settingsRef, snap => {
+      const data = snap.val() || {};
+      claudeApiKey = data.claudeApiKey || '';
+      updateApiKeyDisplay();
+    });
   }
 
   function renderAll() {
@@ -649,7 +784,7 @@
     renderClass();
   }
 
-  /* ════════ MAIN 탭 전환 ════════ */
+  /* ════════ MAIN 탭 ════════ */
   window.showMain = (name, btn) => {
     ['feed','class','setting'].forEach(n => {
       document.getElementById(`panel-${n}`).classList.toggle('active', n === name);
@@ -733,37 +868,50 @@
   }
 
   function renderClass() {
-    // 해당 반 학생 목록
     const classStudents = studentList.filter(s => classNumFromId(s.studentId) === classTab);
-    // 해당 반 게시글 (더미 제외)
     const classPosts = allPosts.filter(p =>
       p.studentId !== '00000' && classNumFromId(p.studentId) === classTab
     );
     const submittedIds = new Set(classPosts.map(p => p.studentId));
 
     // 통계
-    const total   = classStudents.length || '-';
+    const total   = classStudents.length;
     const submit  = submittedIds.size;
-    const missing = classStudents.length ? classStudents.length - submittedIds.size : '-';
+    const missing = classStudents.length ? classStudents.length - submittedIds.size : 0;
 
-    document.getElementById('stTotal').textContent   = total;
+    // 통과/미흡 계산
+    // - 미흡: 채점 결과가 'fail'인 글의 학생 + 미제출자
+    // - 통과: 제출한 학생 중 fail이 아닌 학생
+    const failStudentIds = new Set();
+    // 미제출자는 자동 미흡
+    classStudents.forEach(s => {
+      if (!submittedIds.has(s.studentId)) failStudentIds.add(s.studentId);
+    });
+    // fail로 마킹된 게시글 작성자도 미흡
+    classPosts.forEach(p => {
+      if (allGrades[p.id] === 'fail') failStudentIds.add(p.studentId);
+    });
+    const failCount = failStudentIds.size;
+    const passCount = classStudents.length ? classStudents.length - failCount : 0;
+
+    document.getElementById('stTotal').textContent   = total || '-';
     document.getElementById('stSubmit').textContent  = submit;
-    document.getElementById('stMissing').textContent = missing;
+    document.getElementById('stMissing').textContent = total ? missing : '-';
+    document.getElementById('stPass').textContent    = total ? passCount : '-';
+    document.getElementById('stFail').textContent    = total ? failCount : '-';
 
-    // 저장 (활동 모달용)
+    // 모달용 저장
     window._classStudents = classStudents;
     window._submittedIds  = submittedIds;
     window._classPosts    = classPosts;
 
     // 정렬
-    let sorted;
     if (classSort === 'newest') {
-      sorted = [...classPosts].sort((a,b) =>
+      const sorted = [...classPosts].sort((a,b) =>
         (b.timestamp||0) - (a.timestamp||0) || b.id.localeCompare(a.id)
       );
       renderClassFeed(sorted);
     } else {
-      // 학번순: 학생 순서 기준으로 묶기
       renderClassByStudent(classPosts, classStudents);
     }
   }
@@ -782,18 +930,15 @@
   function renderClassByStudent(classPosts, classStudents) {
     const container = document.getElementById('classList');
 
-    // 학번 → 게시글 매핑
     const postsByStudent = {};
     classPosts.forEach(p => {
       if (!postsByStudent[p.studentId]) postsByStudent[p.studentId] = [];
       postsByStudent[p.studentId].push(p);
     });
-    // 각 학생의 게시글은 시간 오름차순 (먼저 쓴 것이 위)
     Object.values(postsByStudent).forEach(arr =>
       arr.sort((a,b) => (a.timestamp||0) - (b.timestamp||0) || a.id.localeCompare(b.id))
     );
 
-    // 학생이 명단에 없어도 게시글이 있으면 표시
     const allStudentIds = new Set([
       ...classStudents.map(s => s.studentId),
       ...classPosts.map(p => p.studentId)
@@ -830,6 +975,7 @@
     const sid     = post.studentId || '';
     const name    = studentMap[sid] || post.realName || '';
     const catClass = org?.cat || '';
+    const grade   = allGrades[post.id];
 
     const pickBtn = `<button class="btn-pick${post.adminPick?' picked':''}"
       onclick="togglePick('${post.id}', ${!!post.adminPick}, '${esc(post.content||'').replace(/'/g,"\\'")}', '${esc(post.nickname||'')}')">
@@ -841,6 +987,12 @@
       ? `<span class="post-identity">${esc(sid)} ${esc(name)}</span>`
       : '';
 
+    const gradeBadge = grade === 'pass'
+      ? `<span class="grade-badge pass">✓ 통과</span>`
+      : grade === 'fail'
+        ? `<span class="grade-badge fail">✕ 미흡</span>`
+        : '';
+
     return `
       <div class="post-card">
         <div class="post-top">
@@ -849,6 +1001,7 @@
           <span class="post-org">${esc(org?.name||'')}</span>
           <span class="post-nick">${esc(post.nickname||'')}</span>
           ${identityBadge}
+          ${gradeBadge}
           ${post.edited ? '<span class="edited-tag">수정됨</span>' : ''}
           <span class="post-time">${esc(post.time||'')}</span>
         </div>
@@ -886,12 +1039,15 @@
   window.deletePost = (id) => {
     openConfirm('게시글 삭제', '이 게시글을 삭제하시겠습니까?', () => {
       remove(ref(db, `goryeo_v2/${id}`));
+      // 채점 결과도 같이 삭제
+      remove(ref(db, `goryeo_grades/${id}`));
     });
   };
   window.resetAll = () => {
     openConfirm('⚠️ 전체 초기화', '전체 게시글을 삭제합니다. 되돌릴 수 없습니다.', () => {
       openConfirm('정말 삭제하시겠습니까?', '이 작업은 취소할 수 없습니다.', () => {
         remove(postsRef);
+        remove(gradesRef);
       });
     });
   };
@@ -926,7 +1082,7 @@
     });
   };
 
-  /* ── 엑셀 내보내기 ── */
+  /* ── 엑셀 ── */
   const CAT_LABEL = { central:'중앙 기관', local:'지방 기관', military:'군사 기관', edu:'교육 기관' };
 
   window.updateExportPreview = () => {
@@ -943,7 +1099,6 @@
     if (cls !== 'all') {
       posts = posts.filter(p => classNumFromId(p.studentId) === parseInt(cls));
     }
-    // 학번순 정렬, 같은 학번이면 시간순
     posts.sort((a, b) => {
       const idCmp = (a.studentId||'').localeCompare(b.studentId||'');
       if (idCmp !== 0) return idCmp;
@@ -951,11 +1106,12 @@
     });
 
     const BOM = '\uFEFF';
-    const headers = ['학번','이름','닉네임','기관명','기관유형','게시글 내용','좋아요 수','작성시간','PICK'];
+    const headers = ['학번','이름','닉네임','기관명','기관유형','게시글 내용','좋아요 수','작성시간','PICK','AI 채점'];
     const rows = posts.map(p => {
       const name    = studentMap[p.studentId] || p.realName || '';
       const content = (p.content||'').replace(/"/g,'""').replace(/\r?\n/g,' ');
       const cat     = CAT_LABEL[p.org?.cat] || '';
+      const grade   = allGrades[p.id] === 'pass' ? '통과' : allGrades[p.id] === 'fail' ? '미흡' : '';
       return [
         p.studentId||'',
         name,
@@ -965,7 +1121,8 @@
         `"${content}"`,
         p.likes||0,
         p.time||'',
-        p.adminPick ? 'O' : 'X'
+        p.adminPick ? 'O' : 'X',
+        grade
       ].join(',');
     });
     const csv = BOM + headers.join(',') + '\n' + rows.join('\n');
@@ -983,6 +1140,307 @@
     showToast(`${posts.length}개 게시글 다운로드 완료`);
   };
 
+  /* ════════════════════════════════════════
+     API 키 저장 / 삭제 / 표시
+  ════════════════════════════════════════ */
+  function maskKey(k) {
+    if (!k) return '없음';
+    if (k.length <= 16) return k.slice(0, 6) + '***';
+    return k.slice(0, 10) + '...' + k.slice(-4);
+  }
+  function updateApiKeyDisplay() {
+    const el = document.getElementById('apiKeyDisplay');
+    if (el) el.textContent = claudeApiKey ? maskKey(claudeApiKey) : '없음';
+  }
+  window.saveApiKey = async () => {
+    const newKey = document.getElementById('newApiKey').value.trim();
+    const msgEl = document.getElementById('apiKeyMsg');
+    if (!newKey.startsWith('sk-ant-')) {
+      msgEl.style.color = 'var(--danger)';
+      msgEl.textContent = '❌ 올바른 형식이 아닙니다 (sk-ant-...)';
+      return;
+    }
+    try {
+      await update(settingsRef, { claudeApiKey: newKey });
+      msgEl.style.color = 'var(--ok)';
+      msgEl.textContent = '✅ API 키가 저장되었습니다.';
+      document.getElementById('newApiKey').value = '';
+    } catch(e) {
+      msgEl.style.color = 'var(--danger)';
+      msgEl.textContent = '❌ 저장 실패. 다시 시도해주세요.';
+    }
+  };
+  window.deleteApiKey = () => {
+    openConfirm('API 키 삭제', '저장된 Claude API 키를 삭제할까요?', async () => {
+      await update(settingsRef, { claudeApiKey: null });
+      const msgEl = document.getElementById('apiKeyMsg');
+      msgEl.style.color = 'var(--ok)';
+      msgEl.textContent = '✅ API 키가 삭제되었습니다.';
+    });
+  };
+
+  /* ════════════════════════════════════════
+     채점 모달
+  ════════════════════════════════════════ */
+  window.openGradeModalWithLoad = () => {
+    gradeTabState = 'absent';
+    document.querySelectorAll('#gradeModal .modal-tab').forEach((b, i) => {
+      b.classList.toggle('active', i === 0);
+    });
+    updateGradeSummary();
+    renderGradeModalBody();
+    document.getElementById('gradeModal').classList.add('show');
+  };
+  window.closeGradeModal = () => {
+    document.getElementById('gradeModal').classList.remove('show');
+  };
+  window.switchGradeTab = (tab, btn) => {
+    gradeTabState = tab;
+    document.querySelectorAll('#gradeModal .modal-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderGradeModalBody();
+  };
+
+  function updateGradeSummary() {
+    const students = window._classStudents || [];
+    const submitted = window._submittedIds || new Set();
+    const posts = window._classPosts || [];
+
+    const failIds = new Set();
+    students.forEach(s => { if (!submitted.has(s.studentId)) failIds.add(s.studentId); });
+    posts.forEach(p => { if (allGrades[p.id] === 'fail') failIds.add(p.studentId); });
+
+    const total = students.length;
+    const fail = failIds.size;
+    const pass = total - fail;
+    document.getElementById('gradeSummaryText').textContent =
+      `${classTab}반 · 통과 ${pass}명 / 미흡 ${fail}명 / 전체 ${total}명`;
+  }
+
+  function renderGradeModalBody() {
+    const body = document.getElementById('gradeModalBody');
+    const students = window._classStudents || [];
+    const submitted = window._submittedIds || new Set();
+    const posts = window._classPosts || [];
+
+    if (gradeTabState === 'absent') {
+      const absent = students.filter(s => !submitted.has(s.studentId));
+      if (!absent.length) {
+        body.innerHTML = '<span class="chip-ok">✅ 미제출자 없음!</span>';
+        return;
+      }
+      body.innerHTML = `
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px; line-height:1.5;">
+          미제출자는 자동으로 <strong style="color:var(--danger)">미흡</strong> 처리됩니다.
+        </p>` +
+        absent.map(s =>
+          `<span class="activity-chip chip-absent">${esc(s.studentId)} ${esc(s.name)}</span>`
+        ).join('');
+    } else if (gradeTabState === 'review') {
+      renderReviewTab(body, posts);
+    }
+  }
+
+  /* AI 분석 탭 */
+  function renderReviewTab(body, classPosts) {
+    const cached = aiReviewCache[classTab];
+
+    if (aiAnalyzing) {
+      body.innerHTML = `
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <span>AI가 채점 중입니다… (${classPosts.length}개 게시글 분석)</span>
+        </div>`;
+      return;
+    }
+
+    if (!cached) {
+      const hasKey = !!claudeApiKey;
+      const hasPosts = classPosts.length > 0;
+      body.innerHTML = `
+        <div style="text-align:center; padding:32px 16px;">
+          <p style="font-size:14px; color:var(--sub); margin-bottom:16px; line-height:1.7;">
+            AI가 게시글을 자동으로 채점합니다.<br>
+            <span style="font-size:12px; color:var(--muted);">
+              · 자신이 선택한 통치기구와 맞는 내용인지<br>
+              · 고려 시대 맥락에 맞는지<br>
+              · 성의 있게 작성했는지
+            </span>
+          </p>
+          ${!hasKey
+            ? '<p style="color:var(--danger); font-size:13px; margin-bottom:14px; font-weight:700;">⚠️ 먼저 SETTING에서 Claude API 키를 등록해주세요.</p>'
+            : !hasPosts
+              ? '<p style="color:var(--muted); font-size:13px; margin-bottom:14px;">채점할 게시글이 없습니다.</p>'
+              : ''
+          }
+          <button class="btn-ai" ${(hasKey && hasPosts) ? '' : 'disabled'} onclick="runAiReview()">
+            ✨ 채점하기
+          </button>
+          <div class="ai-status" id="aiStatusMsg"></div>
+        </div>`;
+      return;
+    }
+
+    // 분석 결과 표시
+    // cached에서 아직 'pass'로 마킹 안 된 것만 보여줌 (이미 통과 처리한 건 숨김)
+    const visible = cached.filter(item => allGrades[item.postId] !== 'pass');
+
+    if (!visible.length) {
+      body.innerHTML = `
+        <div style="text-align:center; padding:24px 16px;">
+          <span class="chip-ok">✅ 모든 학생이 통과 처리되었습니다!</span>
+          <div style="margin-top:14px;">
+            <button class="btn-ai" style="padding:8px 18px; font-size:12px;" onclick="runAiReview()">🔄 다시 채점</button>
+          </div>
+        </div>`;
+      return;
+    }
+
+    body.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+        <span style="font-size:12px; color:var(--muted); font-weight:700;">
+          🤖 AI가 ${visible.length}건을 미흡 후보로 분류했습니다
+        </span>
+        <button class="btn-ai" style="padding:7px 14px; font-size:12px;" onclick="runAiReview()">🔄 재분석</button>
+      </div>` +
+      visible.map(item => {
+        const post = classPosts.find(p => p.id === item.postId);
+        if (!post) return '';
+        const sid = post.studentId;
+        const name = studentMap[sid] || post.realName || '';
+        const grade = allGrades[item.postId];
+        const isPass = grade === 'pass';
+        // 기본값: AI가 미흡으로 분류했고, 아직 사용자가 결정 안 했으면 'fail' 활성
+        const isFailActive = !isPass; // pass가 아니면 fail이 활성 (미결정 상태도 fail로 표시)
+        return `
+          <div class="review-card">
+            <div class="review-card-top">
+              <span class="review-card-name">
+                ${esc(sid)} ${esc(name)}
+                <span class="review-card-org">${esc(post.org?.name||'')}</span>
+              </span>
+              <div class="grade-toggle-wrap">
+                <button class="grade-toggle-btn pass ${isPass ? 'active' : ''}"
+                  onclick="setGrade('${item.postId}', 'pass')">통과</button>
+                <button class="grade-toggle-btn fail ${isFailActive ? 'active' : ''}"
+                  onclick="setGrade('${item.postId}', 'fail')">미흡</button>
+              </div>
+            </div>
+            <div class="review-card-text">${esc(post.content||'')}</div>
+            <div class="review-card-meta">
+              <strong style="color:#7c3aed;">🤖 AI 판단:</strong> ${esc(item.reason||'')}
+            </div>
+          </div>`;
+      }).join('');
+  }
+
+  /* 채점 결과 저장 */
+  window.setGrade = async (postId, value) => {
+    const current = allGrades[postId];
+    if (current === value) {
+      // 같은 값 다시 누르면 해제
+      await update(gradesRef, { [postId]: null });
+    } else {
+      await update(gradesRef, { [postId]: value });
+    }
+  };
+
+  /* AI 분석 실행 */
+  window.runAiReview = async () => {
+    if (!claudeApiKey) {
+      alert('SETTING에서 Claude API 키를 먼저 등록해주세요.');
+      return;
+    }
+
+    const classPosts = window._classPosts || [];
+    if (!classPosts.length) return;
+
+    aiAnalyzing = true;
+    renderGradeModalBody();
+
+    // 채점에 필요한 정보만 추출
+    const postsForAi = classPosts.map(p => ({
+      postId: p.id,
+      org: p.org?.name || '',
+      orgCat: p.org?.cat || '',
+      content: p.content || ''
+    }));
+
+    const prompt = `당신은 중학교 역사 수업의 보조 교사입니다.
+학생들은 "고려 시대 관료/군인/학생" 역할을 맡아 자신이 선택한 통치기구의 입장에서 익명 SNS 게시글을 작성하는 활동을 했습니다.
+
+각 게시글이 다음 세 기준을 만족하는지 판단하세요:
+1. **역할 일치**: 자신이 선택한 통치기구(기관)의 실제 역할/업무에 맞는 내용을 썼는가?
+   - 예: 어사대 → 감찰, 비리 적발 / 중추원 → 기밀, 군사 / 상서성 → 행정 실무 / 국자감 → 교육
+2. **시대 맥락**: 고려 시대 관료의 시각에 어울리는가? (현대 용어/현대인 시각이 노골적이면 감점)
+3. **성의**: 너무 짧거나, 의미 없는 반복("ㅋㅋㅋ", "aaa")이거나, 주제와 무관하지 않은가?
+
+세 기준 중 하나라도 명백히 어긋나면 "미흡"으로 분류하세요.
+애매하면 "통과"로 두세요. (학생 입장에서 너그럽게 판단)
+
+게시글 목록:
+${JSON.stringify(postsForAi, null, 2)}
+
+응답은 반드시 아래 JSON 형식으로만, 다른 설명 없이 출력하세요.
+미흡으로 판단된 게시글만 배열에 포함합니다. 모두 통과면 빈 배열 [] 을 반환하세요.
+
+[
+  {"postId": "게시글의 postId", "reason": "미흡 사유 (30자 이내 한국어)"}
+]`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': claudeApiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 2048,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`API 오류 ${res.status}: ${errText.slice(0,100)}`);
+      }
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || '[]';
+      // JSON 추출 (마크다운 코드블록 제거)
+      let clean = raw.replace(/```json|```/g, '').trim();
+      // 첫 [ 부터 마지막 ] 까지 추출
+      const startIdx = clean.indexOf('[');
+      const endIdx = clean.lastIndexOf(']');
+      if (startIdx !== -1 && endIdx !== -1) {
+        clean = clean.slice(startIdx, endIdx + 1);
+      }
+      const result = JSON.parse(clean);
+
+      aiReviewCache[classTab] = Array.isArray(result) ? result : [];
+      aiAnalyzing = false;
+      showToast(`AI 채점 완료: ${aiReviewCache[classTab].length}건 미흡 후보`);
+      renderGradeModalBody();
+    } catch(e) {
+      aiAnalyzing = false;
+      console.error(e);
+      const body = document.getElementById('gradeModalBody');
+      body.innerHTML = `
+        <div style="text-align:center; padding:32px 16px;">
+          <p style="color:var(--danger); font-size:14px; margin-bottom:14px; font-weight:700;">
+            ❌ AI 분석 실패
+          </p>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:18px; line-height:1.6; word-break:break-all;">
+            ${esc(e.message || '알 수 없는 오류')}
+          </p>
+          <button class="btn-ai" onclick="runAiReview()">🔄 다시 시도</button>
+        </div>`;
+    }
+  };
+
   /* ── 비밀번호 변경 ── */
   window.changePassword = async () => {
     const p1 = document.getElementById('newPw1').value;
@@ -990,48 +1448,10 @@
     const msg = document.getElementById('pwMsg');
     if (p1.length < 6) { msg.style.color = 'var(--danger)'; msg.textContent = '❌ 6자 이상 입력해주세요.'; return; }
     if (p1 !== p2)     { msg.style.color = 'var(--danger)'; msg.textContent = '❌ 비밀번호가 일치하지 않습니다.'; return; }
-    // SHA256으로 업데이트 (실제 저장이 필요하다면 Firebase 경로 조정)
     msg.style.color = 'var(--ok)'; msg.textContent = '✅ 변경 완료 (현재 세션에만 적용됩니다)';
     document.getElementById('newPw1').value = '';
     document.getElementById('newPw2').value = '';
   };
-
-  /* ── 활동 미흡 모달 ── */
-  window.openActivityModal = () => {
-    activityTabState = 'absent';
-    document.querySelectorAll('.modal-tab').forEach((b,i) => b.classList.toggle('active', i === 0));
-    renderActivityModal();
-    document.getElementById('activityModal').classList.add('show');
-  };
-  window.closeActivityModal = () => {
-    document.getElementById('activityModal').classList.remove('show');
-  };
-  window.switchActivityTab = (tab, btn) => {
-    activityTabState = tab;
-    document.querySelectorAll('.modal-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderActivityModal();
-  };
-
-  function renderActivityModal() {
-    const body       = document.getElementById('activityModalBody');
-    const students   = window._classStudents  || [];
-    const submitted  = window._submittedIds   || new Set();
-
-    if (activityTabState === 'absent') {
-      const absent = students.filter(s => !submitted.has(s.studentId));
-      if (!absent.length) { body.innerHTML = '<span class="chip-ok">✅ 미제출자 없음!</span>'; return; }
-      body.innerHTML = absent.map(s =>
-        `<span class="activity-chip chip-absent">${esc(s.studentId)} ${esc(s.name)}</span>`
-      ).join('');
-    } else {
-      const sub = students.filter(s => submitted.has(s.studentId));
-      if (!sub.length) { body.innerHTML = '<span class="chip-ok" style="color:var(--muted);">제출자 없음</span>'; return; }
-      body.innerHTML = sub.map(s =>
-        `<span class="activity-chip" style="background:rgba(0,196,180,0.1); border:1px solid rgba(0,196,180,0.3); color:var(--accent);">${esc(s.studentId)} ${esc(s.name)}</span>`
-      ).join('');
-    }
-  }
 
   /* ── 확인 모달 ── */
   function openConfirm(title, desc, onOk) {
