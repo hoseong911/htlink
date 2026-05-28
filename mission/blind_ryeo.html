@@ -32,7 +32,6 @@
     .login-logo .logo-text { font-size: 2rem; font-weight: 800; color: var(--accent); letter-spacing: -0.03em; }
     .login-logo .logo-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-    /* 각 입력 칸 분리 — 근무기관 select와 동일한 스타일 적용 */
     .input-single {
       border: 1px solid var(--border-dark); border-radius: 10px;
       overflow: hidden; margin-bottom: 10px; background: #fff;
@@ -177,8 +176,16 @@
       display: flex; align-items: center; margin-bottom: 3px;
       gap: 6px; flex-wrap: wrap;
     }
-    .post-org { font-size: 12px; font-weight: 700; color: var(--text); }
-    .post-nick { font-size: 12px; color: var(--muted); }
+    /* ★ 닉네임이 먼저 — 부서와 동일한 폰트 굵기/크기 */
+    .post-nick {
+      font-size: 12px; font-weight: 700; color: var(--text);
+    }
+    /* ★ 부서는 박스 강조 — accent 컬러 테마 */
+    .post-org {
+      font-size: 12px; font-weight: 700; color: var(--accent);
+      background: #f0fffe; border: 1px solid #b2ede9; border-radius: 4px;
+      padding: 1px 7px;
+    }
     .post-time { font-size: 11px; color: var(--muted); margin-left: auto; }
     .cat-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .cat-dot.central  { background: #00c4b4; }
@@ -328,7 +335,6 @@
       <div class="logo-sub">고려 관료 익명 커뮤니티</div>
     </div>
 
-    <!-- 학번 / 이름 / 닉네임 — 각각 분리, 근무기관과 동일한 간격 -->
     <div class="input-single">
       <input type="text" id="joinId" placeholder="학번 (5자리)" maxlength="5"
         inputmode="numeric" autocomplete="off" oninput="onIdInput(this)">
@@ -390,7 +396,6 @@
   <header>
     <div class="header-top">
       <div class="header-logo">blind</div>
-      <!-- 닉네임만 표시 -->
       <button class="profile-btn" onclick="openProfileModal()">
         <span class="pb-nick" id="headerNick">...</span>
       </button>
@@ -510,6 +515,9 @@
   const toastRef    = ref(db, 'goryeo_v2_toast');
   const studentsRef = ref(db, 'students');
 
+  /* ★ 최소 글자 수 */
+  const MIN_LEN = 30;
+
   /* ── 욕설 필터 ── */
   const BAD_WORDS = [
     "씨발","시발","쉬발","씨바","시바","ㅅㅂ","ㅆㅂ",
@@ -585,7 +593,6 @@
     idVerifyTimer = setTimeout(async () => {
       await loadStudentMap();
 
-      // 명단이 없으면 형식만 확인
       if (Object.keys(studentMap).length === 0) {
         idStatus.textContent = '✅';
         nameInput.disabled = false;
@@ -777,7 +784,6 @@
     const feed = document.getElementById('feed');
     feed.innerHTML = '';
 
-    // 학번 00000 필터 제거 — 모든 글 표시
     let posts = allPostsCache.filter(p => p && p.id);
 
     if (showPickOnly) {
@@ -793,7 +799,6 @@
         b.id.localeCompare(a.id)
       );
     } else {
-      // timestamp 우선, 없으면 Firebase push key 순서
       posts.sort((a,b) =>
         (b.timestamp||0)-(a.timestamp||0) ||
         b.id.localeCompare(a.id)
@@ -828,15 +833,16 @@
         top.appendChild(dot);
       }
 
-      const orgEl = document.createElement('span');
-      orgEl.className = 'post-org';
-      orgEl.textContent = org?.name || '';
-
+      /* ★ 닉네임 먼저, 부서 다음 — 둘 다 동일한 굵기/크기, 부서는 박스 강조 */
       const nick = document.createElement('span');
       nick.className = 'post-nick';
       nick.textContent = post.nickname;
 
-      top.append(orgEl, nick);
+      const orgEl = document.createElement('span');
+      orgEl.className = 'post-org';
+      orgEl.textContent = org?.name || '';
+
+      top.append(nick, orgEl);
 
       if (post.edited) {
         const et = document.createElement('span');
@@ -891,8 +897,9 @@
     const content    = document.getElementById('postInput').value.trim();
     const trimmedLen = content.replace(/\s/g,'').length;
 
-    if (trimmedLen < 10) {
-      showToast(`공백 제외 10자 이상 작성해 주세요. (현재 ${trimmedLen}자)`);
+    /* ★ 30자 이상 검증 */
+    if (trimmedLen < MIN_LEN) {
+      showToast(`공백 제외 ${MIN_LEN}자 이상 작성해 주세요. (현재 ${trimmedLen}자)`);
       return;
     }
     if (containsBadWord(content)) {
@@ -937,7 +944,8 @@
     if (!editingPostId) return;
     const content    = document.getElementById('editPostContent').value.trim();
     const trimmedLen = content.replace(/\s/g,'').length;
-    if (trimmedLen < 10) { showToast(`공백 제외 10자 이상 작성해 주세요. (현재 ${trimmedLen}자)`); return; }
+    /* ★ 수정도 30자 이상 */
+    if (trimmedLen < MIN_LEN) { showToast(`공백 제외 ${MIN_LEN}자 이상 작성해 주세요. (현재 ${trimmedLen}자)`); return; }
     if (containsBadWord(content)) { showToast('부적절한 표현이 포함되어 있습니다.', true); return; }
 
     const snap = await get(ref(db, `goryeo_v2/${editingPostId}`));
